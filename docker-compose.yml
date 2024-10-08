@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  redmine:
+    image: redmine
+    restart: unless-stopped
+    ports:
+      - 8080:3000
+    volumes: 
+      - greenmine-files:/usr/src/redmine/files
+      - ./plugins:/usr/src/redmine/plugins
+      - ./configuration.yml:/usr/src/redmine/config/configuration.yml:rw
+    environment:
+      REDMINE_DB_MYSQL: db
+      REDMINE_DB_PASSWORD: redmine
+      REDMINE_SECRET_KEY_BASE: supersecretkey
+      REDMINE_PLUGINS_MIGRATE: "1"
+  vanilla:
+    image: redmine
+    restart: unless-stopped
+    ports:
+      - 8181:3000
+    volumes: 
+      - greenmine-files:/usr/src/redmine/files
+      - ./configuration.yml:/usr/src/redmine/config/configuration.yml:rw
+    environment:
+      REDMINE_DB_MYSQL: db
+      REDMINE_DB_PASSWORD: redmine
+      REDMINE_SECRET_KEY_BASE: supersecretkey
+      REDMINE_PLUGINS_MIGRATE: "1"
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: redmine
+      MYSQL_DATABASE: redmine
+    ports:
+      - 8866:3306
+
+volumes:
+  greenmine-files:
+    driver: local
