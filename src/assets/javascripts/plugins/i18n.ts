@@ -1,4 +1,4 @@
-import { createI18n } from 'vue-i18n'
+import { createI18n, useI18n } from 'vue-i18n'
 import * as messages from '@/locales'
 
 const getHtmlLocale = () => {
@@ -17,3 +17,5 @@ export const i18n = createI18n({
     legacy: false,
     messages,
 })
+
+export { useI18n }

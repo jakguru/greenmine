@@ -66,6 +66,13 @@ export default defineConfig(async () => {
     resolve: {
       alias: {
         "@": resolve(__dirname, "src"),
+        "vue-i18n": resolve(
+          __dirname,
+          "node_modules",
+          "vue-i18n",
+          "dist",
+          "vue-i18n.esm-bundler.js",
+        ),
       },
     },
     build: {

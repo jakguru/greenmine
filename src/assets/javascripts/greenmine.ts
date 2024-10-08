@@ -5,11 +5,12 @@ import "../stylesheets/glass.scss";
 import { createApp, h } from "vue";
 import { createPinia } from "pinia";
 import { router } from "@/assets/javascripts/plugins/router";
-import { i18n } from "@/assets/javascripts/plugins/i18n";
+import { i18n, useI18n } from "@/assets/javascripts/plugins/i18n";
 import VueMainBootstrap from "@jakguru/vueprint/plugins/main";
 import VueClientBootstrap from "@jakguru/vueprint/plugins/client";
 import * as VuetifyComponents from "vuetify/components";
 import * as VuetifyDirectives from "vuetify/directives";
+import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
 
 import GreenmineApp from "../../app.vue";
 
@@ -107,6 +108,9 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
       },
       components: VuetifyComponents,
       directives: VuetifyDirectives,
+      locale: {
+        adapter: createVueI18nAdapter({ i18n, useI18n }),
+      },
     },
   },
 };

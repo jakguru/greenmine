@@ -1,9 +1,12 @@
 import languages from "@/constants/languages";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/assets/javascripts/plugins/i18n";
 import { useLocale } from "vuetify";
 import { inject } from "vue";
 import type { LocalStorageService } from "@jakguru/vueprint";
 import type { WritableComputedRef, Ref } from "vue";
+import type * as messages from "@/locales";
+
+type Language = keyof typeof messages;
 
 export const asArray = Object.keys(languages).map((key) => languages[key]);
 
@@ -30,13 +33,23 @@ export const initializeLocale = (): void => {
   const ls = inject<LocalStorageService>("ls");
   let iso = locale.value;
   if (ls) {
-    iso = ls.get("locale") || locale.value || "en";
+    ls.promise.then(() => {
+      iso = ls.get("locale") || locale.value || "en";
+      const language = languages[iso];
+      if (!language) {
+        return;
+      }
+      locale.value = language.iso as Language;
+      //   setLocale(language.iso);
+      isRtl.value = language.rtl;
+    });
+  } else {
+    const language = languages[iso];
+    if (!language) {
+      return;
+    }
+    locale.value = language.iso as Language;
+    //   setLocale(language.iso);
+    isRtl.value = language.rtl;
   }
-  const language = languages[iso];
-  if (!language) {
-    return;
-  }
-  locale.value = language.iso;
-  //   setLocale(language.iso);
-  isRtl.value = language.rtl;
 };
