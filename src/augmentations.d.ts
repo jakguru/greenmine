@@ -1,6 +1,6 @@
 declare module "@jakguru/vueprint" {
   interface BusEventCallbackSignatures {
-    "theme:changed": (from?: string) => void;
+    "theme:changed": (current: string, from?: string) => void;
   }
 }
 export {};
