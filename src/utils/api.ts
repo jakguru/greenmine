@@ -8,6 +8,7 @@ export const redmineizeApi = (api?: ApiService) => {
     return;
   }
   api.defaults.withCredentials = true;
+  api.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
   api.interceptors.request.use(
     (config) => {
       if (

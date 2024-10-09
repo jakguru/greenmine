@@ -1,15 +1,38 @@
 <template>
   <v-app v-if="complete">
-    <v-system-bar app :color="systemBarColor">
-      <ThemeToggle class="ml-auto" />
-    </v-system-bar>
-    <v-app-bar app density="compact" extended color="primary">
+    <v-app-bar app density="compact" :color="systemBarColor">
       <template #default>
+        <v-menu>
+          <template #activator="{ props }">
+            <v-btn
+              icon="mdi-dots-grid"
+              density="compact"
+              v-bind="props"
+              class="ml-4"
+            />
+          </template>
+        </v-menu>
         <v-toolbar-title class="site-name">{{ appData.name }}</v-toolbar-title>
+        <v-toolbar-items>
+          <v-menu :close-on-content-click="false">
+            <template #activator="{ props }">
+              <v-btn icon="mdi-dots-vertical" v-bind="props" />
+            </template>
+            <v-list>
+              <v-list-item :title="$t('theme.base.colorScheme')">
+                <template #append>
+                  <ThemeToggle />
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </v-toolbar-items>
       </template>
     </v-app-bar>
     <v-main>
-      <router-view v-if="loaded" />
+      <router-view v-if="loaded" v-slot="{ Component }">
+        <component :is="Component" v-bind="routeData" />
+      </router-view>
       <v-overlay
         :model-value="overlay"
         class="align-center justify-center"
@@ -25,7 +48,7 @@
         ></v-progress-circular>
       </v-overlay>
     </v-main>
-    <v-footer app :color="systemBarColor" class="py-0">
+    <v-footer app :color="systemBarColor">
       <v-toolbar-items class="h-100 ml-auto">
         <v-btn
           icon
@@ -49,6 +72,7 @@ import { redmineizeApi } from "@/utils/api";
 import { appDebug, loadAppData, loadRouteData, AsyncAction } from "@/utils/app";
 import { ThemeToggle } from "@/components/theme";
 import { useRoute } from "vue-router";
+import { useRouteDataStore } from "@/stores/routeData";
 import type {
   LocalStorageService,
   ApiService,
@@ -112,7 +136,7 @@ export default defineComponent({
       () => mounted.value && booted.value && ready.value,
     );
     const systemBarColor = computed(() =>
-      theme.current.value.dark ? "primary-lighten-2" : "primary-darken-2",
+      theme.current.value.dark ? "primary-darken-2" : "primary-lighten-2",
     );
     redmineizeApi(api);
     const loaded = ref(false);
@@ -136,9 +160,12 @@ export default defineComponent({
         };
       }
     });
+    const routeDataStore = useRouteDataStore();
+    const routeData = computed(() => routeDataStore.data);
     const reloadRouteData = new AsyncAction(async () => {
       appDebug("Reloading route data");
-      await loadRouteData(route, api, toast);
+      const data = await loadRouteData(route, api, toast);
+      routeDataStore.set(data);
       appDebug("Route data reloaded");
     });
     onMounted(() => {
@@ -156,6 +183,7 @@ export default defineComponent({
       appData,
       routeDataLoading: reloadRouteData.loading,
       reloadRouteData: () => reloadRouteData.call(),
+      routeData,
     };
   },
 });

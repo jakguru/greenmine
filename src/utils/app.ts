@@ -71,8 +71,18 @@ export const loadRouteData = async (
       return false;
     }
     return false;
+  } else if (status < 200 || status >= 300) {
+    if (toast) {
+      toast.fire({
+        icon: "error",
+        title: i18n.global.t("errors.response.error.title", { status }),
+        text: i18n.global.t("errors.response.error.text", { status }),
+      });
+      return false;
+    }
+    return false;
   }
-  console.log({ status, headers, data });
+  return data;
 };
 
 export interface AsyncActionMethod<T = unknown> {

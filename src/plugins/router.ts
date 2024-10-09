@@ -1,6 +1,7 @@
 import { inject } from 'vue'
 import { createWebHistory, createRouter } from 'vue-router'
 import { loadRouteData } from '@/utils/app'
+import { useRouteDataStore } from '@/stores/routeData'
 import type { RouteRecordRaw } from 'vue-router'
 import type {
   ApiService,
@@ -13,8 +14,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    // component: () => import('@/pages/welcome/index.vue'),
-    component: fourOhFour,
+    component: () => import('@/pages/welcome/index.vue'),
   },
   {
     path: '/login',
@@ -244,9 +244,10 @@ export const router = createRouter({
 router.beforeEach( async (to) => {
   const api = inject<ApiService>("api");
   const toast = inject<ToastService>("toast");
-    const data = await loadRouteData(to, api, toast)
-    if ('boolean' === typeof data) {
-      return data
-    }
-    console.log(data)
+  const props = await loadRouteData(to, api, toast)
+  if ('boolean' === typeof props) {
+    return props
+  }
+  const store = useRouteDataStore()
+  store.set(props)
 })

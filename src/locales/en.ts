@@ -1,4 +1,20 @@
 export default {
+  labels: {
+    home: "Home",
+  },
+  theme: {
+    base: {
+      colorScheme: "Color Scheme",
+    },
+  },
+  errors: {
+    response: {
+      not_json: {
+        title: "Invalid Response",
+        text: "The server returned an invalid response",
+      },
+    },
+  },
   validation: {
     bad: "The value is not a valid {label}",
     notAFile: "Please select {label}",
