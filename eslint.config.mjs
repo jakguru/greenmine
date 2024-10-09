@@ -137,6 +137,9 @@ export default [
       "dev/**/*.ts",
       "dev/**/*.tsx",
       "dev/**/*.mts",
+      "bin/**/*.ts",
+      "bin/**/*.tsx",
+      "bin/**/*.mts",
     ],
   },
   {
@@ -159,6 +162,9 @@ export default [
       "dev/**/*.ts",
       "dev/**/*.tsx",
       "dev/**/*.mts",
+      "bin/**/*.ts",
+      "bin/**/*.tsx",
+      "bin/**/*.mts",
     ],
   },
   {
@@ -187,6 +193,9 @@ export default [
       "dev/**/*.ts",
       "dev/**/*.tsx",
       "dev/**/*.mts",
+      "bin/**/*.ts",
+      "bin/**/*.tsx",
+      "bin/**/*.mts",
     ],
   },
   {

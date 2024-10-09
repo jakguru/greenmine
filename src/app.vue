@@ -10,6 +10,8 @@
         :model-value="overlay"
         class="align-center justify-center"
         persistent
+        background-color="background"
+        background-opacity="1"
       >
         <v-progress-circular
           color="primary"

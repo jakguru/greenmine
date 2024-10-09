@@ -15,5 +15,7 @@
     "vite.config.mts",
     "dev/**/*.ts",
     "dev/**/*.mts",
+    "bin/**/*.ts",
+    "bin/**/*.mts",
   ]
 }

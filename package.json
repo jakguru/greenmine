@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "live": "vite",
-    "dev": "vite build --mode development --watch",
+    "dev": "npx jiti bin/dev",
     "build": "vite build --mode production",
     "preview": "vite preview"
   },
@@ -21,6 +21,7 @@
     "@types/qs": "^6.9.16",
     "@vitejs/plugin-vue": "^5.1.4",
     "ace-builds": "^1.36.2",
+    "cli-color": "^2.0.4",
     "eslint": "^9.11.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -29,7 +30,9 @@
     "execa": "^9.4.0",
     "highcharts": "^11.4.8",
     "highcharts-vue": "^2.0.1",
+    "jiti": "^2.3.3",
     "luxon": "^3.5.0",
+    "nodemon": "^3.1.7",
     "pinia": "^2.2.4",
     "prettier": "^3.3.3",
     "qs": "^6.13.0",
