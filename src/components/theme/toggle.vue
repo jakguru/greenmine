@@ -32,16 +32,19 @@ export default {
     const themeIsDark = computed({
       get: () => theme.global.name.value === "greenmine-dark",
       set: (val) => {
-        theme.global.name.value = val ? "greenmine-dark" : "greenmine-light";
-        if (ls) {
-          ls.set("theme", theme.global.name.value);
-        }
-        if (bus) {
-          bus.emit(
-            "theme:changed",
-            { crossTab: true },
-            theme.global.name.value,
-          );
+        const value = val ? "greenmine-dark" : "greenmine-light";
+        if (theme.global.name.value !== value) {
+          theme.global.name.value = value;
+          if (ls) {
+            ls.set("theme", theme.global.name.value);
+          }
+          if (bus) {
+            bus.emit(
+              "theme:changed",
+              { crossTab: true },
+              theme.global.name.value,
+            );
+          }
         }
       },
     });

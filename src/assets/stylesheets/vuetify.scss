@@ -1,0 +1,7 @@
+$heading-family: "InterVariable", "InterDisplay", sans-serif;
+$body-family: "InterVariable", "Inter", sans-serif;
+
+@use "vuetify/settings" with (
+    $heading-font-family: $heading-family,
+    $body-font-family: $body-family
+);

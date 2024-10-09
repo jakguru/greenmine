@@ -3,15 +3,20 @@
     <v-system-bar app :color="systemBarColor">
       <ThemeToggle class="ml-auto" />
     </v-system-bar>
-    <v-app-bar app color="primary"></v-app-bar>
+    <v-app-bar app density="compact" extended color="primary">
+      <template #default>
+        <v-toolbar-title class="site-name">{{ appData.name }}</v-toolbar-title>
+      </template>
+    </v-app-bar>
     <v-main>
       <router-view v-if="loaded" />
       <v-overlay
         :model-value="overlay"
         class="align-center justify-center"
         persistent
-        background-color="background"
-        background-opacity="1"
+        scrim="background"
+        opacity="1"
+        no-click-animation
       >
         <v-progress-circular
           color="primary"
@@ -20,22 +25,37 @@
         ></v-progress-circular>
       </v-overlay>
     </v-main>
+    <v-footer app :color="systemBarColor" class="py-0">
+      <v-toolbar-items class="h-100 ml-auto">
+        <v-btn
+          icon
+          :loading="routeDataLoading"
+          density="compact"
+          @click="reloadRouteData"
+        >
+          <v-icon size="18">mdi-refresh</v-icon>
+        </v-btn>
+      </v-toolbar-items>
+    </v-footer>
   </v-app>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, ref } from "vue";
+import { defineComponent, computed, inject, ref, onMounted } from "vue";
 import { useTheme } from "vuetify";
 import { useVueprint } from "@jakguru/vueprint/utilities";
-import { initializeLocale } from "@/assets/javascripts/utils/i18n";
-import { redmineizeApi } from "@/assets/javascripts/utils/api";
-import { appDebug, loadAppData } from "@/assets/javascripts/utils/app";
+import { initializeLocale } from "@/utils/i18n";
+import { redmineizeApi } from "@/utils/api";
+import { appDebug, loadAppData, loadRouteData, AsyncAction } from "@/utils/app";
 import { ThemeToggle } from "@/components/theme";
+import { useRoute } from "vue-router";
 import type {
   LocalStorageService,
   ApiService,
   BusService,
+  ToastService,
 } from "@jakguru/vueprint";
+import { i18n } from "@/plugins/i18n";
 
 export default defineComponent({
   name: "GreenmineApp",
@@ -44,9 +64,11 @@ export default defineComponent({
   },
   setup() {
     const theme = useTheme();
+    const route = useRoute();
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
     const bus = inject<BusService>("bus");
+    const toast = inject<ToastService>("toast");
     const onThemeChanged = (ct: string) => {
       if (theme && ct) {
         theme.global.name.value = ct;
@@ -95,17 +117,55 @@ export default defineComponent({
     redmineizeApi(api);
     const loaded = ref(false);
     const overlay = computed(() => !loaded.value);
-    loadAppData(ls, api)
-      .catch(() => {})
-      .finally(() => {
-        loaded.value = true;
-      });
+    const appData = computed(() => {
+      if (ls && ls.value) {
+        return ls.value.app;
+      } else {
+        return {
+          name: "Greenmine",
+          i18n: i18n.global.locale.value,
+          identity: {
+            authenticated: false,
+            identity: null,
+          },
+          settings: {
+            loginRequired: false,
+            gravatarEnabled: false,
+          },
+          fetchedAt: "",
+        };
+      }
+    });
+    const reloadRouteData = new AsyncAction(async () => {
+      appDebug("Reloading route data");
+      await loadRouteData(route, api, toast);
+      appDebug("Route data reloaded");
+    });
+    onMounted(() => {
+      loadAppData(ls, api)
+        .catch(() => {})
+        .finally(() => {
+          loaded.value = true;
+        });
+    });
     return {
       complete,
       systemBarColor,
       loaded,
       overlay,
+      appData,
+      routeDataLoading: reloadRouteData.loading,
+      reloadRouteData: () => reloadRouteData.call(),
     };
   },
 });
 </script>
+
+<style lang="scss">
+#greenmine-app {
+  .site-name {
+    font-size: 24px;
+    font-weight: 700;
+  }
+}
+</style>

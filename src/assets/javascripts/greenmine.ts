@@ -1,18 +1,16 @@
-import "@jakguru/vueprint/vueprint.css";
 import "../stylesheets/greenmine.scss";
-import "../stylesheets/glass.scss";
 
-import { createApp, h } from "vue";
+import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { router } from "@/assets/javascripts/plugins/router";
-import { i18n, useI18n } from "@/assets/javascripts/plugins/i18n";
+import { router } from "@/plugins/router";
+import { i18n, useI18n } from "@/plugins/i18n";
 import VueMainBootstrap from "@jakguru/vueprint/plugins/main";
 import VueClientBootstrap from "@jakguru/vueprint/plugins/client";
 import * as VuetifyComponents from "vuetify/components";
 import * as VuetifyDirectives from "vuetify/directives";
 import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
 
-import GreenmineApp from "../../app.vue";
+import GreenmineApp from "@/app.vue";
 
 import type {
   VueMainBootstrapOptions,
@@ -80,6 +78,7 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
       },
     },
     options: {
+      ssr: false,
       defaults: {
         VTextField: {
           variant: "outlined",
@@ -109,6 +108,7 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
       components: VuetifyComponents,
       directives: VuetifyDirectives,
       locale: {
+        // @ts-expect-error bad types
         adapter: createVueI18nAdapter({ i18n, useI18n }),
       },
     },
@@ -117,15 +117,23 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
 
 const vueprintClientPluginOptions: VueClientBootstrapOptions = {
   // Configuration for the Client plugin
+  webfontloader: {
+    custom: {
+      families: [
+        "Material Design Icons",
+        "InterVariable",
+        "Inter",
+        "InterDisplay",
+      ],
+    },
+  },
 };
+
 const pinia = createPinia();
-const app = createApp({
-  render: () => h(GreenmineApp),
-})
+createApp(GreenmineApp)
   .use(i18n)
   .use(router)
   .use(pinia)
   .use(VueMainBootstrap, vueprintMainPluginOptions)
-  .use(VueClientBootstrap, vueprintClientPluginOptions);
-
-app.mount("#greenmine-app");
+  .use(VueClientBootstrap, vueprintClientPluginOptions)
+  .mount("#greenmine-app");

@@ -99,6 +99,9 @@ importers:
       vite-plugin-static-copy:
         specifier: ^1.0.6
         version: 1.0.6(vite@5.4.7(@types/node@22.6.1)(sass@1.79.3))
+      vite-plugin-vuetify:
+        specifier: ^2.0.4
+        version: 2.0.4(vite@5.4.7(@types/node@22.6.1)(sass@1.79.3))(vue@3.5.8(typescript@5.6.2))(vuetify@3.7.2)
       vue:
         specifier: ^3.5.8
         version: 3.5.8(typescript@5.6.2)

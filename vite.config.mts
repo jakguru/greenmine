@@ -1,6 +1,7 @@
 import { resolve, basename, dirname } from "path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import vuetify from "vite-plugin-vuetify";
 import { readdir } from "fs/promises";
 import { statSync } from "fs";
 import {
@@ -11,7 +12,6 @@ import {
 } from "./dev/changeFileNameVitePlugin.mjs";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { watchExtraFiles } from "./dev/watchExtraFiles.mjs";
-import { restartRedmineAfterBuild } from "./dev/restartRedmineAfterBuild.mjs";
 
 import type { UserConfig } from "vite";
 
@@ -47,17 +47,21 @@ const getStaticCopyTargets = async (): Promise<StaticCopyTarget[]> => {
   });
 };
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ mode }) => {
   return {
     appType: "spa",
     base: "/plugin_assets/greenmine/",
     plugins: [
       vue(),
+      vuetify({
+        styles: {
+          configFile: "./assets/stylesheets/vuetify.scss",
+        },
+      }),
       viteStaticCopy({
         targets: await getStaticCopyTargets(),
       }),
       watchExtraFiles([resolve(__dirname, "src-ruby")]),
-      restartRedmineAfterBuild(),
     ],
     define: {
       "process.env": {},
@@ -80,6 +84,7 @@ export default defineConfig(async () => {
       chunkSizeWarningLimit: 1024 * 10,
       emptyOutDir: true,
       sourcemap: true,
+      minify: mode === "production",
       rollupOptions: {
         input: {
           "javascripts/greenmine": resolve(
@@ -140,6 +145,9 @@ export default defineConfig(async () => {
         base += `/${fileBaseName}`;
         return base;
       },
+    },
+    ssr: {
+      noExternal: ["@jakguru/vueprint"],
     },
   } as UserConfig;
 });

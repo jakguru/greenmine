@@ -1,3 +1,14 @@
+@use "@jakguru/vueprint/vueprint-no-vuetify.scss" as *;
+@use "sweetalert2/src/sweetalert2.scss" as *;
+@import './inter.scss';
+@import './glass.scss';
+@import 'vuetify/styles';
+
+:root { font-family: "Inter", sans-serif; }
+@supports (font-variation-settings: normal) {
+  :root { font-family: "InterVariable", sans-serif; font-optical-sizing: auto; }
+}
+
 html,
 body {
     z-index: 0;
