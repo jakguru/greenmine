@@ -25,15 +25,21 @@ const md = MarkdownIt({
   xhtmlOut: true,
   breaks: true,
   linkify: true,
+});
+md.set({
   highlight: function (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
       try {
-        return hljs.highlight(str, { language: lang }).value;
+        return (
+          '<pre class="greenmine-code-highlighted elevation-1 rounded-sm"><code class="hljs">' +
+          hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+          "</code></pre>"
+        );
       } catch {
         // noop
       }
     }
-    return "";
+    return `<pre class="greenmine-code-highlighted elevation-1 rounded-sm"><code class="hljs">${md.utils.escapeHtml(str)}</code></pre>`;
   },
 });
 md.use(anchorPlugin, {});

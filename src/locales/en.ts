@@ -10,6 +10,7 @@ export default {
   },
   labels: {
     home: "Home",
+    latestNews: "Latest News",
   },
   theme: {
     base: {

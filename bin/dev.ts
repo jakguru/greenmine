@@ -1,6 +1,6 @@
 import { execa } from "execa";
-import { resolve } from "path";
-import { copyFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { copyFileSync, existsSync, mkdirSync } from "fs";
 
 import type { Subprocess } from "execa";
 
@@ -126,6 +126,10 @@ nodemon
     for (const file of files) {
       if (file.startsWith(srcRubyDir)) {
         const destFile = file.replace(srcRubyDir, destRubyDir);
+        const destDir = dirname(destFile);
+        if (!existsSync(destDir)) {
+          mkdirSync(destDir, { recursive: true });
+        }
         console.log(`Copying ${file} to ${destFile}`);
         try {
           copyFileSync(file, destFile);

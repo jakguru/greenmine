@@ -24,8 +24,9 @@ body {
   > *:not(:last-child) {
     margin-bottom: 1rem;
   }
-  pre {
+  pre.greenmine-code-highlighted {
     padding: 0.5rem;
-    background-color: rgb(var(--v-theme-surface));
+    background-color: #23241f;
+    overflow-x: auto;
   }
 }

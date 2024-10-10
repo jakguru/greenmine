@@ -62,7 +62,7 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
         dark: false,
         colors: {
           ...mainColors,
-          background: "#DFDFDF",
+          background: "#F7F7F7",
           cancel: "#FF0000",
           error: "#D9534F",
           highlight: "#000000",
@@ -70,7 +70,7 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
           notify: "#5BC0DE",
           question: "#337AB7",
           success: "#5CB85C",
-          surface: "#F7F7F7",
+          surface: "#DFDFDF",
           warning: "#F0AD4E",
         },
       },
