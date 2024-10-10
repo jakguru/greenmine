@@ -11,20 +11,39 @@
               class="ml-4"
             />
           </template>
+          <PartialMenu :color="systemSurfaceColor" />
         </v-menu>
         <v-toolbar-title class="site-name">{{ appData.name }}</v-toolbar-title>
         <v-toolbar-items>
+          <v-btn icon="mdi-magnify" @click="showSearch = !showSearch" />
+          <v-divider vertical />
+          <template v-if="appData.identity.authenticated">
+            <div>Authenticated</div>
+          </template>
+          <template v-else>
+            <v-btn variant="text" :to="{ name: 'login' }">
+              {{ $t("actions.login") }}
+            </v-btn>
+            <v-btn
+              v-if="appData.settings.selfRegistrationEnabled"
+              variant="text"
+              :to="{ name: 'account-register' }"
+            >
+              {{ $t("actions.register") }}
+            </v-btn>
+          </template>
+          <v-divider vertical />
           <v-menu :close-on-content-click="false">
             <template #activator="{ props }">
               <v-btn icon="mdi-dots-vertical" v-bind="props" />
             </template>
-            <v-list>
+            <v-card :color="systemSurfaceColor" width="320">
               <v-list-item :title="$t('theme.base.colorScheme')">
                 <template #append>
                   <ThemeToggle />
                 </template>
               </v-list-item>
-            </v-list>
+            </v-card>
           </v-menu>
         </v-toolbar-items>
       </template>
@@ -60,6 +79,19 @@
         </v-btn>
       </v-toolbar-items>
     </v-footer>
+    <v-fab
+      v-if="showDebug"
+      app
+      icon
+      right
+      bottom
+      color="red"
+      dark
+      :loading="appDataLoading"
+      @click="reloadAppData"
+    >
+      <v-icon>mdi-bug</v-icon>
+    </v-fab>
   </v-app>
 </template>
 
@@ -73,6 +105,7 @@ import { appDebug, loadAppData, loadRouteData, AsyncAction } from "@/utils/app";
 import { ThemeToggle } from "@/components/theme";
 import { useRoute } from "vue-router";
 import { useRouteDataStore } from "@/stores/routeData";
+import { PartialMenu } from "@/partials";
 import type {
   LocalStorageService,
   ApiService,
@@ -85,6 +118,7 @@ export default defineComponent({
   name: "GreenmineApp",
   components: {
     ThemeToggle,
+    PartialMenu,
   },
   setup() {
     const theme = useTheme();
@@ -138,6 +172,9 @@ export default defineComponent({
     const systemBarColor = computed(() =>
       theme.current.value.dark ? "primary-darken-2" : "primary-lighten-2",
     );
+    const systemSurfaceColor = computed(() =>
+      theme.current.value.dark ? "primary-darken-1" : "primary-lighten-1",
+    );
     redmineizeApi(api);
     const loaded = ref(false);
     const overlay = computed(() => !loaded.value);
@@ -147,7 +184,7 @@ export default defineComponent({
       } else {
         return {
           name: "Greenmine",
-          i18n: i18n.global.locale.value,
+          i18n: i18n.global.locale,
           identity: {
             authenticated: false,
             identity: null,
@@ -155,6 +192,7 @@ export default defineComponent({
           settings: {
             loginRequired: false,
             gravatarEnabled: false,
+            selfRegistrationEnabled: true,
           },
           fetchedAt: "",
         };
@@ -168,6 +206,11 @@ export default defineComponent({
       routeDataStore.set(data);
       appDebug("Route data reloaded");
     });
+    const reloadAppData = new AsyncAction(async () => {
+      appDebug("Reloading app data");
+      await loadAppData(ls, api, true);
+      appDebug("App data reloaded");
+    });
     onMounted(() => {
       loadAppData(ls, api)
         .catch(() => {})
@@ -175,15 +218,22 @@ export default defineComponent({
           loaded.value = true;
         });
     });
+    const showDebug = import.meta.env.MODE === "development";
+    const showSearch = ref(false);
     return {
       complete,
       systemBarColor,
+      systemSurfaceColor,
       loaded,
       overlay,
       appData,
       routeDataLoading: reloadRouteData.loading,
       reloadRouteData: () => reloadRouteData.call(),
       routeData,
+      showDebug,
+      appDataLoading: reloadAppData.loading,
+      reloadAppData: () => reloadAppData.call(),
+      showSearch,
     };
   },
 });

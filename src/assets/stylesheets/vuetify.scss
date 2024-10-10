@@ -1,7 +1,6 @@
-$heading-family: "InterVariable", "InterDisplay", sans-serif;
-$body-family: "InterVariable", "Inter", sans-serif;
+@use "./shared.scss" as shared;
 
 @use "vuetify/settings" with (
-    $heading-font-family: $heading-family,
-    $body-font-family: $body-family
+    $heading-font-family: shared.$heading-family,
+    $body-font-family: shared.$body-family
 );

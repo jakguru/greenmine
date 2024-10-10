@@ -1,16 +1,31 @@
 @use "@jakguru/vueprint/vueprint-no-vuetify.scss" as *;
 @use "sweetalert2/src/sweetalert2.scss" as *;
+@use "./shared.scss" as shared;
 @import './inter.scss';
 @import './glass.scss';
 @import 'vuetify/styles';
 
-:root { font-family: "Inter", sans-serif; }
+:root { 
+  font-family: shared.$body-family; 
+  --v-theme-body-font-family: shared.$body-family;
+  --v-theme-heading-font-family: shared.$heading-family;
+}
 @supports (font-variation-settings: normal) {
-  :root { font-family: "InterVariable", sans-serif; font-optical-sizing: auto; }
+  :root { font-family: shared.$body-family; font-optical-sizing: auto; }
 }
 
 html,
 body {
     z-index: 0;
     margin: 0;
+}
+
+.greenmine-rendered-markdown {
+  > *:not(:last-child) {
+    margin-bottom: 1rem;
+  }
+  pre {
+    padding: 0.5rem;
+    background-color: rgb(var(--v-theme-surface));
+  }
 }

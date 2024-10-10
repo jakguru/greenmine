@@ -1,21 +1,28 @@
-import { createI18n, useI18n } from 'vue-i18n'
-import * as messages from '@/locales'
+import { createI18n, useI18n } from "vue-i18n";
+import * as locales from "@/locales";
 
-const getHtmlLocale = () => {
-    if (document) {
-        const html = document.querySelector('html')
-        if (html) {
-            return html.getAttribute('lang') || 'en'
-        }
+export const getHtmlLocale = () => {
+  if (document) {
+    const html = document.querySelector("html");
+    if (html) {
+      const locale = html.getAttribute("lang") || "en";
+      if (locale.includes("-")) {
+        return locale.split("-")[0].toLowerCase();
+      } else {
+        return locale.toLowerCase();
+      }
     }
-    return 'en'
-}
+  }
+  return "en";
+};
 
-export const i18n = createI18n({
-    locale: getHtmlLocale(),
-    fallbackLocale: 'en',
-    legacy: false,
-    messages,
-})
+const settings = {
+  locale: getHtmlLocale(),
+  fallbackLocale: "en",
+  legacy: false,
+  messages: { ...locales },
+};
 
-export { useI18n }
+export const i18n = createI18n(settings);
+
+export { useI18n };

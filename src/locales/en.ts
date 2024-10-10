@@ -1,4 +1,13 @@
 export default {
+  actions: {
+    login: "Sign In",
+    register: "Register",
+  },
+  pages: {
+    home: { title: "Home" },
+    projects: { title: "Projects" },
+    help: { title: "Help" },
+  },
   labels: {
     home: "Home",
   },

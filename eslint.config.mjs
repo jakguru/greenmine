@@ -110,7 +110,7 @@ const tsRules = {
 export default [
   {
     // config with just ignores is the replacement for `.eslintignore`
-    ignores: ["**/dist/**", "**/dist-ssr/**", "**/plugins/**"],
+    ignores: ["plugins/**"],
   },
   {
     plugins: {

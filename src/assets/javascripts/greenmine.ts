@@ -19,6 +19,8 @@ import type {
 
 const mainColors = {
   primary: "#62B682",
+  secondary: "#5F1A37",
+  accent: "#103900",
 };
 
 const vueprintMainPluginOptions: VueMainBootstrapOptions = {
@@ -44,7 +46,6 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
         dark: true,
         colors: {
           ...mainColors,
-          accent: "#FF6600",
           background: "#424242",
           cancel: "#FF0000",
           error: "#D9534F",
@@ -52,7 +53,6 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
           info: "#5BC0DE",
           notify: "#5BC0DE",
           question: "#337AB7",
-          secondary: "#333333",
           success: "#5CB85C",
           surface: "#242424",
           warning: "#F0AD4E",
@@ -62,7 +62,6 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
         dark: false,
         colors: {
           ...mainColors,
-          accent: "#FF6600",
           background: "#DFDFDF",
           cancel: "#FF0000",
           error: "#D9534F",
@@ -70,7 +69,6 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
           info: "#5BC0DE",
           notify: "#5BC0DE",
           question: "#337AB7",
-          secondary: "#666666",
           success: "#5CB85C",
           surface: "#F7F7F7",
           warning: "#F0AD4E",
@@ -131,9 +129,9 @@ const vueprintClientPluginOptions: VueClientBootstrapOptions = {
 
 const pinia = createPinia();
 createApp(GreenmineApp)
-  .use(i18n)
   .use(router)
   .use(pinia)
   .use(VueMainBootstrap, vueprintMainPluginOptions)
   .use(VueClientBootstrap, vueprintClientPluginOptions)
+  .use(i18n)
   .mount("#greenmine-app");

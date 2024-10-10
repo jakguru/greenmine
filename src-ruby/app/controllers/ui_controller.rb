@@ -13,7 +13,8 @@ class UiController < ApplicationController
             },
             settings: {
                 loginRequired: Setting.login_required?,
-                gravatarEnabled: Setting.gravatar_enabled?
+                gravatarEnabled: Setting.gravatar_enabled?,
+                selfRegistrationEnabled: Setting.self_registration?
             },
             fetchedAt: Time.now
         }
