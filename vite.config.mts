@@ -43,7 +43,7 @@ export default defineConfig(async ({ mode }) => {
       outDir: resolve(__dirname, "plugins", "greenmine"),
       chunkSizeWarningLimit: 1024 * 10,
       emptyOutDir: true,
-      sourcemap: true,
+      sourcemap: false,
       minify: mode === "production",
       rollupOptions: {
         input: {

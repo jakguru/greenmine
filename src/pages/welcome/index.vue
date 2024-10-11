@@ -6,14 +6,17 @@
         <Markdown :raw="welcome" />
       </v-col>
       <v-col v-if="news.length > 0" cols="12" md="6">
-        <h2 class="text-h6">{{ $t("labels.latestNews") }}</h2>
-        <v-list class="transparent">
-          <NewsPreview
-            v-for="(item, i) in news"
-            :key="`news-item-${i}`"
-            :news="item"
-          />
-        </v-list>
+        <v-card class="news-wrapper" :title="$t('labels.latestNews')">
+          <template v-for="(item, i) in news" :key="`news-item-${i}`">
+            <v-divider />
+            <NewsPreview :news="item" />
+          </template>
+          <v-card-actions>
+            <v-btn variant="text" :to="{ name: 'news' }">{{
+              $t("labels.allNews")
+            }}</v-btn>
+          </v-card-actions>
+        </v-card>
       </v-col>
     </v-row>
   </v-container>

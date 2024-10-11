@@ -11,11 +11,15 @@ export default {
   labels: {
     home: "Home",
     latestNews: "Latest News",
+    allNews: "View all news",
   },
   theme: {
     base: {
       colorScheme: "Color Scheme",
     },
+  },
+  generics: {
+    addedLine: "Added by {author} {when}",
   },
   errors: {
     response: {

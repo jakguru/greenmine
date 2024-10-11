@@ -5,7 +5,7 @@ export interface News {
   description: string;
   created_on: string; // ISO date string
   comments_count: number;
-  project: Project;
+  project: Project | null;
   author: Author;
 }
 
