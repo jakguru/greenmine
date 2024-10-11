@@ -7,11 +7,20 @@ export default {
     home: { title: "Home" },
     projects: { title: "Projects" },
     help: { title: "Help" },
+    search: { title: "Search" },
   },
   labels: {
     home: "Home",
     latestNews: "Latest News",
     allNews: "View all news",
+    error: "Error",
+    success: "Success",
+    jumper: {
+      title: "Jump to a Project",
+      recent: "Recently Viewed",
+      bookmarked: "Favorites",
+      all: "All Projects",
+    },
   },
   theme: {
     base: {
@@ -28,6 +37,17 @@ export default {
         text: "The server returned an invalid response",
       },
     },
+    copy: {
+      failed: {
+        caught: "Failed to copy to clipboard due to error: {0}",
+      },
+    },
+    search: {
+      failed: "Unable to search at this time",
+    },
+  },
+  successes: {
+    copy: "Copied to clipboard",
   },
   validation: {
     bad: "The value is not a valid {label}",

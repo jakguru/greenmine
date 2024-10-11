@@ -62,6 +62,13 @@ export default defineComponent({
       },
       {
         to: {
+          name: "search",
+        },
+        icon: "mdi-magnify",
+        label: t("pages.search.title"),
+      },
+      {
+        to: {
           name: "projects",
         },
         icon: "mdi-code-block-braces",

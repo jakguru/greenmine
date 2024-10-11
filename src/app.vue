@@ -15,12 +15,32 @@
         </v-menu>
         <v-toolbar-title class="site-name">{{ appData.name }}</v-toolbar-title>
         <v-toolbar-items>
-          <v-btn icon="mdi-magnify" @click="showSearch = !showSearch" />
-          <v-divider vertical />
+          <GlobalSearchField
+            v-if="isNotMobile"
+            v-model:search="globalSearchVal"
+            class="h-100"
+            style="min-width: 180px"
+          />
+          <v-menu
+            v-if="isNotMobile"
+            v-model="showProjectJumper"
+            :close-on-content-click="false"
+          >
+            <template #activator="{ props }">
+              <v-btn icon="mdi-dots-vertical" v-bind="props" />
+            </template>
+            <PartialProjectsJumper
+              v-model:search="projectSearchVal"
+              :system-surface-color="systemSurfaceColor"
+              :app-data="appData"
+              @submit:search="onProjectJumperSubmit"
+            />
+          </v-menu>
+          <v-divider v-if="isNotMobile" vertical />
           <template v-if="appData.identity.authenticated">
             <div>Authenticated</div>
           </template>
-          <template v-else>
+          <template v-else-if="isNotMobile">
             <v-btn variant="text" :to="{ name: 'login' }">
               {{ $t("actions.login") }}
             </v-btn>
@@ -33,7 +53,7 @@
             </v-btn>
           </template>
           <v-divider vertical />
-          <v-menu :close-on-content-click="false">
+          <v-menu v-if="isNotMobile" :close-on-content-click="false">
             <template #activator="{ props }">
               <v-btn icon="mdi-dots-vertical" v-bind="props" />
             </template>
@@ -45,9 +65,58 @@
               </v-list-item>
             </v-card>
           </v-menu>
+          <v-btn
+            v-if="isMobile"
+            :icon="showMobileNav ? 'mdi-menu-close' : 'mdi-menu-open'"
+            @click="showMobileNav = !showMobileNav"
+          />
         </v-toolbar-items>
       </template>
     </v-app-bar>
+    <v-navigation-drawer
+      v-if="isMobile"
+      v-model="showMobileNav"
+      app
+      :color="systemBarColor"
+      location="end"
+    >
+      <v-list-item>
+        <GlobalSearchField v-model:search="globalSearchVal" />
+      </v-list-item>
+      <v-menu v-model="showProjectJumper" :close-on-content-click="false">
+        <template #activator="{ props }">
+          <v-list-item v-bind="props">
+            <template #append>
+              <v-icon>mdi-menu-down</v-icon>
+            </template>
+            <v-list-item-title>{{
+              $t("labels.jumper.title")
+            }}</v-list-item-title>
+          </v-list-item>
+        </template>
+        <PartialProjectsJumper
+          v-model:search="projectSearchVal"
+          :system-surface-color="systemSurfaceColor"
+          :app-data="appData"
+          @submit:search="onProjectJumperSubmit"
+        />
+      </v-menu>
+      <v-divider />
+      <template v-if="!appData.identity.authenticated">
+        <v-list-item :to="{ name: 'login' }" :title="$t('actions.login')" />
+        <v-list-item
+          v-if="appData.settings.selfRegistrationEnabled"
+          :to="{ name: 'account-register' }"
+          :title="$t('actions.register')"
+        />
+        <v-divider />
+      </template>
+      <v-list-item :title="$t('theme.base.colorScheme')">
+        <template #append>
+          <ThemeToggle />
+        </template>
+      </v-list-item>
+    </v-navigation-drawer>
     <v-main>
       <router-view v-if="loaded" v-slot="{ Component }">
         <component :is="Component" v-bind="routeData" />
@@ -83,10 +152,10 @@
       v-if="showDebug"
       app
       icon
-      right
-      bottom
+      location="top right"
       color="red"
       dark
+      size="small"
       :loading="appDataLoading"
       @click="reloadAppData"
     >
@@ -97,7 +166,7 @@
 
 <script lang="ts">
 import { defineComponent, computed, inject, ref, onMounted } from "vue";
-import { useTheme } from "vuetify";
+import { useTheme, useDisplay } from "vuetify";
 import { useVueprint } from "@jakguru/vueprint/utilities";
 import { initializeLocale } from "@/utils/i18n";
 import { redmineizeApi } from "@/utils/api";
@@ -105,7 +174,8 @@ import { appDebug, loadAppData, loadRouteData, AsyncAction } from "@/utils/app";
 import { ThemeToggle } from "@/components/theme";
 import { useRoute } from "vue-router";
 import { useRouteDataStore } from "@/stores/routeData";
-import { PartialMenu } from "@/partials";
+import { PartialMenu, PartialProjectsJumper } from "@/partials";
+import { GlobalSearchField } from "@/components/menu";
 import type {
   LocalStorageService,
   ApiService,
@@ -119,10 +189,14 @@ export default defineComponent({
   components: {
     ThemeToggle,
     PartialMenu,
+    PartialProjectsJumper,
+    GlobalSearchField,
   },
   setup() {
     const theme = useTheme();
     const route = useRoute();
+    const { mobile: isMobile } = useDisplay();
+    const isNotMobile = computed(() => !isMobile.value);
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
     const bus = inject<BusService>("bus");
@@ -220,6 +294,13 @@ export default defineComponent({
     });
     const showDebug = import.meta.env.MODE === "development";
     const showSearch = ref(false);
+    const showProjectJumper = ref(false);
+    const onProjectJumperSubmit = () => {
+      showProjectJumper.value = false;
+    };
+    const projectSearchVal = ref("");
+    const globalSearchVal = ref("");
+    const showMobileNav = ref(false);
     return {
       complete,
       systemBarColor,
@@ -234,6 +315,13 @@ export default defineComponent({
       appDataLoading: reloadAppData.loading,
       reloadAppData: () => reloadAppData.call(),
       showSearch,
+      showProjectJumper,
+      onProjectJumperSubmit,
+      isMobile,
+      isNotMobile,
+      showMobileNav,
+      projectSearchVal,
+      globalSearchVal,
     };
   },
 });

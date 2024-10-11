@@ -70,7 +70,7 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
           notify: "#5BC0DE",
           question: "#337AB7",
           success: "#5CB85C",
-          surface: "#DFDFDF",
+          surface: "#EFEFEF",
           warning: "#F0AD4E",
         },
       },

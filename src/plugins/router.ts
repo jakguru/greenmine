@@ -1,9 +1,13 @@
 import { inject } from "vue";
 import { createWebHistory, createRouter } from "vue-router";
-import { loadRouteData } from "@/utils/app";
+import { loadRouteData, loadAppData } from "@/utils/app";
 import { useRouteDataStore } from "@/stores/routeData";
 import type { RouteRecordRaw } from "vue-router";
-import type { ApiService, ToastService } from "@jakguru/vueprint";
+import type {
+  ApiService,
+  ToastService,
+  LocalStorageService,
+} from "@jakguru/vueprint";
 
 const fourOhFour = () => import("@/views/404.vue");
 
@@ -1355,6 +1359,8 @@ export const router = createRouter({
 router.beforeEach(async (to) => {
   const api = inject<ApiService>("api");
   const toast = inject<ToastService>("toast");
+  const ls = inject<LocalStorageService>("localStorage");
+  loadAppData(ls, api);
   const props = await loadRouteData(to, api, toast);
   if ("boolean" === typeof props) {
     return props;

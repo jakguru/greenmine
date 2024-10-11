@@ -15,10 +15,10 @@
 </template>
 
 <script lang="ts">
-import { computed, inject } from "vue";
+import { defineComponent, computed, inject } from "vue";
 import { useTheme } from "vuetify";
 import type { LocalStorageService, BusService } from "@jakguru/vueprint";
-export default {
+export default defineComponent({
   name: "ThemeToggle",
   setup() {
     const ls = inject<LocalStorageService>("ls");
@@ -53,5 +53,5 @@ export default {
       themeIsDark,
     };
   },
-};
+});
 </script>

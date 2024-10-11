@@ -25,10 +25,10 @@
         </template>
       </i18n-t>
     </v-list-item-subtitle>
-    <template #append>
+    <template v-if="commentsCount > 0" #append>
       <v-badge color="primary" overlap>
         <template #badge>{{ commentsCount }}</template>
-        <v-avatar v-if="commentsCount > 0" icon="mdi-comment" />
+        <v-avatar icon="mdi-comment" />
       </v-badge>
     </template>
   </v-list-item>

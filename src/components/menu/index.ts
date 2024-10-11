@@ -1,4 +1,4 @@
 import MenuLink from "./link.vue";
 import MenuExternalLink from "./externalLink.vue";
-
-export { MenuLink, MenuExternalLink };
+import GlobalSearchField from "./globalSearchField.vue";
+export { MenuLink, MenuExternalLink, GlobalSearchField };

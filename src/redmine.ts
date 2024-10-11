@@ -3,9 +3,9 @@ export interface News {
   title: string;
   summary: string;
   description: string;
-  created_on: string; // ISO date string
+  created_on: string;
   comments_count: number;
-  project: Project | null;
+  project: Project;
   author: Author;
 }
 

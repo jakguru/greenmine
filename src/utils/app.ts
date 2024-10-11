@@ -1,6 +1,5 @@
 import { computed, ref } from "vue";
 import { getDebugger } from "@jakguru/vueprint/utilities/debug";
-import { DateTime } from "luxon";
 import { i18n } from "@/plugins/i18n";
 
 import type {
@@ -16,39 +15,18 @@ export const appDebug = getDebugger("Greenmine:app", "#62B682", "#FFFFFF");
 export const loadAppData = async (
   ls: LocalStorageService | undefined,
   api: ApiService | undefined,
-  force: boolean = false,
+  _force: boolean = false,
 ) => {
   if (!ls || !api) {
     return;
   }
   await ls.promise;
-  const fromLocalStorage = ls.get("app");
-  let fetch = false;
-  if (
-    !fromLocalStorage ||
-    "object" !== typeof fromLocalStorage ||
-    null === fromLocalStorage
-  ) {
-    fetch = true;
+  const { status, data } = await api.get("/ui/data/app");
+  if (status === 200) {
+    ls.set("app", data);
+    appDebug("App data loaded from API and saved to local storage");
   } else {
-    const { fetchedAt } = fromLocalStorage;
-    const fetchedAtDate = DateTime.fromISO(fetchedAt);
-    const now = DateTime.now();
-    if (now.minus({ minutes: 30 }) > fetchedAtDate) {
-      fetch = true;
-    }
-  }
-  if (fetch || force) {
-    appDebug("Loading app data from API");
-    const { status, data } = await api.get("/ui/data/app");
-    if (status === 200) {
-      ls.set("app", data);
-      appDebug("App data loaded from API and saved to local storage");
-    } else {
-      appDebug("Failed to load app data from API");
-    }
-  } else {
-    appDebug("App data loaded from local storage");
+    appDebug("Failed to load app data from API");
   }
 };
 

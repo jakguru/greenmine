@@ -5,8 +5,10 @@ import markdownItAttrs from "markdown-it-attrs";
 import { full as emoji } from "markdown-it-emoji";
 import mathjax3 from "markdown-it-mathjax3";
 import * as cheerio from "cheerio";
-import hljs from "highlight.js"; // https://highlightjs.org
-import "highlight.js/styles/monokai-sublime.css";
+// import hljs from "highlight.js"; // https://highlightjs.org
+// import "highlight.js/styles/monokai-sublime.css";
+import RenderCode from "./code.vue";
+import { getAceMode } from "./plugins/ace";
 
 import type { Element, Text, ChildNode } from "domhandler";
 import type { VNode } from "vue";
@@ -28,18 +30,7 @@ const md = MarkdownIt({
 });
 md.set({
   highlight: function (str, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return (
-          '<pre class="greenmine-code-highlighted elevation-1 rounded-sm"><code class="hljs">' +
-          hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
-          "</code></pre>"
-        );
-      } catch {
-        // noop
-      }
-    }
-    return `<pre class="greenmine-code-highlighted elevation-1 rounded-sm"><code class="hljs">${md.utils.escapeHtml(str)}</code></pre>`;
+    return `<pre greenmine-code-lang="${lang}">${md.utils.escapeHtml(str)}</pre>`;
   },
 });
 md.use(anchorPlugin, {});
@@ -70,6 +61,16 @@ export const Markdown = defineComponent({
         if (node.name === "p") {
           const existingClass = props.class || "";
           props.class = [existingClass, "text-body-1"].join(" ").trim();
+        }
+        // replace code block with custom component
+        if (
+          node.name === "pre" &&
+          "string" === typeof props["greenmine-code-lang"]
+        ) {
+          return h(RenderCode, {
+            content: $.value(node).text(),
+            mode: getAceMode(props["greenmine-code-lang"]),
+          });
         }
         const children = node.children.map((child) =>
           recursiveBuildHyperscript(child),

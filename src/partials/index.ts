@@ -1,3 +1,3 @@
 import PartialMenu from "./menu.vue";
-
-export { PartialMenu };
+import PartialProjectsJumper from "./projects-jumper.vue";
+export { PartialMenu, PartialProjectsJumper };
