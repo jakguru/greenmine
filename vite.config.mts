@@ -10,6 +10,7 @@ import {
 } from "./dev/changeFileNameVitePlugin.mjs";
 import { restartRedmineAfterBuild } from "./dev/restartRedmineAfterBuild.mjs";
 import { copyRubyFilesAfterBuild } from "./dev/copyRubyFilesAfterBuild.mjs";
+import UnheadVite from "@unhead/addons/vite";
 
 import type { UserConfig } from "vite";
 
@@ -29,6 +30,7 @@ export default defineConfig(async ({ mode }) => {
       }),
       copyRubyFilesAfterBuild(),
       restartRedmineAfterBuild(),
+      UnheadVite(),
     ],
     define: {
       "process.env": {},

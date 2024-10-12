@@ -1,6 +1,7 @@
 import { computed, ref } from "vue";
 import { getDebugger } from "@jakguru/vueprint/utilities/debug";
 import { i18n } from "@/plugins/i18n";
+import { useAppDataStore } from "@/stores/appData";
 
 import type {
   ApiService,
@@ -21,9 +22,11 @@ export const loadAppData = async (
     return;
   }
   await ls.promise;
+  const store = useAppDataStore();
   const { status, data } = await api.get("/ui/data/app");
   if (status === 200) {
     ls.set("app", data);
+    store.set(data);
     appDebug("App data loaded from API and saved to local storage");
   } else {
     appDebug("Failed to load app data from API");

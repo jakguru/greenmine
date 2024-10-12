@@ -26,6 +26,8 @@
     "@types/markdown-it-emoji": "^3.0.1",
     "@types/node": "^22.5.5",
     "@types/qs": "^6.9.16",
+    "@unhead/addons": "^1.11.7",
+    "@unhead/vue": "^1.11.7",
     "@vitejs/plugin-vue": "^5.1.4",
     "ace-builds": "^1.36.2",
     "cheerio": "^1.0.0",

@@ -4,6 +4,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { router } from "@/plugins/router";
 import { i18n, useI18n } from "@/plugins/i18n";
+import { head } from "@/plugins/head";
 import VueMainBootstrap from "@jakguru/vueprint/plugins/main";
 import VueClientBootstrap from "@jakguru/vueprint/plugins/client";
 import * as VuetifyComponents from "vuetify/components";
@@ -129,9 +130,10 @@ const vueprintClientPluginOptions: VueClientBootstrapOptions = {
 
 const pinia = createPinia();
 createApp(GreenmineApp)
+  .use(i18n)
   .use(router)
   .use(pinia)
   .use(VueMainBootstrap, vueprintMainPluginOptions)
   .use(VueClientBootstrap, vueprintClientPluginOptions)
-  .use(i18n)
+  .use(head)
   .mount("#greenmine-app");

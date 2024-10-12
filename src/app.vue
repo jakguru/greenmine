@@ -165,7 +165,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, ref, onMounted } from "vue";
+import { defineComponent, computed, inject, ref, onMounted, watch } from "vue";
 import { useTheme, useDisplay } from "vuetify";
 import { useVueprint } from "@jakguru/vueprint/utilities";
 import { initializeLocale } from "@/utils/i18n";
@@ -176,6 +176,7 @@ import { useRoute } from "vue-router";
 import { useRouteDataStore } from "@/stores/routeData";
 import { PartialMenu, PartialProjectsJumper } from "@/partials";
 import { GlobalSearchField } from "@/components/menu";
+import { updateHead } from "@/utils/head";
 import type {
   LocalStorageService,
   ApiService,
@@ -290,7 +291,17 @@ export default defineComponent({
         .catch(() => {})
         .finally(() => {
           loaded.value = true;
+          updateHead({ ...route }, appData.value);
         });
+    });
+    watch(
+      () => route,
+      () => {
+        updateHead({ ...route }, appData.value);
+      },
+    );
+    watch(route, () => {
+      updateHead({ ...route }, appData.value);
     });
     const showDebug = import.meta.env.MODE === "development";
     const showSearch = ref(false);
