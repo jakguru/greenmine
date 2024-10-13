@@ -1,9 +1,10 @@
-import { computed, ref } from "vue";
+import { computed, ref, inject } from "vue";
 import { getDebugger } from "@jakguru/vueprint/utilities/debug";
 import { i18n } from "@/plugins/i18n";
 import { useAppDataStore } from "@/stores/appData";
+import { useTheme } from "vuetify";
 
-import type {
+import {
   ApiService,
   LocalStorageService,
   ToastService,
@@ -95,3 +96,120 @@ export class AsyncAction<
     }
   }
 }
+
+export const useAppData = () => {
+  const ls = inject<LocalStorageService>("ls");
+  return computed(() => {
+    if (ls && ls.value) {
+      return ls.value.app;
+    } else {
+      return {
+        name: "Greenmine",
+        i18n: i18n.global.locale,
+        identity: {
+          authenticated: false,
+          identity: null,
+        },
+        settings: {
+          loginRequired: false,
+          gravatarEnabled: false,
+          selfRegistrationEnabled: true,
+        },
+        queries: {
+          projects: {
+            operators: {
+              list: ["=", "!"],
+              list_with_history: ["=", "!", "ev", "!ev", "cf"],
+              list_status: ["o", "=", "!", "ev", "!ev", "cf", "c", "*"],
+              list_optional: ["=", "!", "!*", "*"],
+              list_optional_with_history: [
+                "=",
+                "!",
+                "ev",
+                "!ev",
+                "cf",
+                "!*",
+                "*",
+              ],
+              list_subprojects: ["*", "!*", "=", "!"],
+              date: [
+                "=",
+                ">=",
+                "<=",
+                "><",
+                "<t+",
+                ">t+",
+                "><t+",
+                "t+",
+                "nd",
+                "t",
+                "ld",
+                "nw",
+                "w",
+                "lw",
+                "l2w",
+                "nm",
+                "m",
+                "lm",
+                "y",
+                ">t-",
+                "<t-",
+                "><t-",
+                "t-",
+                "!*",
+                "*",
+              ],
+              date_past: [
+                "=",
+                ">=",
+                "<=",
+                "><",
+                ">t-",
+                "<t-",
+                "><t-",
+                "t-",
+                "t",
+                "ld",
+                "w",
+                "lw",
+                "l2w",
+                "m",
+                "lm",
+                "y",
+                "!*",
+                "*",
+              ],
+              string: ["~", "*~", "=", "!~", "!", "^", "$", "!*", "*"],
+              text: ["~", "*~", "!~", "^", "$", "!*", "*"],
+              search: ["~", "*~", "!~"],
+              integer: ["=", ">=", "<=", "><", "!*", "*"],
+              float: ["=", ">=", "<=", "><", "!*", "*"],
+              relation: ["=", "!", "=p", "=!p", "!p", "*o", "!o", "!*", "*"],
+              tree: ["=", "~", "!*", "*"],
+            },
+          },
+        },
+        projects: {
+          active: [],
+          bookmarked: [],
+          recent: [],
+        },
+        fetchedAt: "",
+      };
+    }
+  });
+};
+
+export const useSystemAppBarColor = () => {
+  const theme = useTheme();
+  return computed(() =>
+    theme.current.value.dark ? "primary-darken-2" : "primary-lighten-2",
+  );
+};
+
+export const useSystemSurfaceColor = () => {
+  const theme = useTheme();
+  return computed(() =>
+    theme.current.value.dark ? "primary-darken-1" : "primary-lighten-1",
+  );
+};

@@ -40,7 +40,38 @@ class ProjectsController < ApplicationController
 
     if (request.xhr?)
       return render json: {
-        projects: scope.to_a
+        projects: scope.to_a,
+        query: {
+          valid: @query.valid?,
+          type: @query.type,
+          new_record: @query.new_record?,
+          columns: {
+            names: @query.column_names,
+            available: @query.available_columns,
+          },
+          filters: {
+            current: @query.filters,
+            available: @query.available_filters,
+            groupable: @query.groupable_columns,
+            blockable: @query.available_block_columns,
+            totable: @query.available_totalable_columns,
+            display_types: @query.available_display_types,
+          },
+          group_by: @query.group_by,
+          id: @query.id,
+          name: @query.name,
+          options: @query.options,
+          project_id: @query.project_id,
+          sort_criteria: @query.sort_criteria,
+          user_id: @query.user_id,
+          visibility: @query.visibility,
+        },
+        queries: sidebar_queries(ProjectQuery, @project),
+        permissions: {
+          query: {
+            save: (@query.new_record? && User.current.allowed_to?(:save_queries, nil, :global => true) || @query.editable_by?(User.current)),
+          },
+        },
       }
     end
 

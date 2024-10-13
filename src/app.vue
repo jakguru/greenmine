@@ -170,7 +170,13 @@ import { useTheme, useDisplay } from "vuetify";
 import { useVueprint } from "@jakguru/vueprint/utilities";
 import { initializeLocale } from "@/utils/i18n";
 import { redmineizeApi } from "@/utils/api";
-import { appDebug, loadAppData, loadRouteData, AsyncAction } from "@/utils/app";
+import {
+  appDebug,
+  loadAppData,
+  loadRouteData,
+  AsyncAction,
+  useAppData,
+} from "@/utils/app";
 import { ThemeToggle } from "@/components/theme";
 import { useRoute } from "vue-router";
 import { useRouteDataStore } from "@/stores/routeData";
@@ -183,7 +189,6 @@ import type {
   BusService,
   ToastService,
 } from "@jakguru/vueprint";
-import { i18n } from "@/plugins/i18n";
 
 export default defineComponent({
   name: "GreenmineApp",
@@ -253,26 +258,7 @@ export default defineComponent({
     redmineizeApi(api);
     const loaded = ref(false);
     const overlay = computed(() => !loaded.value);
-    const appData = computed(() => {
-      if (ls && ls.value) {
-        return ls.value.app;
-      } else {
-        return {
-          name: "Greenmine",
-          i18n: i18n.global.locale,
-          identity: {
-            authenticated: false,
-            identity: null,
-          },
-          settings: {
-            loginRequired: false,
-            gravatarEnabled: false,
-            selfRegistrationEnabled: true,
-          },
-          fetchedAt: "",
-        };
-      }
-    });
+    const appData = useAppData();
     const routeDataStore = useRouteDataStore();
     const routeData = computed(() => routeDataStore.data);
     const reloadRouteData = new AsyncAction(async () => {

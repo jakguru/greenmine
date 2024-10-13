@@ -75,6 +75,41 @@ export default defineComponent({
         label: t("pages.projects.title"),
       },
       {
+        to: {
+          name: "activity",
+        },
+        icon: "mdi-timeline-text",
+        label: t("pages.activity.title"),
+      },
+      {
+        to: {
+          name: "issues",
+        },
+        icon: "mdi-file-document-multiple",
+        label: t("pages.issues.title"),
+      },
+      {
+        to: {
+          name: "issues-gantt",
+        },
+        icon: "mdi-chart-gantt",
+        label: t("pages.issues-gantt.title"),
+      },
+      {
+        to: {
+          name: "issues-calendar",
+        },
+        icon: "mdi-calendar",
+        label: t("pages.issues-calendar.title"),
+      },
+      {
+        to: {
+          name: "news",
+        },
+        icon: "mdi-bullhorn",
+        label: t("pages.news.title"),
+      },
+      {
         href: "https://www.redmine.org/guide",
         icon: "mdi-help-circle",
         label: t("pages.help.title"),

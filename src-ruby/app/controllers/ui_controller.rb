@@ -20,6 +20,11 @@ class UiController < ApplicationController
                 bookmarked: bookmarked,
                 recent: recents
             },
+            queries: {
+                projects: {
+                    operators: Query.operators_by_filter_type,
+                }
+            },
             settings: {
                 loginRequired: Setting.login_required?,
                 gravatarEnabled: Setting.gravatar_enabled?,
