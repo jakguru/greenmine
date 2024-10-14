@@ -38,7 +38,7 @@
           </v-menu>
           <v-divider v-if="isNotMobile" vertical />
           <template v-if="appData.identity.authenticated">
-            <div>Authenticated</div>
+            <AuthenticatedMenu />
           </template>
           <template v-else-if="isNotMobile">
             <v-btn variant="text" :to="{ name: 'login' }">
@@ -55,14 +55,39 @@
           <v-divider vertical />
           <v-menu v-if="isNotMobile" :close-on-content-click="false">
             <template #activator="{ props }">
-              <v-btn icon="mdi-dots-vertical" v-bind="props" />
+              <v-btn icon="mdi-cog" v-bind="props" />
             </template>
             <v-card :color="systemSurfaceColor" width="320">
-              <v-list-item :title="$t('theme.base.colorScheme')">
+              <v-list-subheader class="px-3">{{
+                $t("labels.settings.browser")
+              }}</v-list-subheader>
+              <v-list-item
+                prepend-icon="mdi-palette"
+                :title="$t('theme.base.colorScheme')"
+              >
                 <template #append>
                   <ThemeToggle />
                 </template>
               </v-list-item>
+              <template
+                v-if="
+                  appData.identity.authenticated &&
+                  appData.identity.identity.admin
+                "
+              >
+                <v-divider />
+                <v-list-subheader class="px-3">{{
+                  $t("labels.settings.application", {
+                    name: appData.name,
+                  })
+                }}</v-list-subheader>
+                <template
+                  v-for="(item, i) in administrationNav"
+                  :key="`admin-nav-item-nonmobile-${i}`"
+                >
+                  <v-list-item v-bind="item" />
+                </template>
+              </template>
             </v-card>
           </v-menu>
           <v-btn
@@ -83,6 +108,7 @@
       <v-list-item>
         <GlobalSearchField v-model:search="globalSearchVal" />
       </v-list-item>
+      <v-divider />
       <v-menu v-model="showProjectJumper" :close-on-content-click="false">
         <template #activator="{ props }">
           <v-list-item v-bind="props">
@@ -111,11 +137,33 @@
         />
         <v-divider />
       </template>
-      <v-list-item :title="$t('theme.base.colorScheme')">
+      <v-list-subheader class="px-3">{{
+        $t("labels.settings.browser")
+      }}</v-list-subheader>
+      <v-list-item
+        prepend-icon="mdi-palette"
+        :title="$t('theme.base.colorScheme')"
+      >
         <template #append>
           <ThemeToggle />
         </template>
       </v-list-item>
+      <template
+        v-if="appData.identity.authenticated && appData.identity.identity.admin"
+      >
+        <v-divider />
+        <v-list-subheader class="px-3">{{
+          $t("labels.settings.application", {
+            name: appData.name,
+          })
+        }}</v-list-subheader>
+        <template
+          v-for="(item, i) in administrationNav"
+          :key="`admin-nav-item-mobile-${i}`"
+        >
+          <v-list-item v-bind="item" />
+        </template>
+      </template>
     </v-navigation-drawer>
     <v-main>
       <router-view v-if="loaded" v-slot="{ Component }">
@@ -168,7 +216,7 @@
 import { defineComponent, computed, inject, ref, onMounted, watch } from "vue";
 import { useTheme, useDisplay } from "vuetify";
 import { useVueprint } from "@jakguru/vueprint/utilities";
-import { initializeLocale } from "@/utils/i18n";
+import { initializeLocale, useI18n } from "@/utils/i18n";
 import { redmineizeApi } from "@/utils/api";
 import {
   appDebug,
@@ -183,6 +231,7 @@ import { useRouteDataStore } from "@/stores/routeData";
 import { PartialMenu, PartialProjectsJumper } from "@/partials";
 import { GlobalSearchField } from "@/components/menu";
 import { updateHead } from "@/utils/head";
+import { AuthenticatedMenu } from "@/components/authenticated-menu";
 import type {
   LocalStorageService,
   ApiService,
@@ -197,6 +246,7 @@ export default defineComponent({
     PartialMenu,
     PartialProjectsJumper,
     GlobalSearchField,
+    AuthenticatedMenu,
   },
   setup() {
     const theme = useTheme();
@@ -213,6 +263,7 @@ export default defineComponent({
       }
     };
     initializeLocale();
+    const { t } = useI18n();
     if (ls) {
       ls.promise.then(() => {
         const ct = ls.get("theme");
@@ -298,6 +349,78 @@ export default defineComponent({
     const projectSearchVal = ref("");
     const globalSearchVal = ref("");
     const showMobileNav = ref(false);
+    const administrationNav = computed(() => [
+      {
+        title: t("pages.admin-projects.title"),
+        prependIcon: "mdi-code-block-braces",
+        to: { name: "admin-projects" },
+      },
+      {
+        title: t("pages.users.admin.title"),
+        prependIcon: "mdi-account-multiple",
+        to: { name: "users" },
+      },
+      {
+        title: t("pages.groups.admin.title"),
+        prependIcon: "mdi-account-group",
+        to: { name: "groups" },
+      },
+      {
+        title: t("pages.roles.admin.title"),
+        prependIcon: "mdi-badge-account",
+        to: { name: "roles" },
+      },
+      {
+        title: t("pages.trackers.admin.title"),
+        prependIcon: "mdi-note-multiple",
+        to: { name: "trackers" },
+      },
+      {
+        title: t("pages.issue-statuses.admin.title"),
+        prependIcon: "mdi-note-check",
+        to: { name: "issue-statuses" },
+      },
+      {
+        title: t("pages.workflows.admin.title"),
+        prependIcon: "mdi-arrow-decision",
+        to: { name: "workflows" },
+      },
+      {
+        title: t("pages.custom-fields.admin.title"),
+        prependIcon: "mdi-form-textbox",
+        to: { name: "custom-fields" },
+      },
+      {
+        title: t("pages.enumerations.admin.title"),
+        prependIcon: "mdi-list-box",
+        to: { name: "enumerations" },
+      },
+      {
+        title: t("pages.settings.admin.title"),
+        prependIcon: "mdi-folder-cog",
+        to: { name: "settings" },
+      },
+      {
+        title: t("pages.auth-sources.admin.title"),
+        prependIcon: "mdi-shield-account-variant",
+        to: { name: "auth-sources" },
+      },
+      {
+        title: t("pages.admin-plugins.title"),
+        prependIcon: "mdi-puzzle",
+        to: { name: "admin-plugins" },
+      },
+      {
+        title: t("pages.admin-info.title"),
+        prependIcon: "mdi-information",
+        to: { name: "admin-info" },
+      },
+      {
+        title: t("pages.admin.menu.title"),
+        prependIcon: "mdi-cog",
+        to: { name: "admin" },
+      },
+    ]);
     return {
       complete,
       systemBarColor,
@@ -319,6 +442,7 @@ export default defineComponent({
       showMobileNav,
       projectSearchVal,
       globalSearchVal,
+      administrationNav,
     };
   },
 });

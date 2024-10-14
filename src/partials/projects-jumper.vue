@@ -22,12 +22,27 @@
       <v-list-subheader v-if="appData.projects.recent.length > 0">{{
         $t("labels.jumper.recent")
       }}</v-list-subheader>
+      <v-list-item
+        v-for="(project, i) in recent"
+        :key="i.toString()"
+        v-bind="project"
+      />
       <v-list-subheader v-if="appData.projects.bookmarked.length > 0">{{
         $t("labels.jumper.bookmarked")
       }}</v-list-subheader>
+      <v-list-item
+        v-for="(project, i) in bookmarked"
+        :key="i.toString()"
+        v-bind="project"
+      />
       <v-list-subheader v-if="appData.projects.active.length > 0">{{
         $t("labels.jumper.all")
       }}</v-list-subheader>
+      <v-list-item
+        v-for="(project, i) in active"
+        :key="i.toString()"
+        v-bind="project"
+      />
       <v-divider v-if="hasSomeProject" />
       <v-list-item
         :to="{ name: 'projects' }"
@@ -39,6 +54,7 @@
 
 <script lang="ts">
 import { defineComponent, computed } from "vue";
+import type { JumpProject } from "@/redmine";
 export default defineComponent({
   name: "PartialProjectsJumper",
   props: {
@@ -74,10 +90,35 @@ export default defineComponent({
         appData.value.projects.active.length > 0
       );
     });
+    const jumpProjectToVListItemBindings = (project: JumpProject) => {
+      const classes = new Set<string>();
+      if (project.level > 0) {
+        classes.add("ps-" + project.level + 2);
+      }
+      return {
+        to: { name: "projects-id", params: { id: project.id.toString() } },
+        title: project.name,
+        class: [...classes],
+      };
+    };
+    const recent = computed(() =>
+      [...appData.value.projects.recent].map(jumpProjectToVListItemBindings),
+    );
+    const bookmarked = computed(() =>
+      [...appData.value.projects.bookmarked].map(
+        jumpProjectToVListItemBindings,
+      ),
+    );
+    const active = computed(() =>
+      [...appData.value.projects.active].map(jumpProjectToVListItemBindings),
+    );
     return {
       searchVal,
       onSearchSubmit,
       hasSomeProject,
+      recent,
+      bookmarked,
+      active,
     };
   },
 });

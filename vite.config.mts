@@ -11,6 +11,7 @@ import {
 import { restartRedmineAfterBuild } from "./dev/restartRedmineAfterBuild.mjs";
 import { copyRubyFilesAfterBuild } from "./dev/copyRubyFilesAfterBuild.mjs";
 import UnheadVite from "@unhead/addons/vite";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 import type { UserConfig } from "vite";
 
@@ -22,6 +23,9 @@ export default defineConfig(async ({ mode }) => {
     appType: "spa",
     base: "/plugin_assets/greenmine/",
     plugins: [
+      nodePolyfills({
+        include: ["crypto", "stream", "vm"],
+      }),
       vue(),
       vuetify({
         styles: {

@@ -55,3 +55,8 @@ export const initializeLocale = (): void => {
     isRtl.value = language.rtl;
   }
 };
+
+// @ts-expect-error no idea why TS is complaining, but it works.
+const boundUseI18n: typeof useI18n = useI18n.bind(null, { useScope: "global" });
+
+export { boundUseI18n as useI18n };

@@ -15,6 +15,12 @@ export interface Project {
   identifier: string;
 }
 
+export interface JumpProject extends Project {
+  level: number;
+  lft: number;
+  rgt: number;
+}
+
 export interface Author {
   id: number;
   login: string;

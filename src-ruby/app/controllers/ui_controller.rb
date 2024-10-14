@@ -8,6 +8,17 @@ class UiController < ApplicationController
         jump_box = Redmine::ProjectJumpBox.new User.current
         bookmarked = jump_box.bookmarked_projects
         recents = jump_box.recently_used_projects
+        projectHashes = []
+        Project::project_tree(projects) do |project, level|
+            projectHashes << {
+                id: project.id,
+                name: project.name,
+                identifier: project.identifier,
+                level: level,
+                lft: project.lft,
+                rgt: project.rgt
+            }
+        end
         render json: {
             name: Redmine::Info.app_name,
             i18n: ::I18n.locale,
@@ -16,7 +27,7 @@ class UiController < ApplicationController
                 identity: User.current.logged? ? User.current : nil,
             },
             projects: {
-                active: projects,
+                active: projectHashes,
                 bookmarked: bookmarked,
                 recent: recents
             },

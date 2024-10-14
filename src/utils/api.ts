@@ -7,6 +7,7 @@ export const redmineizeApi = (api?: ApiService) => {
   if (!api) {
     return;
   }
+  api.defaults.validateStatus = () => true;
   api.defaults.withCredentials = true;
   api.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
   api.interceptors.request.use(
