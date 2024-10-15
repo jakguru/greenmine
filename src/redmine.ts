@@ -69,30 +69,72 @@ export interface ModelQuery {
   valid: boolean;
   type: string;
   new_record: boolean;
-  column_names: string[] | null;
+  columns: {
+    names: string[] | null;
+    current: QueryColumn[];
+    available: QueryColumn[];
+  };
   filters: {
-    [key: string]: {
-      operator: string;
-      values: string[];
-    };
+    current: QueryFilterRaw;
+    available: Record<string, QueryAvailableFilter>;
+    groupable: QueryColumn[];
+    blockable: QueryColumn[];
+    totable: QueryColumn[];
+    display_types: string[];
   };
   group_by: string | null;
   id: number | null;
   name: string;
-  options: {
-    totalable_names: string[];
-    display_type: string;
-  };
+  options: Record<string, unknown>;
   project_id: number | null;
   sort_criteria: string[];
   user_id: number;
   visibility: number;
 }
 
+export interface QueryPermissions {
+  query: {
+    save: boolean;
+  };
+}
+
+export interface QueryColumn {
+  name: string;
+  sortable: string;
+  groupable: boolean;
+  totalable: boolean;
+  default_order: string | null;
+  inline: boolean;
+  caption_key: string;
+  frozen: boolean | null;
+}
+
 export interface QueryOptions {
   operators: Record<string, string[]>;
 }
 
-export interface QueryPermissions {
-  save?: boolean;
+export interface QueryFilterRaw {
+  [key: string]: {
+    operator: string;
+    values: any[];
+  };
+}
+
+export interface QueryAvailableFilterOptions {
+  name: string;
+  type: string;
+  values:
+    | {}
+    | Array<[string, string]>
+    | {
+        name: string;
+        type: string;
+      };
+}
+
+export interface QueryAvailableFilter {
+  field: string;
+  remote: boolean;
+  options: QueryAvailableFilterOptions;
+  values?: any;
 }

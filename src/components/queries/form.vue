@@ -27,7 +27,14 @@
             }}</v-icon>
           </v-btn>
         </template>
-        <v-card color="primary" min-height="100" />
+        <QueriesPartialFilters
+          v-model:value="filters"
+          :options="query.filters.available"
+          :permission="permission"
+          :type="query.type"
+          @submit="onSubmit"
+          @save="onSave"
+        />
       </v-menu>
       <v-menu v-model="showColumnsMenu" :close-on-content-click="false">
         <template #activator="{ props }">
@@ -45,7 +52,14 @@
             }}</v-icon>
           </v-btn>
         </template>
-        <v-card color="primary" min-height="100" />
+        <QueriesPartialColumns
+          v-model:value="columns"
+          :options="query.columns.available"
+          :permission="permission"
+          :type="query.type"
+          @submit="onSubmit"
+          @save="onSave"
+        />
       </v-menu>
       <v-menu v-model="showGroupingMenu" :close-on-content-click="false">
         <template #activator="{ props }">
@@ -63,7 +77,7 @@
             }}</v-icon>
           </v-btn>
         </template>
-        <v-card color="primary" min-height="100" />
+        <v-card color="primary" min-height="100" @submit="onSubmit" />
       </v-menu>
       <v-menu v-model="showOptionsMenu" :close-on-content-click="false">
         <template #activator="{ props }">
@@ -81,7 +95,7 @@
             }}</v-icon>
           </v-btn>
         </template>
-        <v-card color="primary" min-height="100" />
+        <v-card color="primary" min-height="100" @submit="onSubmit" />
       </v-menu>
       <v-btn
         variant="elevated"
@@ -110,10 +124,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, ref, computed, watch } from "vue";
 import { useSystemAppBarColor } from "@/utils/app";
-import { useRoute } from "vue-router";
-
+import { useRoute, useRouter } from "vue-router";
+import { QueriesPartialFilters, QueriesPartialColumns } from "./partials";
 import QueriesTabs from "./tabs.vue";
 
 import type {
@@ -121,6 +135,7 @@ import type {
   QueriesQuery,
   QueryOptions,
   QueryPermissions,
+  QueryFilterRaw,
 } from "@/redmine";
 import type { PropType } from "vue";
 
@@ -128,6 +143,8 @@ export default defineComponent({
   name: "QueriesForm",
   components: {
     QueriesTabs,
+    QueriesPartialFilters,
+    QueriesPartialColumns,
   },
   props: {
     query: {
@@ -151,12 +168,13 @@ export default defineComponent({
       required: true,
     },
     permission: {
-      type: Object as PropType<QueryPermissions>,
+      type: Object as PropType<QueryPermissions["query"]>,
       required: true,
     },
   },
-  setup(_props) {
+  setup(props) {
     const route = useRoute();
+    const router = useRouter();
     const appBarColor = useSystemAppBarColor();
     const form = ref<HTMLFormElement | null>(null);
     const showFilterMenu = ref(false);
@@ -172,9 +190,60 @@ export default defineComponent({
       );
     });
     const formSubmitPath = computed(() => route.path);
-    const onSubmit = (e: Event) => {
-      e.preventDefault();
-      console.log("submit");
+    const query = computed(() => props.query);
+    const displayType = ref<string>(props.query.options.display_type as string);
+    const columns = ref<Array<string>>(
+      props.query.columns.current.map((c) => c.name),
+    );
+    const filters = ref<QueryFilterRaw>(props.query.filters.current);
+    watch(
+      () => query.value,
+      (q) => {
+        displayType.value = q.options.display_type as string;
+        columns.value = q.columns.current.map((c) => c.name);
+        filters.value = q.filters.current;
+      },
+      { deep: true, immediate: true },
+    );
+    const formPayload = computed(() => {
+      return {
+        utf8: "✓",
+        set_filter: "1",
+        type: query.value.type,
+        display_type: displayType.value,
+        c: [...columns.value],
+        f: [...Object.keys(filters.value), ""],
+        op: Object.assign(
+          {},
+          ...Object.keys(filters.value).map((k) => ({
+            [k]: filters.value[k].operator,
+          })),
+        ),
+        v: Object.assign(
+          {},
+          ...Object.keys(filters.value).map((k) => ({
+            [k]: [...filters.value[k].values],
+          })),
+        ),
+      };
+    });
+    const onSubmit = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+      }
+      const newRoute = { ...route, query: { ...formPayload.value } };
+      router.push(newRoute).catch(() => {});
+    };
+    const onSave = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+      }
+      const newRoute = {
+        ...route,
+        name: "queries-new",
+        query: { ...formPayload.value },
+      };
+      router.push(newRoute).catch(() => {});
     };
     return {
       appBarColor,
@@ -187,6 +256,10 @@ export default defineComponent({
       clearedRoute,
       canClearRoute,
       onSubmit,
+      onSave,
+      displayType,
+      columns,
+      filters,
     };
   },
 });

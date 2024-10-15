@@ -47,6 +47,7 @@ class ProjectsController < ApplicationController
           new_record: @query.new_record?,
           columns: {
             names: @query.column_names,
+            current: @query.columns,
             available: @query.available_columns,
           },
           filters: {

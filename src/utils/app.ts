@@ -3,6 +3,7 @@ import { getDebugger } from "@jakguru/vueprint/utilities/debug";
 import { i18n } from "@/plugins/i18n";
 import { useAppDataStore } from "@/stores/appData";
 import { useTheme } from "vuetify";
+import type Joi from "joi";
 
 import {
   ApiService,
@@ -212,4 +213,24 @@ export const useSystemSurfaceColor = () => {
   return computed(() =>
     theme.current.value.dark ? "primary-darken-1" : "primary-lighten-1",
   );
+};
+
+export const matchesSchema = <T = unknown>(
+  data: unknown,
+  schema: Joi.Schema,
+  debug: boolean = false,
+) => {
+  try {
+    const { value, error } = schema.validate(data);
+    if (error) {
+      if (debug) {
+        appDebug("Schema validation failed", error);
+      }
+      return false;
+    } else {
+      return value as T;
+    }
+  } catch {
+    return false;
+  }
 };

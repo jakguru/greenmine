@@ -312,11 +312,15 @@ export default {
         "!ev": "has never been",
         cf: "changed from",
       },
+      where: "Where",
+      and: "and",
     },
     settings: {
       browser: "Local Settings",
       application: "{name} Administration",
     },
+    clearAll: "Clear All",
+    save: "Save",
   },
   theme: {
     base: {
@@ -777,6 +781,11 @@ export default {
     infiniteScroll: {
       loadMore: "Load more",
       empty: "No more",
+    },
+  },
+  columns: {
+    projectquery: {
+      status: "Status",
     },
   },
 };

@@ -32,7 +32,7 @@ class UiController < ApplicationController
                 recent: recents
             },
             queries: {
-                projects: {
+                ProjectQuery: {
                     operators: Query.operators_by_filter_type,
                 }
             },
