@@ -321,6 +321,7 @@ export default {
     },
     clearAll: "Clear All",
     save: "Save",
+    addFilter: "New Filter",
   },
   theme: {
     base: {

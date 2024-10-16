@@ -33,7 +33,10 @@ class UiController < ApplicationController
             },
             queries: {
                 ProjectQuery: {
-                    operators: Query.operators_by_filter_type,
+                    operators: ProjectQuery.operators_by_filter_type,
+                },
+                IssueQuery: {
+                    operators: IssueQuery.operators_by_filter_type,
                 }
             },
             settings: {

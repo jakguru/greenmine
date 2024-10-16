@@ -39,32 +39,7 @@
             />
           </td>
           <td>
-            <v-autocomplete
-              v-model="val[filter.key].values"
-              :items="filter.valueOptions"
-              item-title="text"
-              item-value="value"
-              density="compact"
-              outlined
-              hide-details
-              width="250"
-              multiple
-              chips
-              deletable-chips
-            >
-              <template
-                v-if="getQueryFieldIsRemotable(filter.key)"
-                #append-inner
-              >
-                <v-btn
-                  size="x-small"
-                  color="info"
-                  @click="loadRemoteValuesForField.bind(null, filter.key)"
-                >
-                  <v-icon>mdi-refresh</v-icon>
-                </v-btn>
-              </template>
-            </v-autocomplete>
+            <pre v-text="JSON.stringify(filter.valueCells, null, 2)" />
           </td>
           <td>
             <v-btn
@@ -78,6 +53,31 @@
         </tr>
       </tbody>
     </v-table>
+    <v-divider />
+    <v-toolbar color="transparent" density="compact">
+      <v-toolbar-items>
+        <v-menu v-model="addNewFilterShowMenu" :close-on-content-click="false">
+          <template #activator="{ props }">
+            <v-btn v-bind="props" variant="text">
+              <v-icon>mdi-plus</v-icon>
+              <span class="ms-2">{{ $t("labels.addFilter") }}</span>
+            </v-btn>
+          </template>
+          <v-list density="compact">
+            <template
+              v-for="(avail, i) in availableOptions"
+              :key="`avail-${i}`"
+            >
+              <v-list-item
+                :id="`avail-${i}-list-item`"
+                :title="getQueryFieldName(avail.field)"
+                @click="addNewFilter(avail)"
+              />
+            </template>
+          </v-list>
+        </v-menu>
+      </v-toolbar-items>
+    </v-toolbar>
   </v-card>
 </template>
 
@@ -91,9 +91,23 @@ import type {
   QueryFilterRaw,
   QueryAvailableFilter,
   QueryPermissions,
+  QueryAvailableFilterOptions,
 } from "@/redmine";
 import type { PropType } from "vue";
 import type { ApiService } from "@jakguru/vueprint";
+
+interface AvailableOptionInterface {
+  field: string;
+  remote: boolean;
+  options: QueryAvailableFilterOptions;
+  values?: any;
+  filter: string;
+}
+
+interface ValuesCellConfiguration {
+  component: string;
+  bindings: Record<string, any>;
+}
 
 export default defineComponent({
   name: "QueriesPartialFilters",
@@ -204,6 +218,10 @@ export default defineComponent({
       return false;
     };
     const remoteLoadedValues = ref<Record<string, any>>({});
+    const loadingRemoteValuesForField = ref<Record<string, boolean>>({});
+    const isLoadingRemoteValuesForField = computed(
+      () => loadingRemoteValuesForField.value,
+    );
     const loadRemoteValuesForField = async (field: string, e?: Event) => {
       if (e) {
         e.preventDefault();
@@ -213,9 +231,14 @@ export default defineComponent({
       if (!api) {
         return;
       }
+      if (loadingRemoteValuesForField.value[field]) {
+        return;
+      }
+      loadingRemoteValuesForField.value[field] = true;
       const { status, data } = await api.get<Array<[string, string]>>(
         `/queries/filter?type=${type.value}&name=${field}`,
       );
+      loadingRemoteValuesForField.value[field] = false;
       if (status === 200) {
         remoteLoadedValues.value[field] = data.map(([text, value]) => ({
           text,
@@ -234,14 +257,159 @@ export default defineComponent({
       },
       { deep: true, immediate: true },
     );
+    const getValuesCellConfigurations = (
+      key: string,
+      operator: string,
+      values: string,
+    ) => {
+      const opts = options.value[key];
+      const type = opts.options.type;
+      const cells: ValuesCellConfiguration[] = [];
+      switch (type) {
+        case "list":
+        case "list_with_history":
+        case "list_optional":
+        case "list_optional_with_history":
+        case "list_status":
+        case "list_subprojects":
+          cells.push({
+            component: "VAutoComplete",
+            bindings: {
+              modelValue: val.value[key].values,
+              items: values,
+              itemText: "text",
+              itemValue: "value",
+              density: "compact",
+              outlined: true,
+              hideDetails: true,
+              width: 350,
+              multiple: true,
+              chips: true,
+              deletableChips: true,
+              loading: isLoadingRemoteValuesForField.value[key] || false,
+            },
+          });
+          break;
+        case "date":
+        case "date_past":
+          switch (operator) {
+            case '"><"':
+              // 2 cells needed
+              val.value[key].values = [undefined, undefined];
+              cells.push({
+                component: "DateFieldWithPicker",
+                bindings: {
+                  modelValue: val.value[key].values[0],
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 150,
+                },
+              });
+              cells.push({
+                component: "GlueCell",
+                bindings: {
+                  text: t("labels.queries.and"),
+                },
+              });
+              cells.push({
+                component: "DateFieldWithPicker",
+                bindings: {
+                  modelValue: val.value[key].values[1],
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 150,
+                },
+              });
+              break;
+            case "nd":
+            case "t":
+            case "ld":
+            case "nw":
+            case "w":
+            case "lw":
+            case "l2w":
+            case "nm":
+            case "m":
+            case "lm":
+            case "y":
+            case "!*":
+            case "*":
+              val.value[key].values = [];
+              break;
+            default:
+              val.value[key].values = [undefined];
+              cells.push({
+                component: "DateFieldWithPicker",
+                bindings: {
+                  modelValue: val.value[key].values[0],
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 150,
+                },
+              });
+              break;
+          }
+          break;
+        case "string":
+        case "text":
+        case "search":
+          switch (operator) {
+            case "s":
+            case "!*":
+            case "*":
+              val.value[key].values = [];
+              break;
+            default:
+              val.value[key].values = [""];
+              cells.push({
+                component: "VTextField",
+                bindings: {
+                  modelValue: val.value[key].values[0],
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  type: "search" === type ? "search" : "text",
+                },
+              });
+              break;
+          }
+          break;
+      }
+      return cells;
+    };
     const existingFilters = computed(() =>
       [...existingFilterKeys.value].map((key) => ({
         key,
         name: getQueryFieldName(key),
         operatorOptions: getQueryFieldOperationChoices(key),
-        valueOptions: remoteLoadedValues.value[key] || [],
+        type: options.value[key].options.type,
+        valueCells: getValuesCellConfigurations(
+          key,
+          val.value[key].operator,
+          getQueryFieldIsRemotable(key)
+            ? remoteLoadedValues.value[key]
+            : options.value[key].values || [],
+        ),
       })),
     );
+    const addNewFilterShowMenu = ref(false);
+    const addNewFilter = (filter: AvailableOptionInterface) => {
+      addNewFilterShowMenu.value = false;
+      if (getQueryFieldIsRemotable(filter.filter)) {
+        loadRemoteValuesForField(filter.filter);
+      }
+      val.value = {
+        ...val.value,
+        [filter.filter]: {
+          operator: getQueryFieldOperationChoices(filter.filter)[0].value,
+          values: [],
+        },
+      };
+    };
     return {
       val,
       availableOptions,
@@ -255,6 +423,9 @@ export default defineComponent({
       loadRemoteValuesForField,
       existingFilters,
       remoteLoadedValues,
+      isLoadingRemoteValuesForField,
+      addNewFilterShowMenu,
+      addNewFilter,
     };
   },
 });

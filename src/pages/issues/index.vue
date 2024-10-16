@@ -1,8 +1,8 @@
 <template>
-  <div v-if="projects" class="page-projects">
+  <div v-if="issues" class="page-issues">
     <v-container :fluid="true">
       <h1 class="text-h5 mb-3">
-        <span>{{ $t("pages.projects.title") }}</span>
+        <span>{{ $t("pages.issues.title") }}</span>
         <v-btn
           icon="mdi-rss-box"
           class="ms-3"
@@ -23,7 +23,7 @@
       <QueriesForm
         :query="query"
         :queries="queries"
-        :options="appData.queries.ProjectQuery"
+        :options="appData.queries.IssueQuery"
         :permission="permissions.query"
       />
     </v-container>
@@ -37,16 +37,16 @@ import { QueriesForm } from "@/components/queries";
 import { useAppData } from "@/utils/app";
 import qs from "qs";
 
-import type { ProjectsProject, ModelQuery, QueriesQuery } from "@/redmine";
+import type { Issue, ModelQuery, QueriesQuery } from "@/redmine";
 import type { PropType } from "vue";
 export default defineComponent({
-  name: "ProjectsIndex",
+  name: "IssuesIndex",
   components: {
     QueriesForm,
   },
   props: {
-    projects: {
-      type: Array as PropType<ProjectsProject[]>,
+    issues: {
+      type: Array as PropType<Issue[]>,
       required: true,
     },
     permissions: {

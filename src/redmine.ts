@@ -138,3 +138,30 @@ export interface QueryAvailableFilter {
   options: QueryAvailableFilterOptions;
   values?: any;
 }
+
+export interface Issue {
+  id: number;
+  tracker_id: number;
+  project_id: number;
+  subject: string;
+  description: string;
+  due_date: string;
+  category_id: number | null;
+  status_id: number;
+  assigned_to_id: number;
+  priority_id: number;
+  fixed_version_id: number | null;
+  author_id: number;
+  lock_version: number;
+  created_on: string;
+  updated_on: string;
+  start_date: string;
+  done_ratio: number;
+  estimated_hours: number | null;
+  parent_id: number | null;
+  root_id: number;
+  lft: number;
+  rgt: number;
+  is_private: boolean;
+  closed_on: string | null;
+}
