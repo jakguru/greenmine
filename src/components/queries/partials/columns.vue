@@ -27,6 +27,18 @@ export default defineComponent({
       type: String as PropType<string>,
       required: true,
     },
+    isApplying: {
+      type: Boolean as PropType<boolean>,
+      default: false,
+    },
+    isSaving: {
+      type: Boolean as PropType<boolean>,
+      default: false,
+    },
+    isClearing: {
+      type: Boolean as PropType<boolean>,
+      default: false,
+    },
   },
   emits: ["update:value", "submit", "save"],
   setup(props, { emit }) {

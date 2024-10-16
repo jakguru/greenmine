@@ -95,6 +95,12 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
           itemTitle: "title",
           itemValue: "value",
         },
+        VCombobox: {
+          variant: "outlined",
+          hideDetails: "auto",
+          itemTitle: "title",
+          itemValue: "value",
+        },
         VSwitch: {
           color: "primary",
           hideDetails: "auto",

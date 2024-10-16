@@ -4,7 +4,12 @@ import { loadRouteData, loadAppData } from "@/utils/app";
 import { useRouteDataStore } from "@/stores/routeData";
 import { useAppDataStore } from "@/stores/appData";
 import { updateHead } from "@/utils/head";
-import type { RouteRecordRaw } from "vue-router";
+import qs from "qs";
+import type {
+  RouteRecordRaw,
+  LocationQuery,
+  LocationQueryRaw,
+} from "vue-router";
 import type {
   ApiService,
   ToastService,
@@ -2037,6 +2042,16 @@ const routes: RouteRecordRaw[] = [
 export const router = createRouter({
   history: createWebHistory(),
   routes,
+  parseQuery: (search: string) => {
+    return qs.parse(search, { ignoreQueryPrefix: true }) as LocationQuery;
+  },
+  stringifyQuery: (query: LocationQueryRaw) => {
+    return qs.stringify(query, {
+      addQueryPrefix: false,
+      arrayFormat: "brackets",
+      allowEmptyArrays: true,
+    });
+  },
 });
 
 router.beforeEach(async (to) => {

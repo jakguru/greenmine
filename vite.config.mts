@@ -26,7 +26,12 @@ export default defineConfig(async ({ mode }) => {
       nodePolyfills({
         include: ["crypto", "stream", "vm"],
       }),
-      vue(),
+      vue({
+        isProduction: mode === "production",
+        features: {
+          prodDevtools: mode !== "production",
+        },
+      }),
       vuetify({
         styles: {
           configFile: "./assets/stylesheets/vuetify.scss",

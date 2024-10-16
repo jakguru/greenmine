@@ -32,6 +32,9 @@
           :options="query.filters.available"
           :permission="permission"
           :type="query.type"
+          :is-applying="isApplying"
+          :is-saving="isSaving"
+          :is-clearing="isClearing"
           @submit="onSubmit"
           @save="onSave"
         />
@@ -57,6 +60,9 @@
           :options="query.columns.available"
           :permission="permission"
           :type="query.type"
+          :is-applying="isApplying"
+          :is-saving="isSaving"
+          :is-clearing="isClearing"
           @submit="onSubmit"
           @save="onSave"
         />
@@ -103,6 +109,7 @@
         size="small"
         class="me-2"
         type="submit"
+        :loading="isApplying"
       >
         <v-icon class="me-2">mdi-check</v-icon>
         {{ $t("labels.apply") }}
@@ -115,6 +122,8 @@
         class="me-2"
         :to="clearedRoute"
         :exact="true"
+        :loading="isClearing"
+        @click="onClear"
       >
         <v-icon class="me-2">mdi-cancel</v-icon>
         {{ $t("labels.clear") }}
@@ -125,7 +134,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, watch } from "vue";
-import { useSystemAppBarColor } from "@/utils/app";
+import { appDebug, useSystemAppBarColor } from "@/utils/app";
 import { useRoute, useRouter } from "vue-router";
 import { QueriesPartialFilters, QueriesPartialColumns } from "./partials";
 import QueriesTabs from "./tabs.vue";
@@ -227,23 +236,48 @@ export default defineComponent({
         ),
       };
     });
+    const isApplying = ref(false);
+    const isSaving = ref(false);
+    const isClearing = ref(false);
+    router.afterEach(() => {
+      isApplying.value = false;
+      isSaving.value = false;
+      isClearing.value = false;
+    });
     const onSubmit = (e?: Event) => {
       if (e) {
         e.preventDefault();
       }
+      appDebug({ ...formPayload.value });
       const newRoute = { ...route, query: { ...formPayload.value } };
-      router.push(newRoute).catch(() => {});
+      isApplying.value = true;
+      router.push(newRoute).catch(() => {
+        isApplying.value = false;
+      });
     };
     const onSave = (e?: Event) => {
       if (e) {
         e.preventDefault();
       }
+      appDebug({ ...formPayload.value });
       const newRoute = {
         ...route,
         name: "queries-new",
         query: { ...formPayload.value },
       };
-      router.push(newRoute).catch(() => {});
+      isSaving.value = true;
+      router.push(newRoute).catch(() => {
+        isSaving.value = false;
+      });
+    };
+    const onClear = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+      }
+      isClearing.value = true;
+      router.push(clearedRoute.value).catch(() => {
+        isClearing.value = false;
+      });
     };
     return {
       appBarColor,
@@ -255,11 +289,15 @@ export default defineComponent({
       formSubmitPath,
       clearedRoute,
       canClearRoute,
+      onClear,
       onSubmit,
       onSave,
       displayType,
       columns,
       filters,
+      isApplying,
+      isSaving,
+      isClearing,
     };
   },
 });

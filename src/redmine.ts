@@ -120,23 +120,24 @@ export interface QueryFilterRaw {
   };
 }
 
+export type QueryAvailableFilterOptionsValues =
+  | {}
+  | Array<[string, string]>
+  | {
+      name: string;
+      type: string;
+    };
+
 export interface QueryAvailableFilterOptions {
   name: string;
   type: string;
-  values:
-    | {}
-    | Array<[string, string]>
-    | {
-        name: string;
-        type: string;
-      };
+  remote: boolean;
+  values?: QueryAvailableFilterOptionsValues;
 }
 
 export interface QueryAvailableFilter {
   field: string;
-  remote: boolean;
   options: QueryAvailableFilterOptions;
-  values?: any;
 }
 
 export interface Issue {
