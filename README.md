@@ -1,4 +1,4 @@
-# Greenmine
+# Friday
 
 A Redmine plugin to transform Redmine into a modern UX/UI Experience
 

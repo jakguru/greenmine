@@ -51,7 +51,7 @@ export default defineComponent({
     const toast = inject<ToastService>("toast");
     const mode = computed(() => props.mode);
     const themeIsDark = computed(
-      () => theme.global.name.value === "greenmine-dark",
+      () => theme.global.name.value === "friday-dark",
     );
     const aceEditor = ref<any | null>(null);
     const content = computed(() => props.content);
@@ -70,7 +70,7 @@ export default defineComponent({
     }));
     const wrapperBinding = computed(() => ({
       color: themeIsDark.value ? "#272822" : "#FFFFFF",
-      class: ["position-relative", "greenmine-code-preview"],
+      class: ["position-relative", "friday-code-preview"],
     }));
     const onInit = (editor: Ace.Editor) => {
       if (editor) {
@@ -84,7 +84,7 @@ export default defineComponent({
       color: themeIsDark.value ? "#272822" : "#FFFFFF",
       elevation: 3,
       icon: "mdi-content-copy",
-      class: ["greenmine-code-preview__fab"],
+      class: ["friday-code-preview__fab"],
     }));
     const onCopy = async () => {
       try {
@@ -119,8 +119,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.greenmine-code-preview {
-  .greenmine-code-preview__fab {
+.friday-code-preview {
+  .friday-code-preview__fab {
     top: 40px;
     right: 15px;
   }

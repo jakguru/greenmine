@@ -8,7 +8,7 @@
         >
           <v-responsive
             :aspect-ratio="1"
-            class="greenmine-menu-link__icon-responsive-wrapper"
+            class="friday-menu-link__icon-responsive-wrapper"
           >
             <v-icon v-bind="iconBindings">{{ icon }}</v-icon>
           </v-responsive>
@@ -91,7 +91,7 @@ export default defineComponent({
     const replace = computed(() => props.replace);
     const to = computed(() => props.to);
     const linkBindings = computed<RouterLinkProps>(() => ({
-      class: ["greenmine-menu-link"],
+      class: ["friday-menu-link"],
       activeClass: activeClass.value,
       ariaCurrentValue: ariaCurrentValue.value,
       exactActiveClass: exactActiveClass.value,
@@ -116,7 +116,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.greenmine-menu-link {
+.friday-menu-link {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -125,7 +125,7 @@ export default defineComponent({
   font-weight: 600;
   color: var(--menu-link-color);
 
-  .greenmine-menu-link__icon-responsive-wrapper {
+  .friday-menu-link__icon-responsive-wrapper {
     > .v-responsive__content {
       display: flex;
       align-items: center;

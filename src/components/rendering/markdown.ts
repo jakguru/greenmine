@@ -5,8 +5,6 @@ import markdownItAttrs from "markdown-it-attrs";
 import { full as emoji } from "markdown-it-emoji";
 import mathjax3 from "markdown-it-mathjax3";
 import * as cheerio from "cheerio";
-// import hljs from "highlight.js"; // https://highlightjs.org
-// import "highlight.js/styles/monokai-sublime.css";
 import RenderCode from "./code.vue";
 import { getAceMode } from "./plugins/ace";
 
@@ -30,7 +28,7 @@ const md = MarkdownIt({
 });
 md.set({
   highlight: function (str, lang) {
-    return `<pre greenmine-code-lang="${lang}">${md.utils.escapeHtml(str)}</pre>`;
+    return `<pre friday-code-lang="${lang}">${md.utils.escapeHtml(str)}</pre>`;
   },
 });
 md.use(anchorPlugin, {});
@@ -65,11 +63,11 @@ export const Markdown = defineComponent({
         // replace code block with custom component
         if (
           node.name === "pre" &&
-          "string" === typeof props["greenmine-code-lang"]
+          "string" === typeof props["friday-code-lang"]
         ) {
           return h(RenderCode, {
             content: $.value(node).text(),
-            mode: getAceMode(props["greenmine-code-lang"]),
+            mode: getAceMode(props["friday-code-lang"]),
           });
         }
         const children = node.children.map((child) =>
@@ -84,7 +82,7 @@ export const Markdown = defineComponent({
       h(
         "div",
         {
-          class: "greenmine-rendered-markdown",
+          class: "friday-rendered-markdown",
         },
         [
           ...root.value

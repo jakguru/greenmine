@@ -4,7 +4,7 @@
       <v-sheet v-bind="iconWrapperBindings">
         <v-responsive
           :aspect-ratio="1"
-          class="greenmine-external-menu-link__icon-responsive-wrapper"
+          class="friday-external-menu-link__icon-responsive-wrapper"
         >
           <v-icon v-bind="iconBindings">{{ icon }}</v-icon>
         </v-responsive>
@@ -48,7 +48,7 @@ export default defineComponent({
   setup(props) {
     const to = computed(() => props.to);
     const linkBindings = computed(() => ({
-      class: ["greenmine-external-menu-link"],
+      class: ["friday-external-menu-link"],
       href: to.value,
       target: "_blank",
     }));
@@ -63,7 +63,7 @@ export default defineComponent({
       size: iconSize.value,
     }));
     const labelWrapperBindings = computed(() => ({
-      class: ["greenmine-external-menu-link__label", "text-center"],
+      class: ["friday-external-menu-link__label", "text-center"],
       style: {
         "--menu-link-color": `var(--v-theme-on-${color.value})`,
       },
@@ -79,7 +79,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.greenmine-external-menu-link {
+.friday-external-menu-link {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -88,7 +88,7 @@ export default defineComponent({
   font-weight: 600;
   color: var(--menu-link-color);
 
-  .greenmine-external-menu-link__icon-responsive-wrapper {
+  .friday-external-menu-link__icon-responsive-wrapper {
     > .v-responsive__content {
       display: flex;
       align-items: center;

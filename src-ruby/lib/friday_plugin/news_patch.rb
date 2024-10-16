@@ -1,6 +1,6 @@
 require_dependency 'news'
 
-module GreenminePlugin
+module FridayPlugin
   module NewsPatch
     def self.included(base)
       base.send(:include, InstanceMethods)
@@ -19,4 +19,4 @@ module GreenminePlugin
   end
 end
 
-News.send(:include, GreenminePlugin::NewsPatch) unless News.included_modules.include?(GreenminePlugin::NewsPatch)
+News.send(:include, FridayPlugin::NewsPatch) unless News.included_modules.include?(FridayPlugin::NewsPatch)

@@ -13,7 +13,7 @@ import {
 import type { RouteLocationNormalizedGeneric } from "vue-router";
 import type { Ref, ComputedRef } from "vue";
 
-export const appDebug = getDebugger("Greenmine:app", "#62B682", "#FFFFFF");
+export const appDebug = getDebugger("Friday:app", "#62B682", "#FFFFFF");
 
 export const loadAppData = async (
   ls: LocalStorageService | undefined,
@@ -105,7 +105,7 @@ export const useAppData = () => {
       return ls.value.app;
     } else {
       return {
-        name: "Greenmine",
+        name: "Friday",
         i18n: i18n.global.locale,
         identity: {
           authenticated: false,
@@ -204,14 +204,14 @@ export const useAppData = () => {
 export const useSystemAppBarColor = () => {
   const theme = useTheme();
   return computed(() =>
-    theme.current.value.dark ? "primary-darken-2" : "primary-lighten-2",
+    theme.current.value.dark ? "panel-darken-2" : "panel",
   );
 };
 
 export const useSystemSurfaceColor = () => {
   const theme = useTheme();
   return computed(() =>
-    theme.current.value.dark ? "primary-darken-1" : "primary-lighten-1",
+    theme.current.value.dark ? "panel-darken-1" : "panel-lighten-1",
   );
 };
 

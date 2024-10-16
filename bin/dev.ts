@@ -10,7 +10,7 @@ const color = require("cli-color");
 const { env } = process;
 
 const srcRubyDir = resolve(cwd, "src-ruby");
-const destRubyDir = resolve(cwd, "plugins", "greenmine");
+const destRubyDir = resolve(cwd, "plugins", "friday");
 
 const nodemonConfig = {
   watch: ["dev/**/*", "src-ruby/**/*", "package.json", "vite.config.mts"],

@@ -21,7 +21,7 @@ const SRC_BASE_DIR = resolve(BASE_DIR, "src");
 export default defineConfig(async ({ mode }) => {
   return {
     appType: "spa",
-    base: "/plugin_assets/greenmine/",
+    base: "/plugin_assets/friday/",
     plugins: [
       nodePolyfills({
         include: ["crypto", "stream", "vm"],
@@ -51,19 +51,19 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     build: {
-      outDir: resolve(__dirname, "plugins", "greenmine"),
+      outDir: resolve(__dirname, "plugins", "friday"),
       chunkSizeWarningLimit: 1024 * 10,
       emptyOutDir: true,
       sourcemap: false,
       minify: mode === "production",
       rollupOptions: {
         input: {
-          "javascripts/greenmine": resolve(
+          "javascripts/friday": resolve(
             __dirname,
             "src",
             "assets",
             "javascripts",
-            "greenmine.ts",
+            "friday.ts",
           ),
         },
         output: {
@@ -87,7 +87,7 @@ export default defineConfig(async ({ mode }) => {
             if (
               chunkInfo.type === "asset" &&
               "string" === typeof chunkInfo.name &&
-              chunkInfo.name.includes("greenmine")
+              chunkInfo.name.includes("friday")
             ) {
               return `${base}/[name][extname]`;
             } else {
@@ -101,7 +101,7 @@ export default defineConfig(async ({ mode }) => {
       renderBuiltUrl(filename) {
         const filePath = resolve(SRC_BASE_DIR, filename);
         const fileBaseName = basename(filePath);
-        let base = `/plugin_assets/greenmine/`;
+        let base = `/plugin_assets/friday/`;
         if (isJavascriptFile(fileBaseName)) {
           base += `javascripts`;
         } else if (isCssFile(fileBaseName)) {

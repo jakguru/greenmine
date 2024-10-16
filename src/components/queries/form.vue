@@ -39,7 +39,11 @@
           @save="onSave"
         />
       </v-menu>
-      <v-menu v-model="showColumnsMenu" :close-on-content-click="false">
+      <v-menu
+        v-if="canChooseColumns"
+        v-model="showColumnsMenu"
+        :close-on-content-click="false"
+      >
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
@@ -67,7 +71,11 @@
           @save="onSave"
         />
       </v-menu>
-      <v-menu v-model="showGroupingMenu" :close-on-content-click="false">
+      <v-menu
+        v-if="canChooseColumns"
+        v-model="showGroupingMenu"
+        :close-on-content-click="false"
+      >
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
@@ -101,7 +109,17 @@
             }}</v-icon>
           </v-btn>
         </template>
-        <v-card color="primary" min-height="100" @submit="onSubmit" />
+        <QueriesPartialOptions
+          v-model:value="optionsVModel"
+          :options="query.filters.display_types"
+          :permission="permission"
+          :type="query.type"
+          :is-applying="isApplying"
+          :is-saving="isSaving"
+          :is-clearing="isClearing"
+          @submit="onSubmit"
+          @save="onSave"
+        />
       </v-menu>
       <v-btn
         variant="elevated"
@@ -136,7 +154,11 @@
 import { defineComponent, ref, computed, watch } from "vue";
 import { appDebug, useSystemAppBarColor } from "@/utils/app";
 import { useRoute, useRouter } from "vue-router";
-import { QueriesPartialFilters, QueriesPartialColumns } from "./partials";
+import {
+  QueriesPartialFilters,
+  QueriesPartialColumns,
+  QueriesPartialOptions,
+} from "./partials";
 import QueriesTabs from "./tabs.vue";
 
 import type {
@@ -154,6 +176,7 @@ export default defineComponent({
     QueriesTabs,
     QueriesPartialFilters,
     QueriesPartialColumns,
+    QueriesPartialOptions,
   },
   props: {
     query: {
@@ -200,17 +223,22 @@ export default defineComponent({
     });
     const formSubmitPath = computed(() => route.path);
     const query = computed(() => props.query);
+    const canChooseColumns = computed(
+      () => "list" === query.value.options.display_type,
+    );
     const displayType = ref<string>(props.query.options.display_type as string);
     const columns = ref<Array<string>>(
       props.query.columns.current.map((c) => c.name),
     );
     const filters = ref<QueryFilterRaw>(props.query.filters.current);
+    const options = ref<QueryOptions>(props.options);
     watch(
       () => query.value,
       (q) => {
         displayType.value = q.options.display_type as string;
         columns.value = q.columns.current.map((c) => c.name);
         filters.value = q.filters.current;
+        options.value = q.options;
       },
       { deep: true, immediate: true },
     );
@@ -289,12 +317,14 @@ export default defineComponent({
       formSubmitPath,
       clearedRoute,
       canClearRoute,
+      canChooseColumns,
       onClear,
       onSubmit,
       onSave,
       displayType,
       columns,
       filters,
+      optionsVModel: options,
       isApplying,
       isSaving,
       isClearing,

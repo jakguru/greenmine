@@ -25,14 +25,14 @@ export default defineComponent({
     const theme = useTheme();
     const bus = inject<BusService>("bus");
     const themeIcon = computed(() =>
-      theme.global.name.value === "greenmine-light"
+      theme.global.name.value === "friday-light"
         ? "mdi-lightbulb-on"
         : "mdi-lightbulb-off",
     );
     const themeIsDark = computed({
-      get: () => theme.global.name.value === "greenmine-dark",
+      get: () => theme.global.name.value === "friday-dark",
       set: (val) => {
-        const value = val ? "greenmine-dark" : "greenmine-light";
+        const value = val ? "friday-dark" : "friday-light";
         if (theme.global.name.value !== value) {
           theme.global.name.value = value;
           if (ls) {

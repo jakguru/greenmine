@@ -1,4 +1,4 @@
-plugin_lib_dir = File.join(File.dirname(__FILE__), 'lib', 'greenmine_plugin')
+plugin_lib_dir = File.join(File.dirname(__FILE__), 'lib', 'friday_plugin')
 
 if Rails.try(:autoloaders).try(:zeitwerk_enabled?)
   Rails.autoloaders.main.push_dir plugin_lib_dir
@@ -9,11 +9,11 @@ else
 end
 
 Rails.configuration.to_prepare do
-  require_dependency 'greenmine_plugin/news_patch'
+  require_dependency 'friday_plugin/news_patch'
 end
 
-Redmine::Plugin.register :greenmine do
-  name 'Greenmine'
+Redmine::Plugin.register :friday do
+  name 'Friday'
   author 'Jak Guru'
   description 'A new updated UI for Redmine using VueJS + Vuetify'
   version '1.0.0'

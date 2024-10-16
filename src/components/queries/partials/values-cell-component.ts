@@ -1,3 +1,4 @@
+/* eslint-disable vue/one-component-per-file */
 import { defineComponent, computed, h, watch } from "vue";
 import { VTextField } from "vuetify/components/VTextField";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
@@ -21,6 +22,27 @@ interface ValuesGlueCellComponentConfiguration {
 export type ValuesCellConfiguration =
   | ValuesCellComponentConfiguration
   | ValuesGlueCellComponentConfiguration;
+
+export const GlueCell = defineComponent({
+  name: "GlueCell",
+  props: {
+    text: {
+      type: String,
+      default: "",
+    },
+  },
+  setup(props) {
+    const text = computed(() => props.text);
+    return () =>
+      h(
+        "div",
+        {
+          class: "glue-cell",
+        },
+        [h("span", text.value)],
+      );
+  },
+});
 
 export const ValuesCellComponent = defineComponent({
   name: "ValuesCellComponent",
@@ -78,6 +100,10 @@ export const ValuesCellComponent = defineComponent({
             ...bindings.value,
             modelValue: modelValue.value,
             "onUpdate:modelValue": onUpdateModelValue.value,
+          });
+        case "GlueCell":
+          return h(GlueCell, {
+            ...bindings.value,
           });
         default:
           return h("span", [

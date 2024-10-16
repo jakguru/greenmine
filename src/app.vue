@@ -85,7 +85,10 @@
                   v-for="(item, i) in administrationNav"
                   :key="`admin-nav-item-nonmobile-${i}`"
                 >
-                  <v-list-item v-bind="item" />
+                  <v-list-item
+                    v-bind="item"
+                    :id="`admin-nav-item-nonmobile-${i}`"
+                  />
                 </template>
               </template>
             </v-card>
@@ -161,7 +164,7 @@
           v-for="(item, i) in administrationNav"
           :key="`admin-nav-item-mobile-${i}`"
         >
-          <v-list-item v-bind="item" />
+          <v-list-item v-bind="item" :id="`admin-nav-item-mobile-${i}`" />
         </template>
       </template>
     </v-navigation-drawer>
@@ -224,6 +227,8 @@ import {
   loadRouteData,
   AsyncAction,
   useAppData,
+  useSystemAppBarColor,
+  useSystemSurfaceColor,
 } from "@/utils/app";
 import { ThemeToggle } from "@/components/theme";
 import { useRoute } from "vue-router";
@@ -240,7 +245,7 @@ import type {
 } from "@jakguru/vueprint";
 
 export default defineComponent({
-  name: "GreenmineApp",
+  name: "FridayApp",
   components: {
     ThemeToggle,
     PartialMenu,
@@ -300,12 +305,8 @@ export default defineComponent({
     const complete = computed(
       () => mounted.value && booted.value && ready.value,
     );
-    const systemBarColor = computed(() =>
-      theme.current.value.dark ? "primary-darken-2" : "primary-lighten-2",
-    );
-    const systemSurfaceColor = computed(() =>
-      theme.current.value.dark ? "primary-darken-1" : "primary-lighten-1",
-    );
+    const systemBarColor = useSystemAppBarColor();
+    const systemSurfaceColor = useSystemSurfaceColor();
     redmineizeApi(api);
     const loaded = ref(false);
     const overlay = computed(() => !loaded.value);
@@ -449,7 +450,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-#greenmine-app {
+#friday-app {
   .site-name {
     font-size: 24px;
     font-weight: 700;

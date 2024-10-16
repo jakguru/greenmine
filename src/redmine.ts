@@ -47,6 +47,14 @@ export interface ProjectsProject {
   default_issue_query_id: number | null;
 }
 
+export interface QueryOptions {
+  display_type: string;
+  draw_progress_line?: boolean | null;
+  draw_relations?: boolean | null;
+  draw_selected_columns?: string[] | null;
+  totalable_names: string[];
+}
+
 export interface QueriesQuery {
   id: number;
   project_id: number | null;
@@ -62,7 +70,7 @@ export interface QueriesQuery {
   sort_criteria: string[];
   group_by: string | null;
   visibility: number;
-  options: Record<string, unknown>;
+  options: QueryOptions;
 }
 
 export interface ModelQuery {
@@ -85,7 +93,7 @@ export interface ModelQuery {
   group_by: string | null;
   id: number | null;
   name: string;
-  options: Record<string, unknown>;
+  options: QueryOptions;
   project_id: number | null;
   sort_criteria: string[];
   user_id: number;
@@ -131,13 +139,13 @@ export type QueryAvailableFilterOptionsValues =
 export interface QueryAvailableFilterOptions {
   name: string;
   type: string;
-  remote: boolean;
   values?: QueryAvailableFilterOptionsValues;
 }
 
 export interface QueryAvailableFilter {
   field: string;
   options: QueryAvailableFilterOptions;
+  remote: boolean;
 }
 
 export interface Issue {

@@ -1,4 +1,4 @@
-import "../stylesheets/greenmine.scss";
+import "../stylesheets/friday.scss";
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
@@ -11,7 +11,7 @@ import * as VuetifyComponents from "vuetify/components";
 import * as VuetifyDirectives from "vuetify/directives";
 import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
 
-import GreenmineApp from "@/app.vue";
+import FridayApp from "@/app.vue";
 
 import type {
   VueMainBootstrapOptions,
@@ -19,9 +19,10 @@ import type {
 } from "@jakguru/vueprint/plugins";
 
 const mainColors = {
-  primary: "#62B682",
-  secondary: "#5F1A37",
-  accent: "#103900",
+  primary: "#0273EA",
+  secondary: "#62B682",
+  accent: "#5F1A37",
+  panel: "#6162FF",
 };
 
 const vueprintMainPluginOptions: VueMainBootstrapOptions = {
@@ -35,19 +36,20 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
     tokenRefreshBuffer: 60 * 5,
   },
   bus: {
-    namespace: "greenmine",
+    namespace: "friday",
   },
   ls: {
-    namespace: "greenmine",
+    namespace: "friday",
   },
   vuetify: {
-    defaultTheme: "greenmine-light",
+    defaultTheme: "friday-light",
     themes: {
-      "greenmine-dark": {
+      "friday-dark": {
         dark: true,
         colors: {
           ...mainColors,
-          background: "#424242",
+          background: "#282F4C",
+          surface: "#181B34",
           cancel: "#FF0000",
           error: "#D9534F",
           highlight: "#FFFFFF",
@@ -55,15 +57,15 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
           notify: "#5BC0DE",
           question: "#337AB7",
           success: "#5CB85C",
-          surface: "#242424",
           warning: "#F0AD4E",
         },
       },
-      "greenmine-light": {
+      "friday-light": {
         dark: false,
         colors: {
           ...mainColors,
-          background: "#F7F7F7",
+          background: "#E8ECF4",
+          surface: "#FFFFFF",
           cancel: "#FF0000",
           error: "#D9534F",
           highlight: "#000000",
@@ -71,7 +73,6 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
           notify: "#5BC0DE",
           question: "#337AB7",
           success: "#5CB85C",
-          surface: "#EFEFEF",
           warning: "#F0AD4E",
         },
       },
@@ -135,11 +136,11 @@ const vueprintClientPluginOptions: VueClientBootstrapOptions = {
 };
 
 const pinia = createPinia();
-createApp(GreenmineApp)
+createApp(FridayApp)
   .use(i18n)
   .use(router)
   .use(pinia)
   .use(VueMainBootstrap, vueprintMainPluginOptions)
   .use(VueClientBootstrap, vueprintClientPluginOptions)
   .use(head)
-  .mount("#greenmine-app");
+  .mount("#friday-app");

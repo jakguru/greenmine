@@ -1,7 +1,7 @@
 import { getDebugger } from "@jakguru/vueprint/utilities/debug";
 import type { ApiService } from "@jakguru/vueprint";
 
-const debug = getDebugger("Greenmine:api");
+const debug = getDebugger("Friday:api");
 
 export const redmineizeApi = (api?: ApiService) => {
   if (!api) {

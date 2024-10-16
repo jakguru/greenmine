@@ -31,7 +31,7 @@ const getStaticCopyTargets = async (): Promise<StaticCopyTarget[]> => {
       src: file,
       dest: file.replace(
         resolve(cwd, "src-ruby"),
-        resolve(cwd, "plugins", "greenmine"),
+        resolve(cwd, "plugins", "friday"),
       ),
     };
   });

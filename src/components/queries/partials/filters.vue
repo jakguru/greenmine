@@ -1,5 +1,5 @@
 <template>
-  <v-card min-height="100">
+  <v-card min-height="100" class="query-filters-panel">
     <v-toolbar color="transparent" density="compact">
       <v-toolbar-items class="ml-auto">
         <v-btn variant="text" :loading="isApplying" @click="clearAll">
@@ -46,15 +46,14 @@
             />
           </td>
           <td>
-            <template
-              v-for="(cell, fi) in filter.valueCells"
-              :key="`filter-${i}-cell-${fi}`"
-            >
+            <div class="w-100 h-100 d-flex align-center">
               <ValuesCellComponent
+                v-for="(cell, fi) in filter.valueCells"
                 :id="`filter-${i}-cell-${fi}`"
+                :key="`filter-${i}-cell-${fi}`"
                 :configuration="cell"
               />
-            </template>
+            </div>
           </td>
           <td>
             <v-btn
@@ -89,7 +88,7 @@
                 @click="
                   addNewFilter({
                     field: avail.field,
-                    remote: avail.options.remote,
+                    remote: avail.remote,
                     options: avail.options,
                     filter: avail.filter,
                     values: avail.options.values,
@@ -102,7 +101,7 @@
       </v-toolbar-items>
       <v-toolbar-items class="ml-auto">
         <v-btn
-          variant="flat"
+          variant="text"
           color="secondary"
           :loading="isApplying"
           @click="apply"
@@ -257,11 +256,7 @@ export default defineComponent({
       return ret;
     };
     const getQueryFieldIsRemotable = (key: string) => {
-      if (
-        options.value[key] &&
-        options.value[key].options.remote &&
-        !options.value[key].options.values
-      ) {
+      if (options.value[key] && options.value[key].remote) {
         return true;
       }
       return false;
@@ -295,10 +290,12 @@ export default defineComponent({
       );
       loadingRemoteValuesForField.value[field] = false;
       if (status === 200) {
-        remoteLoadedValues.value[field] = data.map(([text, value]) => ({
-          text,
-          value,
-        }));
+        remoteLoadedValues.value[field] = Array.isArray(data)
+          ? data.map(([text, value]) => ({
+              text,
+              value,
+            }))
+          : [];
         remoteValuesForFieldLastUpdatedAt.value[field] = Date.now();
       }
     };
@@ -415,18 +412,19 @@ export default defineComponent({
         case "date":
         case "date_past":
           switch (operator) {
-            case '"><"':
+            case "><":
               // 2 cells needed
               if (val.value[key].values.length !== 2) {
                 val.value[key].values = [undefined, undefined];
               }
               cells.push({
-                component: "DateFieldWithPicker",
+                component: "VTextField",
                 bindings: {
                   density: "compact",
                   outlined: true,
                   hideDetails: true,
                   width: 150,
+                  type: "date",
                 },
                 onUpdateModelValue: (value: any) => {
                   val.value[key].values[0] = value;
@@ -440,12 +438,13 @@ export default defineComponent({
                 },
               });
               cells.push({
-                component: "DateFieldWithPicker",
+                component: "VTextField",
                 bindings: {
                   density: "compact",
                   outlined: true,
                   hideDetails: true,
                   width: 150,
+                  type: "date",
                 },
                 onUpdateModelValue: (value: any) => {
                   val.value[key].values[1] = value;
@@ -473,12 +472,13 @@ export default defineComponent({
                 val.value[key].values = [undefined];
               }
               cells.push({
-                component: "DateFieldWithPicker",
+                component: "VTextField",
                 bindings: {
                   density: "compact",
                   outlined: true,
                   hideDetails: true,
-                  width: 150,
+                  width: 350,
+                  type: "date",
                 },
                 onUpdateModelValue: (value: any) => {
                   val.value[key].values[0] = value;
@@ -527,7 +527,7 @@ export default defineComponent({
             case "*":
               val.value[key].values = [];
               break;
-            case '"><"':
+            case "><":
               // 2 cells needed
               if (val.value[key].values.length !== 2) {
                 val.value[key].values = ["", ""];
@@ -724,3 +724,16 @@ export default defineComponent({
   },
 });
 </script>
+
+<style lang="scss">
+.query-filters-panel {
+  .glue-cell {
+    width: 50px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+  }
+}
+</style>
