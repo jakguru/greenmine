@@ -26,6 +26,15 @@
         :options="appData.queries.ProjectQuery"
         :permission="permissions.query"
       />
+      <ProjectsLayoutsBoardWrapper
+        v-if="'board' === displayType"
+        :projects="projects"
+      />
+      <v-row v-else>
+        <v-col cols="12">
+          <pre>{{ query }}</pre>
+        </v-col>
+      </v-row>
     </v-container>
   </div>
 </template>
@@ -36,6 +45,7 @@ import { useRoute } from "vue-router";
 import { QueriesForm } from "@/components/queries";
 import { useAppData } from "@/utils/app";
 import qs from "qs";
+import { ProjectsLayoutsBoardWrapper } from "@/components/projects/layouts/board/";
 
 import type { ProjectsProject, ModelQuery, QueriesQuery } from "@/redmine";
 import type { PropType } from "vue";
@@ -43,6 +53,7 @@ export default defineComponent({
   name: "ProjectsIndex",
   components: {
     QueriesForm,
+    ProjectsLayoutsBoardWrapper,
   },
   props: {
     projects: {
@@ -90,7 +101,10 @@ export default defineComponent({
       return ret;
     });
     const appData = useAppData();
-    return { routePathForAtom, routePathForCsv, appData };
+    const displayType = computed(() => {
+      return query.value.options.display_type || "list";
+    });
+    return { routePathForAtom, routePathForCsv, appData, displayType };
   },
 });
 </script>

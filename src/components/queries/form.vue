@@ -62,6 +62,7 @@
         <QueriesPartialColumns
           v-model:value="columns"
           :options="query.columns.available"
+          :columns="query.filters.available"
           :permission="permission"
           :type="query.type"
           :is-applying="isApplying"

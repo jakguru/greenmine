@@ -80,6 +80,7 @@
     "vuetify": "^3.7.2"
   },
   "dependencies": {
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vuedraggable": "^4.1.0"
   }
 }

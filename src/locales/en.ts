@@ -329,6 +329,8 @@ export default {
       list: "List",
     },
     groupBy: "Group by value of",
+    selected: "Selected",
+    available: "Available",
   },
   theme: {
     base: {
@@ -794,8 +796,12 @@ export default {
   columns: {
     projectquery: {
       status: "Status",
+      short_description: "Description",
+      homepage: "Homepage",
+      identifier: "Identifier",
     },
     issuequery: {
+      id: "ID",
       project: "Project",
       tracker: "Tracker",
       status: "Status",
@@ -804,6 +810,16 @@ export default {
       assigned_to: "Assignee",
       category: "Category",
       fixed_version: "Target Version",
+      parent: {
+        "": "Parent",
+        subject: "Parent",
+      },
+      total_estimated_hours: "Estimated Time",
+      spent_hours: "Spent Time",
+      total_spent_hours: "Total Spent Time",
+      relations: "Relations",
+      attachments: "Attachments",
+      last_notes: "Last Notes",
     },
   },
 };
