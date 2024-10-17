@@ -203,15 +203,13 @@ export const useAppData = () => {
 
 export const useSystemAppBarColor = () => {
   const theme = useTheme();
-  return computed(() =>
-    theme.current.value.dark ? "panel-darken-2" : "panel",
-  );
+  return computed(() => (theme.current.value.dark ? "surface" : "panel"));
 };
 
 export const useSystemSurfaceColor = () => {
   const theme = useTheme();
   return computed(() =>
-    theme.current.value.dark ? "panel-darken-1" : "panel-lighten-1",
+    theme.current.value.dark ? "surface" : "panel-lighten-1",
   );
 };
 

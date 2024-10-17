@@ -91,9 +91,24 @@
             }}</v-icon>
           </v-btn>
         </template>
-        <v-card color="primary" min-height="100" @submit="onSubmit" />
+        <QueriesPartialGroupings
+          v-model:value="groupBy"
+          :options="query.filters.groupable"
+          :columns="query.filters.available"
+          :permission="permission"
+          :type="query.type"
+          :is-applying="isApplying"
+          :is-saving="isSaving"
+          :is-clearing="isClearing"
+          @submit="onSubmit"
+          @save="onSave"
+        />
       </v-menu>
-      <v-menu v-model="showOptionsMenu" :close-on-content-click="false">
+      <v-menu
+        v-if="canChooseOptions"
+        v-model="showOptionsMenu"
+        :close-on-content-click="false"
+      >
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
@@ -111,7 +126,7 @@
         </template>
         <QueriesPartialOptions
           v-model:value="optionsVModel"
-          :options="query.filters.display_types"
+          :display-options="query.filters.display_types"
           :permission="permission"
           :type="query.type"
           :is-applying="isApplying"
@@ -157,6 +172,7 @@ import { useRoute, useRouter } from "vue-router";
 import {
   QueriesPartialFilters,
   QueriesPartialColumns,
+  QueriesPartialGroupings,
   QueriesPartialOptions,
 } from "./partials";
 import QueriesTabs from "./tabs.vue";
@@ -176,6 +192,7 @@ export default defineComponent({
     QueriesTabs,
     QueriesPartialFilters,
     QueriesPartialColumns,
+    QueriesPartialGroupings,
     QueriesPartialOptions,
   },
   props: {
@@ -224,7 +241,16 @@ export default defineComponent({
     const formSubmitPath = computed(() => route.path);
     const query = computed(() => props.query);
     const canChooseColumns = computed(
-      () => "list" === query.value.options.display_type,
+      () =>
+        "list" === query.value.options.display_type ||
+        ("undefined" === typeof query.value.options.display_type &&
+          Array.isArray(query.value.filters.display_types) &&
+          query.value.filters.display_types.length === 1),
+    );
+    const canChooseOptions = computed(
+      () =>
+        Array.isArray(query.value.filters.display_types) &&
+        query.value.filters.display_types.length > 1,
     );
     const displayType = ref<string>(props.query.options.display_type as string);
     const columns = ref<Array<string>>(
@@ -232,6 +258,7 @@ export default defineComponent({
     );
     const filters = ref<QueryFilterRaw>(props.query.filters.current);
     const options = ref<QueryOptions>(props.options);
+    const groupBy = ref<string>(props.query.group_by || "");
     watch(
       () => query.value,
       (q) => {
@@ -239,6 +266,7 @@ export default defineComponent({
         columns.value = q.columns.current.map((c) => c.name);
         filters.value = q.filters.current;
         options.value = q.options;
+        groupBy.value = q.group_by || "";
       },
       { deep: true, immediate: true },
     );
@@ -262,6 +290,7 @@ export default defineComponent({
             [k]: [...filters.value[k].values],
           })),
         ),
+        group_by: groupBy.value,
       };
     });
     const isApplying = ref(false);
@@ -325,9 +354,11 @@ export default defineComponent({
       columns,
       filters,
       optionsVModel: options,
+      groupBy,
       isApplying,
       isSaving,
       isClearing,
+      canChooseOptions,
     };
   },
 });

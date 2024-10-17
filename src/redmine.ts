@@ -48,7 +48,7 @@ export interface ProjectsProject {
 }
 
 export interface QueryOptions {
-  display_type: string;
+  display_type?: string;
   draw_progress_line?: boolean | null;
   draw_relations?: boolean | null;
   draw_selected_columns?: string[] | null;
@@ -117,7 +117,7 @@ export interface QueryColumn {
   frozen: boolean | null;
 }
 
-export interface QueryOptions {
+export interface QueryOptionsForOperators {
   operators: Record<string, string[]>;
 }
 

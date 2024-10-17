@@ -15,8 +15,9 @@
     </v-toolbar>
     <v-divider />
     <v-list-item v-if="displayOptionItems.length > 0">
-      <v-list-item-title>{{ $t("labels.displayType") }}:</v-list-item-title>
-      <v-radio-group v-model="val.display_type" hide-details>
+      <v-list-item-title>{{ $t("labels.groupBy") }}:</v-list-item-title>
+      <v-radio-group v-model="val" hide-details>
+        <v-radio :label="$t('labels.none')" value="" />
         <v-radio
           v-for="item in displayOptionItems"
           :key="item.value"
@@ -47,18 +48,26 @@
 import { defineComponent, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { QueryOptions, QueryPermissions } from "@/redmine";
+import type {
+  QueryColumn,
+  QueryAvailableFilter,
+  QueryPermissions,
+} from "@/redmine";
 import type { PropType } from "vue";
 
 export default defineComponent({
-  name: "QueriesPartialOptions",
+  name: "QueriesPartialGroupings",
   props: {
     value: {
-      type: Object as PropType<QueryOptions>,
+      type: String,
       required: true,
     },
-    displayOptions: {
-      type: Array as PropType<Array<string>>,
+    options: {
+      type: Array as PropType<Array<QueryColumn>>,
+      required: true,
+    },
+    columns: {
+      type: Object as PropType<Record<string, QueryAvailableFilter>>,
       required: true,
     },
     permission: {
@@ -99,11 +108,23 @@ export default defineComponent({
       }
       emit("save");
     };
-    const displayOptions = computed(() => props.displayOptions);
+    const options = computed(() => props.options);
+    const columns = computed(() => props.columns);
+    const type = computed(() => props.type);
+    const getQueryFieldName = (key: string) => {
+      if (
+        columns.value[key] &&
+        columns.value[key].options &&
+        columns.value[key].options.name
+      ) {
+        return columns.value[key].options.name;
+      }
+      return t(`columns.${type.value.toLowerCase()}.${key}`);
+    };
     const displayOptionItems = computed(() =>
-      [...displayOptions.value].map((o) => ({
-        text: t(`labels.displayTypes.${o}`),
-        value: o,
+      [...options.value].map((o) => ({
+        text: getQueryFieldName(o.name),
+        value: o.name,
       })),
     );
     return {

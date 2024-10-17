@@ -260,6 +260,7 @@ export default {
     },
     all: "All",
     new: "New",
+    none: "None",
     filters: "Filters",
     columns: "Columns",
     groupings: "Groupings",
@@ -322,6 +323,12 @@ export default {
     clearAll: "Clear All",
     save: "Save",
     addFilter: "New Filter",
+    displayType: "Show as",
+    displayTypes: {
+      board: "Board",
+      list: "List",
+    },
+    groupBy: "Group by value of",
   },
   theme: {
     base: {
@@ -787,6 +794,16 @@ export default {
   columns: {
     projectquery: {
       status: "Status",
+    },
+    issuequery: {
+      project: "Project",
+      tracker: "Tracker",
+      status: "Status",
+      priority: "Priority",
+      author: "Author",
+      assigned_to: "Assignee",
+      category: "Category",
+      fixed_version: "Target Version",
     },
   },
 };
