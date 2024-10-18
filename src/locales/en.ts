@@ -331,6 +331,11 @@ export default {
     groupBy: "Group by value of",
     selected: "Selected",
     available: "Available",
+    active: "Active",
+    inactive: "Inactive",
+    archived: "Archived",
+    public: "Public",
+    private: "Private",
   },
   theme: {
     base: {

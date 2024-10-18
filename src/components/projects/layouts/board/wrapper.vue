@@ -1,6 +1,6 @@
 <template>
   <v-row class="project-board-wrapper">
-    <v-col v-for="project in tree" :key="project.id" cols="12" sm="6" lg="4">
+    <v-col v-for="project in tree" :key="project.id" cols="12">
       <ProjectsLayoutsBoardPanel :project="project" />
     </v-col>
   </v-row>
