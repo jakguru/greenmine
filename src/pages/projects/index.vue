@@ -32,7 +32,11 @@
       />
       <v-row v-else>
         <v-col cols="12">
-          <pre>{{ query }}</pre>
+          <QueriesList
+            :items="groupedQueryResults"
+            :query="query"
+            :options="query.filters.available"
+          />
         </v-col>
       </v-row>
     </v-container>
@@ -42,22 +46,32 @@
 <script lang="ts">
 import { defineComponent, computed } from "vue";
 import { useRoute } from "vue-router";
-import { QueriesForm } from "@/components/queries";
+import { QueriesForm, QueriesList } from "@/components/queries";
 import { useAppData } from "@/utils/app";
 import qs from "qs";
 import { ProjectsLayoutsBoardWrapper } from "@/components/projects/layouts/board/";
 
-import type { ProjectsProject, ModelQuery, QueriesQuery } from "@/redmine";
+import type {
+  ProjectsProject,
+  ModelQuery,
+  QueriesQuery,
+  GroupedEntry,
+} from "@/redmine";
 import type { PropType } from "vue";
 export default defineComponent({
   name: "ProjectsIndex",
   components: {
     QueriesForm,
     ProjectsLayoutsBoardWrapper,
+    QueriesList,
   },
   props: {
     projects: {
       type: Array as PropType<ProjectsProject[]>,
+      required: true,
+    },
+    groupedQueryResults: {
+      type: Array as PropType<GroupedEntry<any>[]>,
       required: true,
     },
     permissions: {

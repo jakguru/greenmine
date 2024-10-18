@@ -22,6 +22,7 @@ class IssuesController < ApplicationController
     helper :attachments
     helper :queries
     include QueriesHelper
+    include IssuesHelper
     helper :repositories
     helper :timelog
   
@@ -35,6 +36,7 @@ class IssuesController < ApplicationController
             issue_count: 0,
             issue_pages: 0,
             issues: [],
+            groupedQueryResults: [],
             query: {
               valid: @query.valid?,
               type: @query.type,
@@ -60,6 +62,9 @@ class IssuesController < ApplicationController
               sort_criteria: @query.sort_criteria,
               user_id: @query.user_id,
               visibility: @query.visibility,
+              page: params['page'],
+              per_page: per_page_option,
+              total: 0,
             },
             queries: sidebar_queries(IssueQuery, @project),
             permissions: {
@@ -72,6 +77,17 @@ class IssuesController < ApplicationController
             response_hash[:issue_count] = @query.issue_count
             response_hash[:issue_pages] = Paginator.new @issue_count, per_page_option, params['page']
             response_hash[:issues] = @query.issues(:offset => response_hash[:issue_pages].offset, :limit => response_hash[:issue_pages].per_page)
+            response_hash[:query][:total] = response_hash[:issue_count]
+            grouped_issue_list(response_hash[:issues], @query) do |entry, level, group_name, group_count, group_totals|
+              response_hash[:groupedQueryResults] << {
+                entry: entry,
+                level: level,
+                group_name: group_name,
+                group_count: group_count,
+                group_totals: group_totals,
+              }
+            end
+            
         end
         return render json: response_hash
       end

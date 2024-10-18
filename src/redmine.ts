@@ -98,6 +98,9 @@ export interface ModelQuery {
   sort_criteria: string[];
   user_id: number;
   visibility: number;
+  page: number | null;
+  per_page: number | null;
+  total: number | null;
 }
 
 export interface QueryPermissions {
@@ -108,7 +111,7 @@ export interface QueryPermissions {
 
 export interface QueryColumn {
   name: string;
-  sortable: string;
+  sortable: string | boolean;
   groupable: boolean;
   totalable: boolean;
   default_order: string | null;
@@ -173,4 +176,12 @@ export interface Issue {
   rgt: number;
   is_private: boolean;
   closed_on: string | null;
+}
+
+export interface GroupedEntry<T = unknown> {
+  entry: T;
+  level: number;
+  group_name: string | null;
+  group_count: number | null;
+  group_totals: string | null;
 }

@@ -26,6 +26,15 @@
         :options="appData.queries.IssueQuery"
         :permission="permissions.query"
       />
+      <v-row>
+        <v-col cols="12">
+          <QueriesList
+            :items="groupedQueryResults"
+            :query="query"
+            :options="query.filters.available"
+          />
+        </v-col>
+      </v-row>
     </v-container>
   </div>
 </template>
@@ -33,20 +42,25 @@
 <script lang="ts">
 import { defineComponent, computed } from "vue";
 import { useRoute } from "vue-router";
-import { QueriesForm } from "@/components/queries";
+import { QueriesForm, QueriesList } from "@/components/queries";
 import { useAppData } from "@/utils/app";
 import qs from "qs";
 
-import type { Issue, ModelQuery, QueriesQuery } from "@/redmine";
+import type { Issue, ModelQuery, QueriesQuery, GroupedEntry } from "@/redmine";
 import type { PropType } from "vue";
 export default defineComponent({
   name: "IssuesIndex",
   components: {
     QueriesForm,
+    QueriesList,
   },
   props: {
     issues: {
       type: Array as PropType<Issue[]>,
+      required: true,
+    },
+    groupedQueryResults: {
+      type: Array as PropType<GroupedEntry<any>[]>,
       required: true,
     },
     permissions: {

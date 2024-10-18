@@ -23,6 +23,7 @@ class ProjectsController < ApplicationController
   include QueriesHelper
   helper :projects_queries
   include ProjectsQueriesHelper
+  include ProjectsHelper
   helper :repositories
   helper :members
   helper :trackers
@@ -39,15 +40,33 @@ class ProjectsController < ApplicationController
     scope = project_scope
 
     if (request.xhr?)
+      if @query.display_type == 'board'
+        @entries = scope.to_a
+      else
+        @entry_count = scope.count
+        @entry_pages = Paginator.new @entry_count, per_page_option, params['page']
+        @entries = scope.offset(@entry_pages.offset).limit(@entry_pages.per_page).to_a
+      end
+      grouped_query_results = []
+      grouped_project_list(@entries, @query) do |entry, level, group_name, group_count, group_totals|
+        grouped_query_results << {
+          entry: entry,
+          level: level,
+          group_name: group_name,
+          group_count: group_count,
+          group_totals: group_totals,
+        }
+      end
       return render json: {
-        projects: scope.to_a,
+        projects: @entries,
+        groupedQueryResults: grouped_query_results,
         query: {
           valid: @query.valid?,
           type: @query.type,
           new_record: @query.new_record?,
           columns: {
             names: @query.column_names,
-            current: @query.columns,
+            current: @query.inline_columns,
             available: @query.available_columns,
           },
           filters: {
@@ -66,6 +85,9 @@ class ProjectsController < ApplicationController
           sort_criteria: @query.sort_criteria,
           user_id: @query.user_id,
           visibility: @query.visibility,
+          page: params['page'],
+          per_page: per_page_option,
+          total: @entry_count,
         },
         queries: sidebar_queries(ProjectQuery, @project),
         permissions: {
