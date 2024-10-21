@@ -1,6 +1,11 @@
 <template>
   <v-app v-if="complete">
-    <v-app-bar app density="compact" :color="systemBarColor">
+    <v-app-bar
+      app
+      density="compact"
+      :color="systemBarColor"
+      :flat="!isMobile || (isMobile && !showMobileNav)"
+    >
       <template #default>
         <v-menu>
           <template #activator="{ props }">

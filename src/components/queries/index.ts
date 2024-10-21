@@ -1,5 +1,3 @@
-import QueriesTabs from "./tabs.vue";
-import QueriesForm from "./form.vue";
-import QueriesList from "./list.vue";
+import QueriesPage from "./page.vue";
 
-export { QueriesForm, QueriesTabs, QueriesList };
+export { QueriesPage };

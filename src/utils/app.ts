@@ -203,13 +203,22 @@ export const useAppData = () => {
 
 export const useSystemAppBarColor = () => {
   const theme = useTheme();
-  return computed(() => (theme.current.value.dark ? "surface" : "panel"));
+  return computed(() =>
+    theme.current.value.dark ? "background" : "background",
+  );
 };
 
 export const useSystemSurfaceColor = () => {
   const theme = useTheme();
   return computed(() =>
-    theme.current.value.dark ? "surface" : "panel-lighten-1",
+    theme.current.value.dark ? "surface-darken-1" : "surface-lighten-1",
+  );
+};
+
+export const useSystemAccentColor = () => {
+  const theme = useTheme();
+  return computed(() =>
+    theme.current.value.dark ? "accent-darken-2" : "accent-lighten-2",
   );
 };
 

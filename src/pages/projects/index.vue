@@ -1,124 +1,61 @@
 <template>
-  <div v-if="projects" class="page-projects">
-    <v-container :fluid="true">
-      <h1 class="text-h5 mb-3">
-        <span>{{ $t("pages.projects.title") }}</span>
-        <v-btn
-          icon="mdi-rss-box"
-          class="ms-3"
-          size="x-small"
-          :href="routePathForAtom"
-          target="_blank"
-          color="secondary"
-        ></v-btn>
-        <v-btn
-          icon="mdi-file-delimited"
-          class="ms-3"
-          size="x-small"
-          :href="routePathForCsv"
-          target="_blank"
-          color="secondary"
-        ></v-btn>
-      </h1>
-      <QueriesForm
-        :query="query"
-        :queries="queries"
-        :options="appData.queries.ProjectQuery"
-        :permission="permissions.query"
-      />
-      <ProjectsLayoutsBoardWrapper
-        v-if="'board' === displayType"
-        :projects="projects"
-      />
-      <v-row v-else>
-        <v-col cols="12">
-          <QueriesList
-            :items="groupedQueryResults"
-            :query="query"
-            :options="query.filters.available"
-          />
-        </v-col>
-      </v-row>
-    </v-container>
-  </div>
+  <QueriesPage
+    :title="$t('pages.projects.title')"
+    :params="params"
+    :payload="payload"
+    :query="query"
+    :queries="queries"
+    :permissions="permissions"
+    :creatable="creatable"
+  />
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from "vue";
-import { useRoute } from "vue-router";
-import { QueriesForm, QueriesList } from "@/components/queries";
-import { useAppData } from "@/utils/app";
-import qs from "qs";
-import { ProjectsLayoutsBoardWrapper } from "@/components/projects/layouts/board/";
+import { defineComponent } from "vue";
+import { QueriesPage } from "@/components/queries";
 
-import type {
-  ProjectsProject,
-  ModelQuery,
-  QueriesQuery,
-  GroupedEntry,
-} from "@/redmine";
 import type { PropType } from "vue";
+import type {
+  QueryResponseParams,
+  QueryResponsePayload,
+  QueryData,
+  DefinedQuery,
+  Permissions,
+  Createable,
+} from "@/friday";
 export default defineComponent({
   name: "ProjectsIndex",
   components: {
-    QueriesForm,
-    ProjectsLayoutsBoardWrapper,
-    QueriesList,
+    QueriesPage,
   },
   props: {
-    projects: {
-      type: Array as PropType<ProjectsProject[]>,
+    params: {
+      type: Object as PropType<QueryResponseParams>,
       required: true,
     },
-    groupedQueryResults: {
-      type: Array as PropType<GroupedEntry<any>[]>,
-      required: true,
-    },
-    permissions: {
-      type: Object as PropType<Record<string, any>>,
-      required: true,
-    },
-    queries: {
-      type: Array as PropType<Array<QueriesQuery>>,
+    payload: {
+      type: Object as PropType<QueryResponsePayload>,
       required: true,
     },
     query: {
-      type: Object as PropType<ModelQuery>,
+      type: Object as PropType<QueryData>,
+      required: true,
+    },
+    queries: {
+      type: Array as PropType<Array<DefinedQuery>>,
+      required: true,
+    },
+    permissions: {
+      type: Object as PropType<Permissions>,
+      required: true,
+    },
+    creatable: {
+      type: Array as PropType<Array<Createable>>,
       required: true,
     },
   },
-  setup(props) {
-    const query = computed(() => props.query);
-    const route = useRoute();
-    const routePathForAtom = computed(() => {
-      let ret = `${route.path}.atom`;
-      if (
-        "object" === typeof route.query &&
-        null !== route.query &&
-        Object.keys(route.query).length > 0 &&
-        !query.value.new_record
-      ) {
-        ret += `?${qs.stringify(route.query)}`;
-      }
-      return ret;
-    });
-    const routePathForCsv = computed(() => {
-      let ret = `${route.path}.csv`;
-      if (
-        "object" === typeof route.query &&
-        null !== route.query &&
-        Object.keys(route.query).length > 0 &&
-        !query.value.new_record
-      ) {
-        ret += `?${qs.stringify(route.query)}`;
-      }
-      return ret;
-    });
-    const appData = useAppData();
-    const displayType = computed(() => {
-      return query.value.options.display_type || "list";
-    });
-    return { routePathForAtom, routePathForCsv, appData, displayType };
+  setup() {
+    return {};
   },
 });
 </script>

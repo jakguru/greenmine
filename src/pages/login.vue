@@ -11,7 +11,7 @@
           accept-charset="UTF-8"
           @submit.stop="submit"
         >
-          <v-toolbar :color="systemAppBarColor" density="compact">
+          <v-toolbar color="transparent" density="compact">
             <v-toolbar-title>{{
               $t("pages.login.content.form.header", { name: appData.name })
             }}</v-toolbar-title>
@@ -129,9 +129,7 @@ export default defineComponent({
     const signinPath = computed(() => props.signinPath);
     const formAction = computed(() => signinPath.value || "#");
     const form = ref<VCard | null>(null);
-    const backUrl = computed(() => props.backUrl);
-    const homeUrl = computed(() => props.homeUrl);
-    const backToUrl = computed(() => backUrl.value || homeUrl.value || "/");
+    const backToUrl = computed(() => "/");
     const usernameFieldValidator = computed(() =>
       getFormFieldValidator<string>(
         t,
@@ -247,20 +245,14 @@ export default defineComponent({
           isSubmitting.value = false;
         });
         isSubmitting.value = true;
-        const { status, data, headers } = await api.post(
-          formAction.value,
-          payload,
-          {
-            signal: submissionAbortController.signal,
-          },
-        );
-        console.log({ status, data, headers });
+        const { status } = await api.post(formAction.value, payload, {
+          signal: submissionAbortController.signal,
+        });
         if (status >= 200 && status < 300) {
           if (toast) {
             toast.fire({
               icon: "success",
               title: t("pages.login.dialog.success.title"),
-              text: t("pages.login.dialog.success.text"),
             });
             await loadAppData(ls, api);
             router.push(backToUrl.value).catch(() => {});

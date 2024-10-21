@@ -21,7 +21,7 @@ import type {
 const mainColors = {
   primary: "#0273EA",
   secondary: "#62B682",
-  accent: "#5F1A37",
+  accent: "#00854d",
   panel: "#6162FF",
 };
 

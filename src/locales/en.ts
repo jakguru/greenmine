@@ -95,6 +95,11 @@ export default {
           header: "Login to {name}",
         },
       },
+      dialog: {
+        success: {
+          title: "Welcome",
+        },
+      },
     },
     logout: {
       title: "Logging Out",
@@ -336,6 +341,8 @@ export default {
     archived: "Archived",
     public: "Public",
     private: "Private",
+    main: "Main",
+    more: "More",
   },
   theme: {
     base: {
@@ -364,6 +371,10 @@ export default {
       not_json: {
         title: "Invalid Response",
         text: "The server returned an invalid response",
+      },
+      error: {
+        title: "Operation Failed",
+        text: "An error occurred while processing your request",
       },
     },
     copy: {

@@ -1,15 +1,11 @@
 <template>
-  <v-sheet color="transparent">
-    <v-toolbar tag="nav" color="transparent" density="compact">
-      <v-tabs
-        density="compact"
-        :mandatory="true"
-        :show-arrows="true"
-        :items="tabs"
-      />
-      <slot name="after-tabs" />
-    </v-toolbar>
-  </v-sheet>
+  <v-tabs
+    density="compact"
+    :mandatory="true"
+    :show-arrows="true"
+    :items="tabs"
+    slider-color="accent"
+  />
 </template>
 
 <script lang="ts">
@@ -17,7 +13,7 @@ import { defineComponent, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 
-import type { ModelQuery, QueriesQuery, QueryOptions } from "@/redmine";
+import type { QueryData, DefinedQuery } from "@/friday";
 import type { PropType } from "vue";
 
 export default defineComponent({
@@ -25,23 +21,11 @@ export default defineComponent({
   components: {},
   props: {
     query: {
-      type: Object as PropType<ModelQuery>,
+      type: Object as PropType<QueryData>,
       required: true,
     },
     queries: {
-      type: Array as PropType<Array<QueriesQuery>>,
-      required: true,
-    },
-    showDefault: {
-      type: Boolean,
-      default: true,
-    },
-    defaultName: {
-      type: String as PropType<string | undefined>,
-      default: undefined,
-    },
-    options: {
-      type: Object as PropType<QueryOptions>,
+      type: Array as PropType<Array<DefinedQuery>>,
       required: true,
     },
   },
@@ -50,17 +34,13 @@ export default defineComponent({
     const route = useRoute();
     const query = computed(() => props.query);
     const queries = computed(() => props.queries);
-    const showDefault = computed(() => props.showDefault);
-    const defaultName = computed(() => props.defaultName || t("labels.all"));
     const tabs = computed(() => {
-      const ret = [];
-      if (showDefault.value) {
-        ret.push({
-          text: defaultName.value,
-          to: { ...route, query: {} },
-          exact: true,
-        });
-      }
+      const ret: any = [];
+      ret.push({
+        text: t("labels.main"),
+        to: { ...route, query: {} },
+        exact: true,
+      });
       queries.value.forEach((q) => {
         ret.push({
           text: q.name,

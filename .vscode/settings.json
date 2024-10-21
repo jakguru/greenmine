@@ -9,5 +9,10 @@
     "overrideConfigFile": "./eslint.config.mjs"
   },
   "eslint.useFlatConfig": true,
-  "eslint.debug": true
+  "eslint.debug": true,
+  "[ruby]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "testdouble.vscode-standard-ruby",
+    "standardRuby.autofix": true
+  }
 }
