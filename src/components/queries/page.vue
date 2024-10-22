@@ -19,14 +19,14 @@
         </v-toolbar>
         <v-divider />
         <v-toolbar color="transparent">
-          <v-slide-group show-arrows>
+          <v-slide-group show-arrows class="mx-2">
             <v-slide-group-item>
               <v-btn-group
                 v-if="creatable.length > 0"
                 divided
                 base-color="accent"
                 density="compact"
-                class="ms-4 me-2"
+                class="ma-2"
                 style="height: 24px"
               >
                 <v-btn :to="mainCreateable.url" size="x-small">
@@ -47,28 +47,25 @@
                 </v-menu>
               </v-btn-group>
             </v-slide-group-item>
-            <v-slide-group-item>
-              <QueriesOptionMenu
-                v-if="showFiltersMenu"
-                class="me-2"
-                :color="selectedFiltersColor"
-                icon="mdi-filter"
-                :title="$t('labels.filters')"
-                :count="selectedFiltersCount"
-              >
-                <template #content>
-                  <div>Filters!</div>
-                </template>
-              </QueriesOptionMenu>
+            <v-slide-group-item v-if="showFiltersMenu">
+              <QueriesPartialFilters
+                v-model:model-value="value"
+                :dirty="dirty"
+                :submitting="submitting"
+                @submit="onSubmit"
+              />
             </v-slide-group-item>
             <v-slide-group-item>
               <QueriesOptionMenu
                 v-if="showColumnsMenu"
-                class="me-2"
+                class="ma-2"
+                :dirty="dirty"
+                :submitting="submitting"
                 :color="selectedColumnsColor"
                 icon="mdi-view-column"
                 :title="$t('labels.columns')"
                 :count="selectedColumnsCount"
+                @submit="onSubmit"
               >
                 <template #content>
                   <div>Columns!</div>
@@ -78,11 +75,14 @@
             <v-slide-group-item>
               <QueriesOptionMenu
                 v-if="showGroupingsMenu"
-                class="me-2"
+                class="ma-2"
+                :dirty="dirty"
+                :submitting="submitting"
                 :color="selectedGroupingsColor"
                 icon="mdi-group"
                 :title="$t('labels.groupings')"
                 :count="selectedGroupingsCount"
+                @submit="onSubmit"
               >
                 <template #content>
                   <div>Groupings!</div>
@@ -92,9 +92,12 @@
             <v-slide-group-item>
               <QueriesOptionMenu
                 v-if="showAdditional"
-                class="me-2"
+                class="ma-2"
+                :dirty="dirty"
+                :submitting="submitting"
                 :color="accentColor"
                 :title="$t('labels.more')"
+                @submit="onSubmit"
               >
                 <template #content>
                   <div>More!</div>
@@ -106,14 +109,48 @@
                 variant="elevated"
                 :color="accentColor"
                 size="x-small"
-                class="me-2"
+                class="ma-2"
                 type="submit"
                 height="24px"
+                :disabled="!dirty"
                 :loading="submitting"
                 style="position: relative; top: 1px"
               >
                 <v-icon class="me-2">mdi-check</v-icon>
                 {{ $t("labels.apply") }}
+              </v-btn>
+            </v-slide-group-item>
+            <v-slide-group-item>
+              <v-btn
+                variant="elevated"
+                :color="accentColor"
+                size="x-small"
+                class="ma-2"
+                type="button"
+                height="24px"
+                :loading="submitting"
+                :disabled="!dirty"
+                style="position: relative; top: 1px"
+                @click="onReset"
+              >
+                <v-icon class="me-2">mdi-restore</v-icon>
+                {{ $t("labels.reset") }}
+              </v-btn>
+            </v-slide-group-item>
+            <v-slide-group-item>
+              <v-btn
+                variant="elevated"
+                :color="accentColor"
+                size="x-small"
+                class="ma-2"
+                type="button"
+                height="24px"
+                :loading="submitting"
+                style="position: relative; top: 1px"
+                @click="onRefresh"
+              >
+                <v-icon class="me-2">mdi-refresh</v-icon>
+                {{ $t("labels.refresh") }}
               </v-btn>
             </v-slide-group-item>
           </v-slide-group>
@@ -124,13 +161,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref, watch } from "vue";
-import { useSystemSurfaceColor, useSystemAccentColor } from "@/utils/app";
-import { useRouter } from "vue-router";
+import { defineComponent, computed, ref, watch, inject } from "vue";
+import {
+  useSystemSurfaceColor,
+  useSystemAccentColor,
+  loadRouteData,
+  cloneObject,
+} from "@/utils/app";
+import { useRouter, useRoute } from "vue-router";
 import QueriesTabs from "./tabs.vue";
 import QueriesOptionMenu from "./partials/option-menu.vue";
-import equal from "fast-deep-equal";
+import { QueriesPartialFilters } from "./partials";
 import type { PropType } from "vue";
+import type { ApiService, ToastService } from "@jakguru/vueprint";
 import type {
   QueryResponseParams,
   QueryResponsePayload,
@@ -144,6 +187,7 @@ export default defineComponent({
   components: {
     QueriesTabs,
     QueriesOptionMenu,
+    QueriesPartialFilters,
   },
   props: {
     title: {
@@ -177,16 +221,24 @@ export default defineComponent({
   },
   setup(props) {
     const router = useRouter();
+    const route = useRoute();
+    const api = inject<ApiService>("api");
+    const toast = inject<ToastService>("toast");
     const query = computed(() => props.query);
-    const value = ref<QueryData>(query.value);
-    const dirty = computed(() => equal(query.value, value.value));
+    const value = ref<QueryData>(cloneObject(query.value));
+    const dirty = computed(
+      () => JSON.stringify(query.value) !== JSON.stringify(value.value),
+    );
     watch(
       () => query.value,
       (v) => {
-        value.value = v;
+        value.value = cloneObject(v);
       },
       { immediate: true, deep: true },
     );
+    const onReset = () => {
+      value.value = cloneObject(query.value);
+    };
     const createable = computed(() => {
       return props.creatable;
     });
@@ -202,8 +254,27 @@ export default defineComponent({
         e.preventDefault();
         e.stopPropagation();
       }
+      if (submitting.value) {
+        return;
+      }
       const payload = {};
       console.log("submit", payload, value.value);
+    };
+    const onRefresh = async (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      if (submitting.value) {
+        return;
+      }
+      submitting.value = true;
+      try {
+        await loadRouteData(route, api, toast);
+      } catch {
+        // noop
+      }
+      submitting.value = false;
     };
     const showFiltersMenu = computed(() => {
       return Object.keys(query.value.filters.available).length > 0;
@@ -252,6 +323,8 @@ export default defineComponent({
     });
     return {
       onSubmit,
+      onRefresh,
+      onReset,
       surfaceColor,
       accentColor,
       mainCreateable,

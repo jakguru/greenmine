@@ -41,7 +41,6 @@
               @submit:search="onProjectJumperSubmit"
             />
           </v-menu>
-          <v-divider v-if="isNotMobile" vertical />
           <template v-if="appData.identity.authenticated">
             <AuthenticatedMenu />
           </template>
@@ -57,7 +56,6 @@
               {{ $t("actions.register") }}
             </v-btn>
           </template>
-          <v-divider vertical />
           <v-menu v-if="isNotMobile" :close-on-content-click="false">
             <template #activator="{ props }">
               <v-btn icon="mdi-cog" v-bind="props" />
@@ -204,7 +202,7 @@
         </v-btn>
       </v-toolbar-items>
     </v-footer>
-    <v-fab
+    <!-- <v-fab
       v-if="showDebug"
       app
       icon
@@ -216,7 +214,7 @@
       @click="reloadAppData"
     >
       <v-icon>mdi-bug</v-icon>
-    </v-fab>
+    </v-fab> -->
   </v-app>
 </template>
 

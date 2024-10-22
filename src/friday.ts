@@ -22,7 +22,7 @@ export interface QueryResponsePayload<T = any> {
   items_per_page: number;
   page: number;
   pages: PageDetails;
-  totals: Array<Total>;
+  totals: Array<ColumnTotal>;
 }
 
 export interface Item<T = any> {
@@ -104,6 +104,10 @@ export interface ColumnSort extends Column {
   sort: string;
 }
 
+export interface ColumnTotal extends Column {
+  total: string | number;
+}
+
 export interface DefinedQuery {
   id: number;
   project_id: number | null;
@@ -122,7 +126,7 @@ export interface Permissions {
   edit: boolean;
 }
 
-interface Project {
+export interface Project {
   id: number;
   name: string;
   description: string;
@@ -178,12 +182,6 @@ export interface QueryOptions {
 
 export interface GroupTotals {
   [key: string]: any;
-}
-
-export interface Total {
-  key: string;
-  value: any;
-  description?: string;
 }
 
 export interface SortCriterion {

@@ -211,14 +211,14 @@ export const useSystemAppBarColor = () => {
 export const useSystemSurfaceColor = () => {
   const theme = useTheme();
   return computed(() =>
-    theme.current.value.dark ? "surface-darken-1" : "surface-lighten-1",
+    theme.current.value.dark ? "surface-darken-1" : "surface-darken-1",
   );
 };
 
 export const useSystemAccentColor = () => {
   const theme = useTheme();
   return computed(() =>
-    theme.current.value.dark ? "accent-darken-2" : "accent-lighten-2",
+    theme.current.value.dark ? "accent-darken-2" : "accent-darken-1",
   );
 };
 
@@ -240,4 +240,8 @@ export const matchesSchema = <T = unknown>(
   } catch {
     return false;
   }
+};
+
+export const cloneObject = <T = unknown>(obj: T): T => {
+  return JSON.parse(JSON.stringify(obj));
 };

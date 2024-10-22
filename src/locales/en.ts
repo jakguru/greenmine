@@ -343,6 +343,9 @@ export default {
     private: "Private",
     main: "Main",
     more: "More",
+    refresh: "Refresh",
+    reset: "Reset",
+    noFilters: "No filters selected",
   },
   theme: {
     base: {

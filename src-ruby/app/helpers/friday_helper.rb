@@ -19,7 +19,7 @@ module FridayHelper
       items_per_page: 0,
       page: 1,
       pages: 0,
-      totals: query.totals
+      totals: query.totals.map { |total_entry| make_column_total_hash(total_entry[0], total_entry[1], params) }.compact
     }
     query_data = {
       valid: query.valid?,
@@ -29,19 +29,19 @@ module FridayHelper
       type: query.type,
       columns: {
         current: {
-          inline: query.inline_columns.map { |column| make_column_hash(column, params) },
-          block: query.block_columns.map { |column| make_column_hash(column, params) },
-          totalable: query.totalable_columns.map { |column| make_column_hash(column, params) },
-          groupable: query.group_by.nil? ? [] : [make_column_hash_by_name(query.group_by, query.columns, params)],
-          sort: query.sort_criteria.map { |sort_entry| make_column_sort_hash(sort_entry[0], sort_entry[1], query.columns, params) }
+          inline: query.inline_columns.map { |column| make_column_hash(column, params) }.compact,
+          block: query.block_columns.map { |column| make_column_hash(column, params) }.compact,
+          totalable: query.totalable_columns.map { |column| make_column_hash(column, params) }.compact,
+          groupable: query.group_by.nil? ? [] : [make_column_hash_by_name(query.group_by, query.columns, params)].compact,
+          sort: query.sort_criteria.map { |sort_entry| make_column_sort_hash(sort_entry[0], sort_entry[1], query.columns, params) }.compact
         },
         available: {
-          all: query.columns.map { |column| make_column_hash(column, params) },
-          inline: query.available_inline_columns.map { |column| make_column_hash(column, params) },
-          block: query.available_block_columns.map { |column| make_column_hash(column, params) },
-          totalable: query.available_totalable_columns.map { |column| make_column_hash(column, params) },
-          groupable: query.groupable_columns.map { |column| make_column_hash(column, params) },
-          sortable: query.available_columns.select(&:sortable?).map { |column| make_column_hash(column, params) }
+          all: query.columns.map { |column| make_column_hash(column, params) }.compact,
+          inline: query.available_inline_columns.map { |column| make_column_hash(column, params) }.compact,
+          block: query.available_block_columns.map { |column| make_column_hash(column, params) }.compact,
+          totalable: query.available_totalable_columns.map { |column| make_column_hash(column, params) }.compact,
+          groupable: query.groupable_columns.map { |column| make_column_hash(column, params) }.compact,
+          sortable: query.available_columns.select(&:sortable?).map { |column| make_column_hash(column, params) }.compact
         }
       },
       filters: {
@@ -200,6 +200,9 @@ module FridayHelper
 
   # Make a standardized hash of the column for the response
   def make_column_hash(column, params)
+    if column.nil?
+      return nil
+    end
     {
       key: column.name,
       value: make_column_value(column.name, params[:controller]),
@@ -224,10 +227,20 @@ module FridayHelper
     base_hash
   end
 
+  # Make a standardized hash of the column for the response, with sort direction
+  def make_column_total_hash(column, total, params)
+    base_hash = make_column_hash(column, params)
+    base_hash[:total] = total
+    base_hash
+  end
+
   # Make a standardized hash of the column for the response, knowing only the name of the column
   # and the list of all columns
   def make_column_hash_by_name(name, all, params)
     column = get_column_by_name(name, all)
+    if column.nil?
+      Rails.logger.warn("Unable to make column hash by name: column with name '#{name}' not found.")
+    end
     make_column_hash(column, params)
   end
 

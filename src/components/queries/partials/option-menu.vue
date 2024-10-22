@@ -28,8 +28,27 @@
           <v-btn v-bind="props" icon="mdi-menu-down" size="x-small" />
         </v-btn-group>
       </template>
-      <v-card :color="surfaceColor">
-        <slot name="content" :close="close"></slot>
+      <v-card color="surface-darken-1" min-width="300">
+        <slot name="top" :close="close" :submit="submit"></slot>
+        <slot name="content" :close="close" :submit="submit"></slot>
+        <v-divider />
+        <v-toolbar color="transparent" density="compact">
+          <v-toolbar-items class="mr-auto">
+            <slot name="bottom-actions" :close="close" :submit="submit"></slot>
+          </v-toolbar-items>
+          <v-toolbar-items class="ml-auto">
+            <v-btn
+              variant="text"
+              color="secondary"
+              :loading="submitting"
+              :disabled="!dirty"
+              @click="submit"
+            >
+              <v-icon>mdi-check</v-icon>
+              <span class="ms-2">{{ $t("labels.apply") }}</span>
+            </v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
       </v-card>
     </v-menu>
   </div>
@@ -61,8 +80,17 @@ export default defineComponent({
       type: [String, Number] as PropType<string | number | undefined>,
       default: undefined,
     },
+    submitting: {
+      type: Boolean,
+      default: false,
+    },
+    dirty: {
+      type: Boolean,
+      default: false,
+    },
   },
-  setup(props) {
+  emits: ["submit"],
+  setup(props, { emit }) {
     const count = computed(() => props.count);
     const showingMenu = ref(false);
     const surfaceColor = useSystemSurfaceColor();
@@ -70,11 +98,16 @@ export default defineComponent({
     const close = () => {
       showingMenu.value = false;
     };
+    const submit = () => {
+      emit("submit");
+      close();
+    };
     return {
       showingMenu,
       surfaceColor,
-      close,
       showCount,
+      close,
+      submit,
     };
   },
 });

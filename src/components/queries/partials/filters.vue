@@ -1,739 +1,496 @@
 <template>
-  <v-card min-height="100" class="query-filters-panel">
-    <v-toolbar color="transparent" density="compact">
-      <v-toolbar-items class="ml-auto">
-        <v-btn variant="text" :loading="isApplying" @click="clearAll">
-          <v-icon>mdi-notification-clear-all</v-icon>
-          <span class="ms-2">{{ $t("labels.clearAll") }}</span>
-        </v-btn>
-        <v-btn
-          v-if="permission.save"
-          variant="text"
-          :loading="isSaving"
-          @click="save"
-        >
-          <v-icon>mdi-content-save</v-icon>
-          <span class="ms-2">{{ $t("labels.save") }}</span>
-        </v-btn>
-      </v-toolbar-items>
-    </v-toolbar>
-    <v-divider />
-    <v-table class="bg-transparent my-2">
-      <tbody>
-        <tr v-if="existingFilters.length === 0">
-          <td colspan="5" class="text-center">{{ $t("labels.noFilters") }}</td>
-        </tr>
-        <tr v-for="(filter, i) in existingFilters" :key="`filter-${i}`">
-          <td v-if="0 === i">
-            <strong>{{ $t("labels.queries.where") }}</strong>
-          </td>
-          <td v-else>
-            <strong>{{ $t("labels.queries.and") }}</strong>
-          </td>
-          <td>{{ filter.name }}</td>
-          <td>
-            <v-autocomplete
-              v-model="val[filter.key].operator"
-              :items="filter.operatorOptions"
-              item-title="text"
-              item-value="value"
-              density="compact"
-              outlined
-              hide-details
-              width="150"
-              :return-object="false"
-              @update:model-value="loadRemoteValuesForField(filter.key)"
-            />
-          </td>
-          <td>
-            <div class="w-100 h-100 d-flex align-center">
-              <ValuesCellComponent
-                v-for="(cell, fi) in filter.valueCells"
-                :id="`filter-${i}-cell-${fi}`"
-                :key="`filter-${i}-cell-${fi}`"
-                :configuration="cell"
-              />
-            </div>
-          </td>
-          <td>
-            <v-btn
-              icon="mdi-close"
-              size="x-small"
-              color="error"
-              variant="tonal"
-              @click="remove(filter.key)"
-            />
-          </td>
-        </tr>
-      </tbody>
-    </v-table>
-    <v-divider />
-    <v-toolbar color="transparent" density="compact">
-      <v-toolbar-items>
-        <v-menu v-model="addNewFilterShowMenu" :close-on-content-click="false">
-          <template #activator="{ props }">
-            <v-btn v-bind="props" variant="text">
-              <v-icon>mdi-plus</v-icon>
-              <span class="ms-2">{{ $t("labels.addFilter") }}</span>
-            </v-btn>
-          </template>
-          <v-list density="compact">
-            <template
-              v-for="(avail, i) in availableOptions"
-              :key="`avail-${i}`"
-            >
-              <v-list-item
-                :id="`avail-${i}-list-item`"
-                :title="getQueryFieldName(avail.field)"
-                @click="
-                  addNewFilter({
-                    field: avail.field,
-                    remote: avail.remote,
-                    options: avail.options,
-                    filter: avail.filter,
-                    values: avail.options.values,
-                  })
+  <QueriesOptionMenu
+    v-bind="optionsMenuBindings"
+    @submit="onSubmit"
+    @reset="onReset"
+    @refresh="onRefresh"
+  >
+    <template #bottom-actions>
+      <v-btn :disabled="!canShowAddFilter" variant="text" @click="doAddFilter">
+        <v-icon>mdi-plus</v-icon>
+        <span class="ms-2">{{ $t("labels.addFilter") }}</span>
+      </v-btn>
+    </template>
+    <template #content>
+      <v-table class="bg-transparent my-2">
+        <tbody>
+          <tr v-if="filterValueRows.length === 0">
+            <td colspan="5" class="text-center">
+              {{ $t("labels.noFilters") }}
+            </td>
+          </tr>
+          <tr v-for="(_r, i) in filterValueRows" :key="`filter-row-${i}`">
+            <td v-if="0 === i">
+              <strong>{{ $t("labels.queries.where") }}</strong>
+            </td>
+            <td v-else>
+              <strong>{{ $t("labels.queries.and") }}</strong>
+            </td>
+            <td>
+              <v-autocomplete
+                v-model="filterValueRows[i].field"
+                :items="getAvailableFilterOptions(filterValueRows[i].field)"
+                item-title="name"
+                item-value="field"
+                density="compact"
+                outlined
+                hide-details
+                width="150"
+                :return-object="true"
+                @update:model-value="
+                  updateFilterValueRowOperatorFor(i, filterValueRows[i].field)
                 "
               />
-            </template>
-          </v-list>
-        </v-menu>
-      </v-toolbar-items>
-      <v-toolbar-items class="ml-auto">
-        <v-btn
-          variant="text"
-          color="secondary"
-          :loading="isApplying"
-          @click="apply"
-        >
-          <v-icon>mdi-check</v-icon>
-          <span class="ms-2">{{ $t("labels.apply") }}</span>
-        </v-btn>
-      </v-toolbar-items>
-    </v-toolbar>
-  </v-card>
+            </td>
+            <td>
+              <template
+                v-if="
+                  filterValueRows[i].field &&
+                  fieldTypeOperatorOptions[filterValueRows[i].field.type]
+                "
+              >
+                <v-autocomplete
+                  v-model="filterValueRows[i].operator"
+                  :items="
+                    fieldTypeOperatorOptions[filterValueRows[i].field.type]
+                  "
+                  item-title="label"
+                  item-value="value"
+                  density="compact"
+                  outlined
+                  hide-details
+                  width="150"
+                  :return-object="false"
+                  @update:model-value="
+                    (op) =>
+                      updateFilterValueRowValuesForOperatorFor(
+                        i,
+                        filterValueRows[i].field,
+                        op,
+                      )
+                  "
+                />
+              </template>
+            </td>
+            <td></td>
+            <td>
+              <v-btn
+                icon="mdi-close"
+                size="x-small"
+                color="error"
+                variant="tonal"
+                @click="doRemoveFilter(i)"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+    </template>
+  </QueriesOptionMenu>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, watch, inject, ref } from "vue";
+import { defineComponent, computed, ref, watch, inject } from "vue";
+import {
+  useSystemSurfaceColor,
+  useSystemAccentColor,
+  useAppData,
+} from "@/utils/app";
 import { useI18n } from "vue-i18n";
-import { useAppData, matchesSchema, appDebug } from "@/utils/app";
-import { ValuesCellComponent } from "./values-cell-component";
-import Joi from "joi";
+import QueriesOptionMenu from "./option-menu.vue";
 import qs from "qs";
 
-import type {
-  QueryFilterRaw,
-  QueryAvailableFilter,
-  QueryPermissions,
-  QueryAvailableFilterOptions,
-  QueryAvailableFilterOptionsValues,
-} from "@/redmine";
 import type { PropType } from "vue";
+import type { QueryData, Filter } from "@/friday";
 import type { ApiService } from "@jakguru/vueprint";
-import type { ValuesCellConfiguration } from "./values-cell-component";
 
-interface AvailableOptionInterface {
+interface FilterOptionValue {
+  value: string;
+  label: string;
+}
+
+interface FilterOption {
   field: string;
+  type: string;
+  name: string;
   remote: boolean;
-  options: QueryAvailableFilterOptions;
-  values?: any;
-  filter: string;
+  values?: Array<FilterOptionValue>;
+}
+
+interface FilterValueRow {
+  field: FilterOption | undefined;
+  operator: string | undefined;
+  values: Array<any>;
 }
 
 export default defineComponent({
   name: "QueriesPartialFilters",
   components: {
-    ValuesCellComponent,
+    QueriesOptionMenu,
   },
   props: {
-    value: {
-      type: Object as PropType<QueryFilterRaw>,
+    modelValue: {
+      type: Object as PropType<QueryData>,
       required: true,
     },
-    options: {
-      type: Object as PropType<Record<string, QueryAvailableFilter>>,
-      required: true,
-    },
-    permission: {
-      type: Object as PropType<QueryPermissions["query"]>,
-      required: true,
-    },
-    type: {
-      type: String as PropType<string>,
-      required: true,
-    },
-    isApplying: {
-      type: Boolean as PropType<boolean>,
+    submitting: {
+      type: Boolean,
       default: false,
     },
-    isSaving: {
-      type: Boolean as PropType<boolean>,
-      default: false,
-    },
-    isClearing: {
-      type: Boolean as PropType<boolean>,
+    dirty: {
+      type: Boolean,
       default: false,
     },
   },
-  emits: ["update:value", "submit", "save"],
+  emits: [
+    "update:modelValue",
+    "update:value",
+    "update",
+    "submit",
+    "refresh",
+    "reset",
+  ],
   setup(props, { emit }) {
     const { t } = useI18n({ useScope: "global" });
+    const surfaceColor = useSystemSurfaceColor();
+    const accentColor = useSystemAccentColor();
     const appData = useAppData();
     const api = inject<ApiService>("api");
-    const type = computed(() => props.type);
-    const permission = computed(() => props.permission);
-    const val = computed({
-      get: () => props.value,
-      set: (value: QueryFilterRaw) => emit("update:value", value),
+    const modelValue = computed({
+      get: () => props.modelValue,
+      set: (value) => {
+        emit("update:modelValue", value);
+        emit("update:value", value);
+        emit("update", value);
+      },
     });
-    const existingFilterKeys = computed(() => Object.keys(val.value));
-    const options = computed(() => props.options);
-    const availableOptions = computed(() =>
-      Object.keys(options.value)
-        .filter((key) => !existingFilterKeys.value.includes(key))
-        .map((key) => ({ filter: key, ...options.value[key] })),
+    const submitting = computed(() => props.submitting);
+    const dirty = computed(() => props.dirty);
+    const selectedFiltersCount = computed(() => {
+      return Object.keys(modelValue.value.filters.current).length;
+    });
+    const selectedFiltersColor = computed(() =>
+      selectedFiltersCount.value > 0 ? accentColor.value : surfaceColor.value,
     );
-    const clearAll = () => {
-      val.value = {};
+    const optionsMenuBindings = computed(() => ({
+      class: ["me-2", "my-2"],
+      dirty: dirty.value,
+      submitting: submitting.value,
+      color: selectedFiltersColor.value,
+      icon: "mdi-filter",
+      title: t("labels.filters"),
+      count: selectedFiltersCount.value,
+    }));
+    const onSubmit = (e?: Event) => {
+      e?.preventDefault();
       emit("submit");
     };
-    const apply = () => {
-      emit("submit");
+    const onReset = (e?: Event) => {
+      e?.preventDefault();
+      emit("reset");
     };
-    const save = () => {
-      if (!permission.value.save) {
-        return;
-      }
-      emit("save");
+    const onRefresh = (e?: Event) => {
+      e?.preventDefault();
+      emit("refresh");
     };
-    const remove = (key: string) => {
-      delete val.value[key];
-    };
-    const getQueryFieldName = (key: string) => {
-      if (
-        options.value[key] &&
-        options.value[key].options &&
-        options.value[key].options.name
-      ) {
-        return options.value[key].options.name;
-      }
-      return t(`columns.${type.value.toLowerCase()}.${key}`);
-    };
-    const getQueryFieldOperationChoices = (key: string) => {
-      if (
-        !options.value[key] ||
-        !options.value[key].options ||
-        !options.value[key].options.type
-      ) {
-        return [];
-      }
-      const fieldType = options.value[key].options.type;
-      const verifiedAppData = matchesSchema<any>(
-        appData.value,
-        Joi.object({
-          queries: Joi.object({
-            [type.value]: Joi.object({
-              operators: Joi.object({
-                [fieldType]: Joi.array().items(Joi.string()).required(),
-              })
-                .required()
-                .unknown(),
-            }).unknown(),
-          }).unknown(),
-        }).unknown(),
-        true,
-      );
-      if (!verifiedAppData) {
-        return [];
-      }
-      const ret = verifiedAppData.queries[type.value].operators[fieldType].map(
-        (op: string) => ({
-          value: op,
-          text: t(`labels.queries.operators.${op}`),
-        }),
-      );
-      return ret;
-    };
-    const getQueryFieldIsRemotable = (key: string) => {
-      if (options.value[key] && options.value[key].remote) {
-        return true;
-      }
-      return false;
-    };
-    const remoteLoadedValues = ref<Record<string, any>>({});
-    const loadingRemoteValuesForField = ref<Record<string, boolean>>({});
-    const loadingRemoveValuesForFieldAbortControllers: Record<
-      string,
-      AbortController
-    > = {};
-    const autocompleteValuesForField = ref<Record<string, Array<any>>>({});
-    const isLoadingRemoteValuesForField = computed(
-      () => loadingRemoteValuesForField.value,
-    );
-    const remoteValuesForFieldLastUpdatedAt = ref<Record<string, number>>({});
-    const loadRemoteValuesForField = async (field: string, e?: Event) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      }
-      if (!api) {
-        return;
-      }
-      if (true === loadingRemoteValuesForField.value[field]) {
-        return;
-      }
-      loadingRemoteValuesForField.value[field] = true;
-      const { status, data } = await api.get<Array<[string, string]>>(
-        `/queries/filter?type=${type.value}&name=${field}`,
-      );
-      loadingRemoteValuesForField.value[field] = false;
-      if (status === 200) {
-        remoteLoadedValues.value[field] = Array.isArray(data)
-          ? data.map(([text, value]) => ({
-              text,
-              value,
+    const allFilterOptions = computed<FilterOption[]>(() =>
+      Object.keys(modelValue.value.filters.available).map((k) => ({
+        field: k,
+        type: modelValue.value.filters.available[k].options?.type || "unknown",
+        name:
+          modelValue.value.filters.available[k].options?.name ||
+          t(`columns.${modelValue.value.type.toLowerCase()}.${k}`),
+        remote: modelValue.value.filters.available[k].remote || false,
+        values: Array.isArray(
+          modelValue.value.filters.available[k].options?.values,
+        )
+          ? modelValue.value.filters.available[k].options?.values.map((va) => ({
+              value: va[1],
+              label: va[0],
             }))
-          : [];
-        remoteValuesForFieldLastUpdatedAt.value[field] = Date.now();
-      }
-    };
-    const getIssueAutoCompleteValues = async (
-      field: string,
-      search: string,
-    ) => {
+          : undefined,
+      })),
+    );
+    const currentFilterFields = computed<string[]>(() =>
+      Object.keys(modelValue.value.filters.current),
+    );
+    const availableFilterOptions = computed<FilterOption[]>(() =>
+      allFilterOptions.value.filter(
+        (fo) => !currentFilterFields.value.includes(fo.field),
+      ),
+    );
+    const filterValueRows = ref<FilterValueRow[]>([]);
+    const remoteValues = ref<Record<string, FilterOptionValue[]>>({});
+    const remoteAutocompletes = ref<Record<string, FilterOptionValue[]>>({});
+    const remoteValuesLoading = ref<Record<string, boolean>>({});
+    const remoteAutocompleteLoading = ref<Record<string, boolean>>({});
+    const remoteValuesChoicesAbortControllers = ref<
+      Record<string, AbortController>
+    >({});
+    const remoteValuesAutocompletesAbortControllers = ref<
+      Record<string, AbortController>
+    >({});
+    const fieldValueOptions = computed(() => {
+      const byField: Record<string, FilterOptionValue[]> = {};
+      allFilterOptions.value.forEach((fo) => {
+        const key = fo.field;
+        const values = new Map<string, FilterOptionValue>();
+        if (remoteAutocompletes.value[key]) {
+          remoteAutocompletes.value[key].forEach((v) => {
+            values.set(v.value, v);
+          });
+        }
+        if (remoteValues.value[key]) {
+          remoteValues.value[key].forEach((v) => {
+            values.set(v.value, v);
+          });
+        }
+        if (fo.values) {
+          fo.values.forEach((v) => {
+            values.set(v.value, v);
+          });
+        }
+      });
+      return byField;
+    });
+    const fieldValuesLoading = computed(() => {
+      const byField: Record<string, boolean> = {};
+      allFilterOptions.value.forEach((fo) => {
+        const key = fo.field;
+        byField[key] =
+          remoteValuesLoading.value[key] ||
+          remoteAutocompleteLoading.value[key];
+      });
+      return byField;
+    });
+    const fetchRemoteValuesFor = async (filter: FilterOption) => {
       if (!api) {
         return;
       }
-      if (loadingRemoveValuesForFieldAbortControllers[field]) {
-        loadingRemoveValuesForFieldAbortControllers[field].abort();
+      if (filter.type === "relation" || !filter.remote) {
+        return;
       }
-      loadingRemoveValuesForFieldAbortControllers[field] =
+      if (remoteValuesChoicesAbortControllers.value[filter.field]) {
+        remoteValuesChoicesAbortControllers.value[filter.field].abort();
+      }
+      remoteValuesChoicesAbortControllers.value[filter.field] =
         new AbortController();
-      loadingRemoteValuesForField.value[field] = true;
+      remoteValuesLoading.value[filter.field] = true;
       try {
-        const { status, data } = await api.get<
-          Array<{ id: number; value: number; label: string }>
-        >(`/issues/auto_complete?${qs.stringify({ term: search })}`, {
-          signal: loadingRemoveValuesForFieldAbortControllers[field].signal,
-        });
+        const { status, data } = await api.get<Array<[string, string]>>(
+          `/queries/filter?type=${modelValue.value.type}&name=${filter.field}`,
+          {
+            signal:
+              remoteValuesChoicesAbortControllers.value[filter.field].signal,
+          },
+        );
         if (status === 200) {
-          autocompleteValuesForField.value[field] = data.map((d) => ({
-            text: d.label,
-            value: d.id,
+          remoteValues.value[filter.field] = data.map((va) => ({
+            value: va[1],
+            label: va[0],
           }));
         }
       } catch {
         // noop
       }
-      loadingRemoteValuesForField.value[field] = false;
+      remoteValuesLoading.value[filter.field] = false;
     };
+    const fetchAutocompleteValuesFor = async (
+      filter: FilterOption,
+      search: string,
+    ) => {
+      if (!api) {
+        return;
+      }
+      if (remoteValuesAutocompletesAbortControllers.value[filter.field]) {
+        remoteValuesAutocompletesAbortControllers.value[filter.field].abort();
+      }
+      remoteValuesAutocompletesAbortControllers.value[filter.field] =
+        new AbortController();
+      remoteAutocompleteLoading.value[filter.field] = true;
+      try {
+        const { status, data } = await api.get<
+          Array<{ id: number; value: number; label: string }>
+        >(`/issues/auto_complete?${qs.stringify({ term: search })}`, {
+          signal:
+            remoteValuesAutocompletesAbortControllers.value[filter.field]
+              .signal,
+        });
+        if (status === 200) {
+          const current = new Map<string, FilterOptionValue>();
+          remoteAutocompletes.value[filter.field].forEach((v) => {
+            current.set(v.value, v);
+          });
+          data.forEach((va) => {
+            current.set(va.value.toString(), {
+              value: va.value.toString(),
+              label: va.label,
+            });
+          });
+          remoteAutocompletes.value[filter.field] = Array.from(
+            current.values(),
+          );
+        }
+      } catch {
+        // noop
+      }
+      remoteAutocompleteLoading.value[filter.field] = false;
+    };
+    const fetchRemoteValuesForPossiblyUndefined = async (
+      filter?: FilterOption,
+    ) => {
+      if (!filter) {
+        return;
+      }
+      return await fetchRemoteValuesFor(filter);
+    };
+    const fetchAutocompleteValuesForPossiblyUndefined = async (
+      filter?: FilterOption,
+      search?: string,
+    ) => {
+      if (!filter || !search) {
+        return;
+      }
+      return await fetchAutocompleteValuesFor(filter, search);
+    };
+    // const operatorsByFieldType = computed(() => [].map((operator) => ({
+    //   value: operator,
+    //   label: t(`labels.queries.operators.${operator}`),
+    // })));
+    const operatorsByFieldType = computed(() => ({
+      ...appData.value.queries[modelValue.value.type].operators,
+    }));
+    const fieldTypeOperatorOptions = computed(() => {
+      const byType: Record<string, FilterOptionValue[]> = {};
+      Object.keys(operatorsByFieldType.value).forEach((type) => {
+        byType[type] = operatorsByFieldType.value[type].map(
+          (operator: string) => ({
+            value: operator,
+            label: t(`labels.queries.operators.${operator}`),
+          }),
+        );
+      });
+      return byType;
+    });
     watch(
-      () => val.value,
-      (latest, previous) => {
-        Object.keys(latest).forEach((key) => {
-          if (getQueryFieldIsRemotable(key)) {
-            if (
-              typeof previous !== "undefined" &&
-              JSON.stringify(Object.keys(latest)) ===
-                JSON.stringify(Object.keys(previous)) &&
-              "undefined" !== typeof remoteLoadedValues.value[key]
-            ) {
-              appDebug("skipping remote load for", key);
-              return;
-            }
-            appDebug("loading remote values for", key);
-            loadRemoteValuesForField(key);
+      () => modelValue.value,
+      (mv) => {
+        const keys = Object.keys(mv.filters.current);
+        const toSet: FilterValueRow[] = [];
+        keys.forEach((k) => {
+          const field = allFilterOptions.value.find((fo) => fo.field === k);
+          if (field) {
+            toSet.push({
+              field,
+              operator: mv.filters.current[k].operator,
+              values: mv.filters.current[k].values,
+            });
           }
         });
+        const isDifferent =
+          JSON.stringify(toSet) !== JSON.stringify(filterValueRows.value);
+        if (!isDifferent) {
+          return;
+        }
+        toSet.forEach((row) => {
+          fetchRemoteValuesForPossiblyUndefined(row.field);
+        });
+        filterValueRows.value = toSet;
       },
       { deep: true, immediate: true },
     );
-    const getValuesCellConfigurations = (
-      key: string,
-      operator: string,
-      values: string,
-      _lastUpdatedAt: number,
-    ) => {
-      const opts = options.value[key];
-      const type = opts.options.type;
-      const cells: ValuesCellConfiguration[] = [];
-      switch (type) {
-        case "list":
-        case "list_with_history":
-        case "list_optional":
-        case "list_optional_with_history":
-        case "list_status":
-        case "list_subprojects":
-          switch (operator) {
-            case "o":
-            case "c":
-            case "nd":
-            case "t":
-            case "ld":
-            case "nw":
-            case "w":
-            case "lw":
-            case "l2w":
-            case "nm":
-            case "m":
-            case "lm":
-            case "y":
-            case "!*":
-            case "*":
-              val.value[key].values = [];
-              break;
-            default:
-              cells.push({
-                component: "VAutocomplete",
-                bindings: {
-                  items: values,
-                  returnObject: false,
-                  itemTitle: "text",
-                  itemValue: "value",
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 350,
-                  multiple: true,
-                  chips: true,
-                  closableChips: true,
-                  loading: isLoadingRemoteValuesForField.value[key] || false,
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values = value;
-                },
-                modelValue: val.value[key].values,
-              });
-              break;
-          }
-          break;
-        case "date":
-        case "date_past":
-          switch (operator) {
-            case "><":
-              // 2 cells needed
-              if (val.value[key].values.length !== 2) {
-                val.value[key].values = [undefined, undefined];
-              }
-              cells.push({
-                component: "VTextField",
-                bindings: {
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 150,
-                  type: "date",
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values[0] = value;
-                },
-                modelValue: val.value[key].values[0],
-              });
-              cells.push({
-                component: "GlueCell",
-                bindings: {
-                  text: t("labels.queries.and"),
-                },
-              });
-              cells.push({
-                component: "VTextField",
-                bindings: {
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 150,
-                  type: "date",
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values[1] = value;
-                },
-                modelValue: val.value[key].values[1],
-              });
-              break;
-            case "nd":
-            case "t":
-            case "ld":
-            case "nw":
-            case "w":
-            case "lw":
-            case "l2w":
-            case "nm":
-            case "m":
-            case "lm":
-            case "y":
-            case "!*":
-            case "*":
-              val.value[key].values = [];
-              break;
-            default:
-              if (val.value[key].values.length !== 1) {
-                val.value[key].values = [undefined];
-              }
-              cells.push({
-                component: "VTextField",
-                bindings: {
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 350,
-                  type: "date",
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values[0] = value;
-                },
-                modelValue: val.value[key].values[0],
-              });
-              break;
-          }
-          break;
-        case "string":
-        case "text":
-        case "search":
-          switch (operator) {
-            case "s":
-            case "!*":
-            case "*":
-              val.value[key].values = [];
-              break;
-            default:
-              if (val.value[key].values.length !== 1) {
-                val.value[key].values = [""];
-              }
-              cells.push({
-                component: "VTextField",
-                bindings: {
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 350,
-                  type: "search" === type ? "search" : "text",
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values[0] = value;
-                },
-                modelValue: val.value[key].values[0],
-              });
-              break;
-          }
-          break;
-        case "integer":
-        case "float":
-        case "tree":
-          switch (operator) {
-            case "s":
-            case "!*":
-            case "*":
-              val.value[key].values = [];
-              break;
-            case "><":
-              // 2 cells needed
-              if (val.value[key].values.length !== 2) {
-                val.value[key].values = ["", ""];
-              }
-              cells.push({
-                component: "VTextField",
-                bindings: {
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 150,
-                  type: "number",
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values[0] = value;
-                },
-                modelValue: val.value[key].values[0],
-              });
-              cells.push({
-                component: "GlueCell",
-                bindings: {
-                  text: t("labels.queries.and"),
-                },
-              });
-              cells.push({
-                component: "VTextField",
-                bindings: {
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 150,
-                  type: "number",
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values[1] = value;
-                },
-                modelValue: val.value[key].values[1],
-              });
-              break;
-            default:
-              if (val.value[key].values.length !== 1) {
-                val.value[key].values = [""];
-              }
-              cells.push({
-                component: "VTextField",
-                bindings: {
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 350,
-                  type: "number",
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values[0] = value;
-                },
-                modelValue: val.value[key].values[0],
-              });
-              break;
-          }
-          break;
-        case "relation":
-          switch (operator) {
-            case "=":
-            case "!":
-              cells.push({
-                component: "VCombobox",
-                bindings: {
-                  items: autocompleteValuesForField.value[key] || [],
-                  returnObject: false,
-                  itemTitle: "text",
-                  itemValue: "value",
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 350,
-                  multiple: true,
-                  chips: true,
-                  closableChips: true,
-                  loading: isLoadingRemoteValuesForField.value[key] || false,
-                  "onUpdate:search": (search: string) => {
-                    appDebug("searching for", search);
-                    getIssueAutoCompleteValues(key, search);
-                  },
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values = value;
-                },
-                modelValue: val.value[key].values,
-              });
-              break;
-            case "=p":
-            case "=!p":
-            case "!p":
-            case "*o":
-            case "!o":
-              cells.push({
-                component: "VAutocomplete",
-                bindings: {
-                  items: values,
-                  returnObject: false,
-                  itemTitle: "text",
-                  itemValue: "value",
-                  density: "compact",
-                  outlined: true,
-                  hideDetails: true,
-                  width: 350,
-                  multiple: true,
-                  chips: true,
-                  closableChips: true,
-                  loading: isLoadingRemoteValuesForField.value[key] || false,
-                },
-                onUpdateModelValue: (value: any) => {
-                  val.value[key].values = value;
-                },
-                modelValue: val.value[key].values,
-              });
-              break;
-            case "!*":
-            case "*":
-              val.value[key].values = [];
-              break;
-          }
-          break;
+    watch(
+      () => filterValueRows.value,
+      (rows) => {
+        const toSet = rows.reduce(
+          (acc, row) => {
+            if (row.field && row.operator) {
+              acc[row.field.field] = {
+                operator: row.operator,
+                values: row.values,
+              };
+            }
+            return acc;
+          },
+          {} as Record<string, Filter>,
+        );
+        const isDifferent =
+          JSON.stringify(toSet) !==
+          JSON.stringify(modelValue.value.filters.current);
+        if (!isDifferent) {
+          return;
+        }
+        console.log({ toSet });
+        modelValue.value.filters.current = toSet;
+      },
+      { deep: true },
+    );
+    const canShowAddFilter = computed(
+      () =>
+        availableFilterOptions.value.length > 0 &&
+        !filterValueRows.value.find((r) => undefined === r.field),
+    );
+    const doAddFilter = () => {
+      if (canShowAddFilter.value) {
+        filterValueRows.value.push({
+          field: undefined,
+          operator: undefined,
+          values: [],
+        });
       }
-      return cells;
     };
-    const getOptionsFromLocalValues = (
-      values?: QueryAvailableFilterOptionsValues,
+    const doRemoveFilter = (index: number) => {
+      filterValueRows.value.splice(index, 1);
+    };
+    const getAvailableFilterOptions = (current?: FilterOption) => {
+      return [current, ...availableFilterOptions.value].filter(
+        (v) => "object" === typeof v && null !== v,
+      );
+    };
+    const updateFilterValueRowOperatorFor = (
+      index: number,
+      field?: FilterOption,
     ) => {
-      if (Array.isArray(values)) {
-        return values.map(([text, value]) => ({ text, value }));
-      } else if ("object" === typeof values && null !== values) {
-        if ("name" in values && "value" in values) {
-          return [
-            {
-              text: values.name,
-              value: values.value,
-            },
-          ];
+      fetchRemoteValuesForPossiblyUndefined(field);
+      if (!field) {
+        filterValueRows.value[index].operator = undefined;
+      } else {
+        if (
+          "undefined" !== typeof filterValueRows.value[index].operator &&
+          !fieldTypeOperatorOptions.value[field.type].some(
+            (op) => op.value === filterValueRows.value[index].operator,
+          )
+        ) {
+          filterValueRows.value[index].operator =
+            fieldTypeOperatorOptions.value[field.type][0].value;
         }
       }
-      return [];
     };
-    const existingFilters = computed(() =>
-      [...existingFilterKeys.value].map((key) => {
-        const values = getQueryFieldIsRemotable(key)
-          ? remoteLoadedValues.value[key]
-          : getOptionsFromLocalValues(options.value[key].options.values);
-        return {
-          key,
-          name: getQueryFieldName(key),
-          operatorOptions: getQueryFieldOperationChoices(key),
-          type: options.value[key].options.type,
-          valueCells: getValuesCellConfigurations(
-            key,
-            val.value[key].operator,
-            values,
-            remoteValuesForFieldLastUpdatedAt.value[key],
-          ),
-          values,
-          lastUpdatedAt: remoteValuesForFieldLastUpdatedAt.value[key],
-        };
-      }),
-    );
-    const addNewFilterShowMenu = ref(false);
-    const addNewFilter = (filter: AvailableOptionInterface) => {
-      addNewFilterShowMenu.value = false;
-      if (getQueryFieldIsRemotable(filter.filter)) {
-        loadRemoteValuesForField(filter.filter);
-      }
-      val.value[filter.filter] = {
-        operator: getQueryFieldOperationChoices(filter.filter)[0].value,
-        values: [],
-      };
-    };
+    const updateFilterValueRowValuesForOperatorFor = (
+      index: number,
+      field?: FilterOption,
+      operator?: string,
+    ) => {};
     return {
-      val,
-      availableOptions,
-      clearAll,
-      apply,
-      save,
-      remove,
-      existingFilterKeys,
-      getQueryFieldName,
-      getQueryFieldOperationChoices,
-      getQueryFieldIsRemotable,
-      loadRemoteValuesForField,
-      existingFilters,
-      remoteLoadedValues,
-      isLoadingRemoteValuesForField,
-      addNewFilterShowMenu,
-      addNewFilter,
+      optionsMenuBindings,
+      onSubmit,
+      onReset,
+      onRefresh,
+      filterValueRows,
+      canShowAddFilter,
+      doAddFilter,
+      doRemoveFilter,
+      fieldValueOptions,
+      fieldValuesLoading,
+      fetchRemoteValuesFor,
+      fetchAutocompleteValuesFor,
+      fetchRemoteValuesForPossiblyUndefined,
+      fetchAutocompleteValuesForPossiblyUndefined,
+      getAvailableFilterOptions,
+      fieldTypeOperatorOptions,
+      updateFilterValueRowOperatorFor,
+      updateFilterValueRowValuesForOperatorFor,
     };
   },
 });
 </script>
-
-<style lang="scss">
-.query-filters-panel {
-  .glue-cell {
-    width: 50px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    justify-content: center;
-  }
-}
-</style>
