@@ -103,6 +103,7 @@ import qs from "qs";
 import type { PropType } from "vue";
 import type { QueryData, Filter } from "@/friday";
 import type { ApiService } from "@jakguru/vueprint";
+import type { ValuesCellConfiguration } from "./values-cell-component.vue";
 
 interface FilterOptionValue {
   value: string;
@@ -470,7 +471,222 @@ export default defineComponent({
       index: number,
       field?: FilterOption,
       operator?: string,
-    ) => {};
+    ) => {
+      if (!field) {
+        return;
+      }
+      switch (field.type) {
+        case "list":
+        case "list_with_history":
+        case "list_optional":
+        case "list_optional_with_history":
+        case "list_status":
+        case "list_subprojects":
+          switch (operator) {
+            case "o":
+            case "c":
+            case "nd":
+            case "t":
+            case "ld":
+            case "nw":
+            case "w":
+            case "lw":
+            case "l2w":
+            case "nm":
+            case "m":
+            case "lm":
+            case "y":
+            case "!*":
+            case "*":
+              filterValueRows.value[index].values = [];
+              break;
+          }
+          break;
+        case "date":
+        case "date_past":
+          switch (operator) {
+            case "><":
+              filterValueRows.value[index].values = [undefined, undefined];
+              break;
+            case "nd":
+            case "t":
+            case "ld":
+            case "nw":
+            case "w":
+            case "lw":
+            case "l2w":
+            case "nm":
+            case "m":
+            case "lm":
+            case "y":
+            case "!*":
+            case "*":
+              filterValueRows.value[index].values = [];
+              break;
+            default:
+              filterValueRows.value[index].values = [undefined];
+              break;
+          }
+          break;
+        case "string":
+        case "text":
+        case "search":
+          switch (operator) {
+            case "s":
+            case "!*":
+            case "*":
+              filterValueRows.value[index].values = [];
+              break;
+            default:
+              filterValueRows.value[index].values = [""];
+              break;
+          }
+          break;
+        default:
+          // filterValueRows.value[index].values = [];
+          break;
+      }
+    };
+    const getValueCellConfigurationFor = (
+      index: number,
+      field?: FilterOption,
+      operator?: string,
+    ): ValuesCellConfiguration[] => {
+      if (!field || !operator) {
+        return [];
+      }
+      const cells: ValuesCellConfiguration[] = [];
+      switch (field.type) {
+        case "list":
+        case "list_with_history":
+        case "list_optional":
+        case "list_optional_with_history":
+        case "list_status":
+        case "list_subprojects":
+          cells.push({
+            component: "VAutocomplete",
+            bindings: {
+              items: fieldValueOptions.value[field.field] || [],
+              returnObject: false,
+              itemTitle: "text",
+              itemValue: "value",
+              density: "compact",
+              outlined: true,
+              hideDetails: true,
+              width: 350,
+              multiple: true,
+              chips: true,
+              closableChips: true,
+              loading: fieldValuesLoading.value[field.field],
+            },
+            onUpdateModelValue: (value: FilterOptionValue[]) => {
+              filterValueRows.value[index].values = value;
+            },
+            modelValue: filterValueRows.value[index].values,
+          });
+          break;
+        case "date":
+        case "date_past":
+          switch (operator) {
+            case "><":
+              cells.push({
+                component: "VTextField",
+                bindings: {
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 150,
+                  type: "date",
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values[0] = value;
+                },
+                modelValue: filterValueRows.value[index].values[0],
+              });
+              cells.push({
+                component: "GlueCell",
+                bindings: {
+                  text: t("labels.queries.and"),
+                },
+              });
+              cells.push({
+                component: "VTextField",
+                bindings: {
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 150,
+                  type: "date",
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values[1] = value;
+                },
+                modelValue: filterValueRows.value[index].values[1],
+              });
+              break;
+            case "nd":
+            case "t":
+            case "ld":
+            case "nw":
+            case "w":
+            case "lw":
+            case "l2w":
+            case "nm":
+            case "m":
+            case "lm":
+            case "y":
+            case "!*":
+            case "*":
+              break;
+            default:
+              cells.push({
+                component: "VTextField",
+                bindings: {
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  type: "date",
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values[0] = value;
+                },
+                modelValue: filterValueRows.value[index].values[0],
+              });
+              break;
+          }
+          break;
+        case "string":
+        case "text":
+        case "search":
+          switch (operator) {
+            case "s":
+            case "!*":
+            case "*":
+              break;
+            default:
+              cells.push({
+                component: "VTextField",
+                bindings: {
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  type: "search" === field.type ? "search" : "text",
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values[0] = value;
+                },
+                modelValue: filterValueRows.value[index].values[0],
+              });
+              break;
+          }
+          break;
+        default:
+          break;
+      }
+      return cells;
+    };
     return {
       optionsMenuBindings,
       onSubmit,
@@ -490,6 +706,7 @@ export default defineComponent({
       fieldTypeOperatorOptions,
       updateFilterValueRowOperatorFor,
       updateFilterValueRowValuesForOperatorFor,
+      getValueCellConfigurationFor,
     };
   },
 });
