@@ -12,7 +12,7 @@
       </v-btn>
     </template>
     <template #content>
-      <v-table class="bg-transparent my-2">
+      <v-table class="bg-transparent my-2 query-filters-panel">
         <tbody>
           <tr v-if="filterValueRows.length === 0">
             <td colspan="5" class="text-center">
@@ -73,14 +73,17 @@
               </template>
             </td>
             <td>
-              <template v-if="filterValueRowValueCellConfigurations[i]">
+              <div
+                v-if="filterValueRowValueCellConfigurations[i]"
+                class="w-100 h-100 d-flex align-center"
+              >
                 <ValuesCellComponent
                   v-for="(cell, fi) in filterValueRowValueCellConfigurations[i]"
                   :id="`filter-${i}-cell-${fi}`"
                   :key="`filter-${i}-cell-${fi}`"
                   :configuration="cell"
                 />
-              </template>
+              </div>
             </td>
             <td>
               <v-btn
@@ -511,25 +514,7 @@ export default defineComponent({
         case "list_optional_with_history":
         case "list_status":
         case "list_subprojects":
-          switch (operator) {
-            case "o":
-            case "c":
-            case "nd":
-            case "t":
-            case "ld":
-            case "nw":
-            case "w":
-            case "lw":
-            case "l2w":
-            case "nm":
-            case "m":
-            case "lm":
-            case "y":
-            case "!*":
-            case "*":
-              filterValueRows.value[index].values = [];
-              break;
-          }
+          filterValueRows.value[index].values = [];
           break;
         case "date":
         case "date_past":
@@ -589,7 +574,7 @@ export default defineComponent({
           filterValueRows.value[index].values = [];
           break;
         default:
-          // filterValueRows.value[index].values = [];
+          filterValueRows.value[index].values = [];
           break;
       }
     };
@@ -609,27 +594,35 @@ export default defineComponent({
         case "list_optional_with_history":
         case "list_status":
         case "list_subprojects":
-          cells.push({
-            component: "VAutocomplete",
-            bindings: {
-              items: fieldValueOptions.value[field.field] || [],
-              returnObject: false,
-              itemTitle: "label",
-              itemValue: "value",
-              density: "compact",
-              outlined: true,
-              hideDetails: true,
-              width: 350,
-              multiple: true,
-              chips: true,
-              closableChips: true,
-              loading: fieldValuesLoading.value[field.field],
-            },
-            onUpdateModelValue: (value: FilterOptionValue[]) => {
-              filterValueRows.value[index].values = value;
-            },
-            modelValue: filterValueRows.value[index].values,
-          });
+          switch (operator) {
+            case "o":
+            case "c":
+            case "*":
+              break;
+            default:
+              cells.push({
+                component: "VAutocomplete",
+                bindings: {
+                  items: fieldValueOptions.value[field.field] || [],
+                  returnObject: false,
+                  itemTitle: "label",
+                  itemValue: "value",
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                  loading: fieldValuesLoading.value[field.field],
+                },
+                onUpdateModelValue: (value: FilterOptionValue[]) => {
+                  filterValueRows.value[index].values = value;
+                },
+                modelValue: filterValueRows.value[index].values,
+              });
+              break;
+          }
           break;
         case "date":
         case "date_past":
@@ -683,6 +676,46 @@ export default defineComponent({
             case "y":
             case "!*":
             case "*":
+              break;
+            case ">t-":
+            case "<t-":
+            case ">t+":
+            case "<t+":
+              cells.push({
+                component: "VTextField",
+                bindings: {
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  type: "number",
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values[0] = value;
+                },
+                modelValue: filterValueRows.value[index].values[0],
+                suffix: t("labels.days"),
+              });
+              break;
+            case "><t-":
+            case "t-":
+            case "><t+":
+            case "t+":
+              cells.push({
+                component: "VTextField",
+                bindings: {
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  type: "number",
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values[0] = value;
+                },
+                modelValue: filterValueRows.value[index].values[0],
+                suffix: t("labels.days"),
+              });
               break;
             default:
               cells.push({
@@ -853,3 +886,16 @@ export default defineComponent({
   },
 });
 </script>
+
+<style lang="scss">
+.query-filters-panel {
+  .glue-cell {
+    width: 50px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+  }
+}
+</style>

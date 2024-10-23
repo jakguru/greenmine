@@ -346,6 +346,7 @@ export default {
     refresh: "Refresh",
     reset: "Reset",
     noFilters: "No filters selected",
+    days: "days",
   },
   theme: {
     base: {

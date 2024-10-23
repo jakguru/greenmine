@@ -12,11 +12,13 @@ interface ValuesCellComponentConfiguration {
   bindings: Record<string, any>;
   onUpdateModelValue?: (value: any) => void;
   modelValue: any;
+  suffix?: string;
 }
 
 interface ValuesGlueCellComponentConfiguration {
   component: "GlueCell";
   bindings: Record<string, any>;
+  suffix?: string;
 }
 
 export type ValuesCellConfiguration =
@@ -84,23 +86,50 @@ export const ValuesCellComponent = defineComponent({
     return () => {
       switch (componentName.value) {
         case "VAutocomplete":
-          return h(VAutocomplete, {
-            ...bindings.value,
-            modelValue: modelValue.value,
-            "onUpdate:modelValue": onUpdateModelValue.value,
-          });
+          return h(
+            VAutocomplete,
+            {
+              ...bindings.value,
+              modelValue: modelValue.value,
+              "onUpdate:modelValue": onUpdateModelValue.value,
+            },
+            {
+              "append-inner": () =>
+                configuration.value.suffix
+                  ? h("span", configuration.value.suffix)
+                  : h("span"),
+            },
+          );
         case "VCombobox":
-          return h(VCombobox, {
-            ...bindings.value,
-            modelValue: modelValue.value,
-            "onUpdate:modelValue": onUpdateModelValue.value,
-          });
+          return h(
+            VCombobox,
+            {
+              ...bindings.value,
+              modelValue: modelValue.value,
+              "onUpdate:modelValue": onUpdateModelValue.value,
+            },
+            {
+              "append-inner": () =>
+                configuration.value.suffix
+                  ? h("span", configuration.value.suffix)
+                  : h("span"),
+            },
+          );
         case "VTextField":
-          return h(VTextField, {
-            ...bindings.value,
-            modelValue: modelValue.value,
-            "onUpdate:modelValue": onUpdateModelValue.value,
-          });
+          return h(
+            VTextField,
+            {
+              ...bindings.value,
+              modelValue: modelValue.value,
+              "onUpdate:modelValue": onUpdateModelValue.value,
+            },
+            {
+              "append-inner": () =>
+                configuration.value.suffix
+                  ? h("span", configuration.value.suffix)
+                  : h("span"),
+            },
+          );
         case "GlueCell":
           return h(GlueCell, {
             ...bindings.value,

@@ -1,263 +1,280 @@
 <template>
-  <v-card min-height="100" class="query-filters-panel">
-    <v-toolbar color="transparent" density="compact">
-      <v-toolbar-items class="ml-auto">
-        <v-btn
-          v-if="permission.save"
-          variant="text"
-          :loading="isSaving"
-          @click="save"
-        >
-          <v-icon>mdi-content-save</v-icon>
-          <span class="ms-2">{{ $t("labels.save") }}</span>
-        </v-btn>
-      </v-toolbar-items>
-    </v-toolbar>
-    <v-divider />
-    <v-container>
-      <v-row>
-        <v-col cols="12" sm="6">
-          <v-list-subheader>{{ $t("labels.selected") }}</v-list-subheader>
-          <draggable
-            v-model="selectedColumns"
-            item-key="value"
-            group="columns"
-            class="draggable-group"
-            ghost-class="ghost"
-          >
-            <template #item="{ element, index }">
-              <v-list-item :title="element.text" min-width="300">
-                <template #append>
-                  <div class="d-flex h-100 align-center">
-                    <div class="d-flex h-100 flex-column">
-                      <v-btn
-                        size="x-small"
-                        variant="text"
-                        icon="mdi-chevron-up"
-                        :disabled="0 === index"
-                        @click="moveSelectedColumnUp(index)"
-                      />
-                      <v-btn
-                        size="x-small"
-                        variant="text"
-                        icon="mdi-chevron-down"
-                        :disabled="index === selectedColumns.length - 1"
-                        @click="moveSelectedColumnDown(index)"
-                      />
-                    </div>
-                    <v-btn
-                      variant="text"
-                      icon
-                      @click="removeFromSelected(index)"
-                    >
-                      <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                  </div>
+  <QueriesOptionMenu
+    v-bind="optionsMenuBindings"
+    @submit="onSubmit"
+    @reset="onReset"
+    @refresh="onRefresh"
+  >
+    <template #content>
+      <v-container class="query-columns-panel">
+        <v-row>
+          <v-col cols="12" sm="6">
+            <v-list-item :subtitle="$t('labels.selected')">
+              <template #append>
+                <v-btn
+                  size="x-small"
+                  variant="text"
+                  icon="mdi-notification-clear-all"
+                  color="warning"
+                  :disabled="0 === selectedColumns.length"
+                  @click="onClearAll"
+                />
+              </template>
+            </v-list-item>
+            <v-divider />
+            <v-sheet
+              color="transparent"
+              class="draggable-list-wrapper"
+              min-width="300"
+              max-height="400"
+            >
+              <draggable
+                v-model="selectedColumns"
+                item-key="value"
+                group="columns"
+                class="draggable-group"
+                ghost-class="ghost"
+              >
+                <template #item="{ element, index }">
+                  <v-list-item
+                    :title="element.title"
+                    min-width="300"
+                    density="compact"
+                  >
+                    <template #append>
+                      <div class="d-flex h-100 align-center">
+                        <v-btn
+                          size="x-small"
+                          variant="text"
+                          icon="mdi-chevron-up"
+                          color="info"
+                          :disabled="0 === index"
+                          @click="onMoveSelectedColumnUp(index)"
+                        />
+                        <v-btn
+                          size="x-small"
+                          variant="text"
+                          icon="mdi-chevron-down"
+                          color="info"
+                          :disabled="index === selectedColumns.length - 1"
+                          @click="onMoveSelectedColumnDown(index)"
+                        />
+                        <v-btn
+                          variant="text"
+                          size="x-small"
+                          color="warning"
+                          icon
+                          @click="onRemoveFromSelected(index)"
+                        >
+                          <v-icon>mdi-close</v-icon>
+                        </v-btn>
+                      </div>
+                    </template>
+                  </v-list-item>
                 </template>
-              </v-list-item>
-            </template>
-          </draggable>
-        </v-col>
-        <v-col cols="12" sm="6">
-          <v-list-subheader>{{ $t("labels.available") }}</v-list-subheader>
-          <draggable
-            v-model="remainingColumns"
-            item-key="value"
-            group="columns"
-            class="draggable-group"
-            ghost-class="ghost"
-          >
-            <template #item="{ element }">
-              <v-list-item :title="element.text" min-width="300">
-                <template #append>
-                  <div class="d-flex h-100 align-center">
-                    <v-btn
-                      variant="text"
-                      icon
-                      @click="addToSelected(element.value)"
-                    >
-                      <v-icon>mdi-plus</v-icon>
-                    </v-btn>
-                  </div>
+              </draggable>
+            </v-sheet>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-list-item :subtitle="$t('labels.available')">
+              <template #append>
+                <v-btn
+                  size="x-small"
+                  variant="text"
+                  icon="mdi-playlist-plus"
+                  color="success"
+                  :disabled="0 === remainingColumns.length"
+                  @click="onAddAll"
+                />
+              </template>
+            </v-list-item>
+            <v-divider />
+            <v-sheet
+              color="transparent"
+              class="draggable-list-wrapper"
+              min-width="300"
+              max-height="400"
+            >
+              <draggable
+                v-model="remainingColumns"
+                item-key="value"
+                group="columns"
+                class="draggable-group"
+                ghost-class="ghost"
+              >
+                <template #item="{ element }">
+                  <v-list-item
+                    :title="element.title"
+                    min-width="300"
+                    density="compact"
+                  >
+                    <template #append>
+                      <div class="d-flex h-100 align-center">
+                        <v-btn
+                          variant="text"
+                          size="x-small"
+                          color="success"
+                          icon
+                          @click="onAddToSelected(element)"
+                        >
+                          <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                      </div>
+                    </template>
+                  </v-list-item>
                 </template>
-              </v-list-item>
-            </template>
-          </draggable>
-        </v-col>
-      </v-row>
-    </v-container>
-    <v-divider />
-    <v-toolbar color="transparent" density="compact">
-      <v-toolbar-items></v-toolbar-items>
-      <v-toolbar-items class="ml-auto">
-        <v-btn
-          variant="text"
-          color="secondary"
-          :loading="isApplying"
-          @click="apply"
-        >
-          <v-icon>mdi-check</v-icon>
-          <span class="ms-2">{{ $t("labels.apply") }}</span>
-        </v-btn>
-      </v-toolbar-items>
-    </v-toolbar>
-  </v-card>
+              </draggable>
+            </v-sheet>
+          </v-col>
+        </v-row>
+      </v-container>
+    </template>
+  </QueriesOptionMenu>
 </template>
 
 <script lang="ts">
 import { defineComponent, computed } from "vue";
+import { useSystemSurfaceColor, useSystemAccentColor } from "@/utils/app";
 import { useI18n } from "vue-i18n";
-import draggable from "vuedraggable";
+import QueriesOptionMenu from "./option-menu.vue";
+import Draggable from "vuedraggable";
 
-import type {
-  QueryColumn,
-  QueryPermissions,
-  QueryAvailableFilter,
-} from "@/redmine";
 import type { PropType } from "vue";
+import type { QueryData, Column } from "@/friday";
 
 export default defineComponent({
   name: "QueriesPartialColumns",
   components: {
-    draggable,
+    QueriesOptionMenu,
+    Draggable,
   },
   props: {
-    value: {
-      type: Array as PropType<Array<string>>,
+    modelValue: {
+      type: Object as PropType<QueryData>,
       required: true,
     },
-    options: {
-      type: Array as PropType<Array<QueryColumn>>,
-      required: true,
-    },
-    columns: {
-      type: Object as PropType<Record<string, QueryAvailableFilter>>,
-      required: true,
-    },
-    permission: {
-      type: Object as PropType<QueryPermissions["query"]>,
-      required: true,
-    },
-    type: {
-      type: String as PropType<string>,
-      required: true,
-    },
-    isApplying: {
-      type: Boolean as PropType<boolean>,
+    submitting: {
+      type: Boolean,
       default: false,
     },
-    isSaving: {
-      type: Boolean as PropType<boolean>,
-      default: false,
-    },
-    isClearing: {
-      type: Boolean as PropType<boolean>,
+    dirty: {
+      type: Boolean,
       default: false,
     },
   },
-  emits: ["update:value", "submit", "save"],
+  emits: [
+    "update:modelValue",
+    "update:value",
+    "update",
+    "submit",
+    "refresh",
+    "reset",
+  ],
   setup(props, { emit }) {
     const { t } = useI18n({ useScope: "global" });
-    const val = computed({
-      get: () => props.value,
-      set: (value: Array<string>) => emit("update:value", value),
+    const surfaceColor = useSystemSurfaceColor();
+    const accentColor = useSystemAccentColor();
+    const modelValue = computed({
+      get: () => props.modelValue,
+      set: (value) => {
+        emit("update:modelValue", value);
+        emit("update:value", value);
+        emit("update", value);
+      },
     });
-    const permission = computed(() => props.permission);
-    const apply = () => {
+    const submitting = computed(() => props.submitting);
+    const dirty = computed(() => props.dirty);
+    const selectedColumnsCount = computed(() => {
+      return modelValue.value.columns.current.inline.length;
+    });
+    const selectedColumnsColor = computed(() =>
+      selectedColumnsCount.value > 0 ? accentColor.value : surfaceColor.value,
+    );
+    const optionsMenuBindings = computed(() => ({
+      class: ["me-2", "my-2"],
+      dirty: dirty.value,
+      submitting: submitting.value,
+      color: selectedColumnsColor.value,
+      icon: "mdi-view-column",
+      title: t("labels.columns"),
+      count: selectedColumnsCount.value,
+    }));
+    const onSubmit = (e?: Event) => {
+      e?.preventDefault();
       emit("submit");
     };
-    const save = () => {
-      if (!permission.value.save) {
-        return;
-      }
-      emit("save");
+    const onReset = (e?: Event) => {
+      e?.preventDefault();
+      emit("reset");
     };
-    const options = computed(() => props.options);
-    const columns = computed(() => props.columns);
-    const type = computed(() => props.type);
-    const getQueryFieldName = (key: string) => {
-      if (
-        columns.value[key] &&
-        columns.value[key].options &&
-        columns.value[key].options.name
-      ) {
-        return columns.value[key].options.name;
-      }
-      return t(`columns.${type.value.toLowerCase()}.${key}`);
+    const onRefresh = (e?: Event) => {
+      e?.preventDefault();
+      emit("refresh");
     };
-    const displayOptionItems = computed(() =>
-      [...options.value].map((o) => ({
-        text: getQueryFieldName(o.name),
-        value: o.name,
-      })),
-    );
     const selectedColumns = computed({
-      get: () =>
-        [...val.value]
-          .map((v) => {
-            const o = options.value.find((o) => o.name === v);
-            if (!o) {
-              return undefined;
-            } else {
-              return {
-                text: getQueryFieldName(o.name),
-                value: o.name,
-              };
-            }
-          })
-          .filter((v) => v !== undefined),
-      set: (value: Array<{ text: string; value: string }>) => {
-        val.value = value.map((v) => v.value);
+      get: () => modelValue.value.columns.current.inline,
+      set: (value: Array<Column>) => {
+        modelValue.value.columns.current.inline = value;
       },
     });
+    const selectedColumnKeys = computed(() =>
+      selectedColumns.value.map((column) => column.key),
+    );
     const remainingColumns = computed({
       get: () =>
-        [...displayOptionItems.value].filter(
-          (o) => !selectedColumns.value.find((s) => s.value === o.value),
+        modelValue.value.columns.available.inline.filter(
+          (column) => !selectedColumnKeys.value.includes(column.key),
         ),
-      set: (value: Array<{ text: string; value: string }>) => {
-        const index = val.value.findIndex((v) => v === value[0].value);
-        if (index) {
-          val.value.splice(index, 1);
-        }
+      set: (_value: Array<Column>) => {
+        // noop - the list is automatically calculated based on the selected columns from the available columns
       },
     });
-    const moveSelectedColumnUp = (index: number) => {
+    const onMoveSelectedColumnUp = (index: number) => {
       if (index > 0) {
-        const [item] = val.value.splice(index, 1);
-        val.value.splice(index - 1, 0, item);
+        const [item] = modelValue.value.columns.current.inline.splice(index, 1);
+        modelValue.value.columns.current.inline.splice(index - 1, 0, item);
       }
     };
-    const moveSelectedColumnDown = (index: number) => {
+    const onMoveSelectedColumnDown = (index: number) => {
       if (index < selectedColumns.value.length - 1) {
-        const [item] = val.value.splice(index, 1);
-        val.value.splice(index + 1, 0, item);
+        const [item] = modelValue.value.columns.current.inline.splice(index, 1);
+        modelValue.value.columns.current.inline.splice(index + 1, 0, item);
       }
     };
-    const removeFromSelected = (index: number) => {
-      val.value.splice(index, 1);
+    const onRemoveFromSelected = (index: number) => {
+      modelValue.value.columns.current.inline.splice(index, 1);
     };
-    const addToSelected = (value: string) => {
-      val.value.push(value);
+    const onAddToSelected = (value: Column) => {
+      modelValue.value.columns.current.inline.push(value);
+    };
+    const onClearAll = () => {
+      modelValue.value.columns.current.inline = [];
+    };
+    const onAddAll = () => {
+      remainingColumns.value.forEach((c) => {
+        modelValue.value.columns.current.inline.push(c);
+      });
     };
     return {
-      val,
-      apply,
-      save,
-      displayOptionItems,
+      optionsMenuBindings,
+      onSubmit,
+      onReset,
+      onRefresh,
       selectedColumns,
       remainingColumns,
-      moveSelectedColumnUp,
-      moveSelectedColumnDown,
-      removeFromSelected,
-      addToSelected,
+      onMoveSelectedColumnUp,
+      onMoveSelectedColumnDown,
+      onRemoveFromSelected,
+      onAddToSelected,
+      onClearAll,
+      onAddAll,
     };
   },
 });
 </script>
 
 <style lang="scss">
-.draggable-group {
+.query-columns-panel {
   .v-list-item {
     cursor: move;
   }
@@ -265,6 +282,11 @@ export default defineComponent({
   .ghost {
     opacity: 0.5;
     background: #c8ebfb;
+  }
+
+  .draggable-list-wrapper {
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 </style>

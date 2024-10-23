@@ -55,22 +55,13 @@
                 @submit="onSubmit"
               />
             </v-slide-group-item>
-            <v-slide-group-item>
-              <QueriesOptionMenu
-                v-if="showColumnsMenu"
-                class="ma-2"
+            <v-slide-group-item v-if="showColumnsMenu">
+              <QueriesPartialColumns
+                v-model:model-value="value"
                 :dirty="dirty"
                 :submitting="submitting"
-                :color="selectedColumnsColor"
-                icon="mdi-view-column"
-                :title="$t('labels.columns')"
-                :count="selectedColumnsCount"
                 @submit="onSubmit"
-              >
-                <template #content>
-                  <div>Columns!</div>
-                </template>
-              </QueriesOptionMenu>
+              />
             </v-slide-group-item>
             <v-slide-group-item>
               <QueriesOptionMenu
@@ -171,7 +162,7 @@ import {
 import { useRouter, useRoute } from "vue-router";
 import QueriesTabs from "./tabs.vue";
 import QueriesOptionMenu from "./partials/option-menu.vue";
-import { QueriesPartialFilters } from "./partials";
+import { QueriesPartialFilters, QueriesPartialColumns } from "./partials";
 import type { PropType } from "vue";
 import type { ApiService, ToastService } from "@jakguru/vueprint";
 import type {
@@ -188,6 +179,7 @@ export default defineComponent({
     QueriesTabs,
     QueriesOptionMenu,
     QueriesPartialFilters,
+    QueriesPartialColumns,
   },
   props: {
     title: {
