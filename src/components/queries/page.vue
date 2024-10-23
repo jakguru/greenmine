@@ -63,37 +63,21 @@
                 @submit="onSubmit"
               />
             </v-slide-group-item>
-            <v-slide-group-item>
-              <QueriesOptionMenu
-                v-if="showGroupingsMenu"
-                class="ma-2"
+            <v-slide-group-item v-if="showGroupingsMenu">
+              <QueriesPartialGroupings
+                v-model:model-value="value"
                 :dirty="dirty"
                 :submitting="submitting"
-                :color="selectedGroupingsColor"
-                icon="mdi-group"
-                :title="$t('labels.groupings')"
-                :count="selectedGroupingsCount"
                 @submit="onSubmit"
-              >
-                <template #content>
-                  <div>Groupings!</div>
-                </template>
-              </QueriesOptionMenu>
+              />
             </v-slide-group-item>
-            <v-slide-group-item>
-              <QueriesOptionMenu
-                v-if="showAdditional"
-                class="ma-2"
+            <v-slide-group-item v-if="showAdditional">
+              <QueriesPartialOptions
+                v-model:model-value="value"
                 :dirty="dirty"
                 :submitting="submitting"
-                :color="accentColor"
-                :title="$t('labels.more')"
                 @submit="onSubmit"
-              >
-                <template #content>
-                  <div>More!</div>
-                </template>
-              </QueriesOptionMenu>
+              />
             </v-slide-group-item>
             <v-slide-group-item>
               <v-btn
@@ -161,8 +145,12 @@ import {
 } from "@/utils/app";
 import { useRouter, useRoute } from "vue-router";
 import QueriesTabs from "./tabs.vue";
-import QueriesOptionMenu from "./partials/option-menu.vue";
-import { QueriesPartialFilters, QueriesPartialColumns } from "./partials";
+import {
+  QueriesPartialFilters,
+  QueriesPartialColumns,
+  QueriesPartialGroupings,
+  QueriesPartialOptions,
+} from "./partials";
 import type { PropType } from "vue";
 import type { ApiService, ToastService } from "@jakguru/vueprint";
 import type {
@@ -177,9 +165,10 @@ export default defineComponent({
   name: "QueriesPage",
   components: {
     QueriesTabs,
-    QueriesOptionMenu,
     QueriesPartialFilters,
     QueriesPartialColumns,
+    QueriesPartialGroupings,
+    QueriesPartialOptions,
   },
   props: {
     title: {

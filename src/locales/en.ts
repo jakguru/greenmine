@@ -347,6 +347,8 @@ export default {
     reset: "Reset",
     noFilters: "No filters selected",
     days: "days",
+    showExpandable: "Additional Information",
+    showTotalsFor: "Show Totals for",
   },
   theme: {
     base: {

@@ -1,138 +1,151 @@
 <template>
-  <v-card min-height="100" class="query-filters-panel">
-    <v-toolbar color="transparent" density="compact">
-      <v-toolbar-items class="ml-auto">
-        <v-btn
-          v-if="permission.save"
-          variant="text"
-          :loading="isSaving"
-          @click="save"
-        >
-          <v-icon>mdi-content-save</v-icon>
-          <span class="ms-2">{{ $t("labels.save") }}</span>
-        </v-btn>
-      </v-toolbar-items>
-    </v-toolbar>
-    <v-divider />
-    <v-list-item v-if="displayOptionItems.length > 0">
-      <v-list-item-title>{{ $t("labels.groupBy") }}:</v-list-item-title>
-      <v-radio-group v-model="val" hide-details>
-        <v-radio :label="$t('labels.none')" value="" />
-        <v-radio
-          v-for="item in displayOptionItems"
-          :key="item.value"
-          :label="item.text"
-          :value="item.value"
-        />
-      </v-radio-group>
-    </v-list-item>
-    <v-divider />
-    <v-toolbar color="transparent" density="compact">
-      <v-toolbar-items></v-toolbar-items>
-      <v-toolbar-items class="ml-auto">
-        <v-btn
-          variant="text"
-          color="secondary"
-          :loading="isApplying"
-          @click="apply"
-        >
-          <v-icon>mdi-check</v-icon>
-          <span class="ms-2">{{ $t("labels.apply") }}</span>
-        </v-btn>
-      </v-toolbar-items>
-    </v-toolbar>
-  </v-card>
+  <QueriesOptionMenu
+    v-bind="optionsMenuBindings"
+    @submit="onSubmit"
+    @reset="onReset"
+    @refresh="onRefresh"
+  >
+    <template #content>
+      <v-list-item :subtitle="$t('labels.groupBy')" />
+      <v-divider />
+      <v-sheet
+        color="transparent"
+        class="query-groupings-panel my-3"
+        min-width="300"
+        max-height="400"
+      >
+        <v-radio-group v-model="groupableColumn" hide-details>
+          <v-list-item :title="$t('labels.none')">
+            <template #prepend>
+              <v-radio :value="null" hide-details />
+            </template>
+          </v-list-item>
+          <v-list-item
+            v-for="col in availableColumns"
+            :key="col.value"
+            :title="col.title"
+          >
+            <template #prepend>
+              <v-radio :value="cloneObject(col)" hide-details />
+            </template>
+          </v-list-item>
+        </v-radio-group>
+      </v-sheet>
+    </template>
+  </QueriesOptionMenu>
 </template>
 
 <script lang="ts">
 import { defineComponent, computed } from "vue";
+import {
+  useSystemSurfaceColor,
+  useSystemAccentColor,
+  cloneObject,
+} from "@/utils/app";
 import { useI18n } from "vue-i18n";
+import QueriesOptionMenu from "./option-menu.vue";
 
-import type {
-  QueryColumn,
-  QueryAvailableFilter,
-  QueryPermissions,
-} from "@/redmine";
 import type { PropType } from "vue";
+import type { QueryData, Column } from "@/friday";
 
 export default defineComponent({
   name: "QueriesPartialGroupings",
+  components: {
+    QueriesOptionMenu,
+  },
   props: {
-    value: {
-      type: String,
+    modelValue: {
+      type: Object as PropType<QueryData>,
       required: true,
     },
-    options: {
-      type: Array as PropType<Array<QueryColumn>>,
-      required: true,
-    },
-    columns: {
-      type: Object as PropType<Record<string, QueryAvailableFilter>>,
-      required: true,
-    },
-    permission: {
-      type: Object as PropType<QueryPermissions["query"]>,
-      required: true,
-    },
-    type: {
-      type: String as PropType<string>,
-      required: true,
-    },
-    isApplying: {
-      type: Boolean as PropType<boolean>,
+    submitting: {
+      type: Boolean,
       default: false,
     },
-    isSaving: {
-      type: Boolean as PropType<boolean>,
-      default: false,
-    },
-    isClearing: {
-      type: Boolean as PropType<boolean>,
+    dirty: {
+      type: Boolean,
       default: false,
     },
   },
-  emits: ["update:value", "submit", "save"],
+  emits: [
+    "update:modelValue",
+    "update:value",
+    "update",
+    "submit",
+    "refresh",
+    "reset",
+  ],
   setup(props, { emit }) {
     const { t } = useI18n({ useScope: "global" });
-    const val = computed({
-      get: () => props.value,
-      set: (value: Array<string>) => emit("update:value", value),
+    const surfaceColor = useSystemSurfaceColor();
+    const accentColor = useSystemAccentColor();
+    const modelValue = computed({
+      get: () => props.modelValue,
+      set: (value) => {
+        emit("update:modelValue", value);
+        emit("update:value", value);
+        emit("update", value);
+      },
     });
-    const permission = computed(() => props.permission);
-    const apply = () => {
+    const submitting = computed(() => props.submitting);
+    const dirty = computed(() => props.dirty);
+    const groupableColumnsCount = computed(() => {
+      return modelValue.value.columns.current.groupable.length;
+    });
+    const groupableColumnsColor = computed(() =>
+      groupableColumnsCount.value > 0 ? accentColor.value : surfaceColor.value,
+    );
+    const optionsMenuBindings = computed(() => ({
+      class: ["me-2", "my-2"],
+      dirty: dirty.value,
+      submitting: submitting.value,
+      color: groupableColumnsColor.value,
+      icon: "mdi-group",
+      title: t("labels.groupings"),
+      count: groupableColumnsCount.value,
+    }));
+    const onSubmit = (e?: Event) => {
+      e?.preventDefault();
       emit("submit");
     };
-    const save = () => {
-      if (!permission.value.save) {
-        return;
-      }
-      emit("save");
+    const onReset = (e?: Event) => {
+      e?.preventDefault();
+      emit("reset");
     };
-    const options = computed(() => props.options);
-    const columns = computed(() => props.columns);
-    const type = computed(() => props.type);
-    const getQueryFieldName = (key: string) => {
-      if (
-        columns.value[key] &&
-        columns.value[key].options &&
-        columns.value[key].options.name
-      ) {
-        return columns.value[key].options.name;
-      }
-      return t(`columns.${type.value.toLowerCase()}.${key}`);
+    const onRefresh = (e?: Event) => {
+      e?.preventDefault();
+      emit("refresh");
     };
-    const displayOptionItems = computed(() =>
-      [...options.value].map((o) => ({
-        text: getQueryFieldName(o.name),
-        value: o.name,
-      })),
+    const groupableColumn = computed<Column | null>({
+      get: () => modelValue.value.columns.current.groupable[0] || null,
+      set: (value: Column | null) => {
+        if (value) {
+          modelValue.value.columns.current.groupable = [cloneObject(value)];
+        } else {
+          modelValue.value.columns.current.groupable = [];
+        }
+        console.log(modelValue.value.columns.current.groupable);
+      },
+    });
+    const availableColumns = computed(
+      () => modelValue.value.columns.available.groupable,
     );
     return {
-      val,
-      apply,
-      save,
-      displayOptionItems,
+      optionsMenuBindings,
+      onSubmit,
+      onReset,
+      onRefresh,
+      groupableColumn,
+      availableColumns,
+      cloneObject,
     };
   },
 });
 </script>
+
+<style lang="scss">
+.query-groupings-panel {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+</style>
