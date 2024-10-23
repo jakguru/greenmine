@@ -72,7 +72,16 @@
                 />
               </template>
             </td>
-            <td></td>
+            <td>
+              <template v-if="filterValueRowValueCellConfigurations[i]">
+                <ValuesCellComponent
+                  v-for="(cell, fi) in filterValueRowValueCellConfigurations[i]"
+                  :id="`filter-${i}-cell-${fi}`"
+                  :key="`filter-${i}-cell-${fi}`"
+                  :configuration="cell"
+                />
+              </template>
+            </td>
             <td>
               <v-btn
                 icon="mdi-close"
@@ -86,6 +95,23 @@
         </tbody>
       </v-table>
     </template>
+    <template #top="{ close }">
+      <v-toolbar color="transparent" density="compact">
+        <v-toolbar-items class="ml-auto">
+          <v-btn
+            variant="text"
+            :loading="submitting"
+            :disabled="filterValueRows.length === 0"
+            @click="onClearAll"
+          >
+            <v-icon>mdi-notification-clear-all</v-icon>
+            <span class="ms-2">{{ $t("labels.clearAll") }}</span>
+          </v-btn>
+          <v-btn icon="mdi-close" @click="close" />
+        </v-toolbar-items>
+      </v-toolbar>
+      <v-divider />
+    </template>
   </QueriesOptionMenu>
 </template>
 
@@ -97,13 +123,14 @@ import {
   useAppData,
 } from "@/utils/app";
 import { useI18n } from "vue-i18n";
+import { ValuesCellComponent } from "./values-cell-component";
 import QueriesOptionMenu from "./option-menu.vue";
 import qs from "qs";
 
 import type { PropType } from "vue";
 import type { QueryData, Filter } from "@/friday";
 import type { ApiService } from "@jakguru/vueprint";
-import type { ValuesCellConfiguration } from "./values-cell-component.vue";
+import type { ValuesCellConfiguration } from "./values-cell-component";
 
 interface FilterOptionValue {
   value: string;
@@ -128,6 +155,7 @@ export default defineComponent({
   name: "QueriesPartialFilters",
   components: {
     QueriesOptionMenu,
+    ValuesCellComponent,
   },
   props: {
     modelValue: {
@@ -251,6 +279,7 @@ export default defineComponent({
             values.set(v.value, v);
           });
         }
+        byField[key] = Array.from(values.values());
       });
       return byField;
     });
@@ -542,6 +571,23 @@ export default defineComponent({
               break;
           }
           break;
+        case "integer":
+        case "float":
+        case "tree":
+          switch (operator) {
+            case "s":
+            case "!*":
+            case "*":
+              filterValueRows.value[index].values = [];
+              break;
+            default:
+              filterValueRows.value[index].values = [undefined];
+              break;
+          }
+          break;
+        case "relation":
+          filterValueRows.value[index].values = [];
+          break;
         default:
           // filterValueRows.value[index].values = [];
           break;
@@ -568,7 +614,7 @@ export default defineComponent({
             bindings: {
               items: fieldValueOptions.value[field.field] || [],
               returnObject: false,
-              itemTitle: "text",
+              itemTitle: "label",
               itemValue: "value",
               density: "compact",
               outlined: true,
@@ -682,16 +728,112 @@ export default defineComponent({
               break;
           }
           break;
+        case "integer":
+        case "float":
+        case "tree":
+          switch (operator) {
+            case "s":
+            case "!*":
+            case "*":
+              break;
+            default:
+              cells.push({
+                component: "VTextField",
+                bindings: {
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  type: "number",
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values[0] = value;
+                },
+                modelValue: filterValueRows.value[index].values[0],
+              });
+              break;
+          }
+          break;
+        case "relation":
+          switch (operator) {
+            case "=":
+            case "!":
+              cells.push({
+                component: "VCombobox",
+                bindings: {
+                  items: fieldValueOptions.value[field.field] || [],
+                  returnObject: false,
+                  itemTitle: "label",
+                  itemValue: "value",
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                  loading: fieldValuesLoading.value[field.field],
+                  "onUpdate:search": (search: string) => {
+                    fetchAutocompleteValuesFor(field, search);
+                  },
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values = value;
+                },
+                modelValue: filterValueRows.value[index].values,
+              });
+              break;
+            case "=p":
+            case "=!p":
+            case "!p":
+            case "*o":
+            case "!o":
+              cells.push({
+                component: "VAutocomplete",
+                bindings: {
+                  items: fieldValueOptions.value[field.field] || [],
+                  returnObject: false,
+                  itemTitle: "label",
+                  itemValue: "value",
+                  density: "compact",
+                  outlined: true,
+                  hideDetails: true,
+                  width: 350,
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                  loading: fieldValuesLoading.value[field.field],
+                  "onUpdate:search": (search: string) => {
+                    fetchAutocompleteValuesFor(field, search);
+                  },
+                },
+                onUpdateModelValue: (value: any) => {
+                  filterValueRows.value[index].values = value;
+                },
+                modelValue: filterValueRows.value[index].values,
+              });
+              break;
+          }
+          break;
         default:
           break;
       }
       return cells;
+    };
+    const filterValueRowValueCellConfigurations = computed(() =>
+      [...filterValueRows.value].map((r, i) => {
+        return getValueCellConfigurationFor(i, r.field, r.operator);
+      }),
+    );
+    const onClearAll = () => {
+      filterValueRows.value = [];
     };
     return {
       optionsMenuBindings,
       onSubmit,
       onReset,
       onRefresh,
+      onClearAll,
       filterValueRows,
       canShowAddFilter,
       doAddFilter,
@@ -706,7 +848,7 @@ export default defineComponent({
       fieldTypeOperatorOptions,
       updateFilterValueRowOperatorFor,
       updateFilterValueRowValuesForOperatorFor,
-      getValueCellConfigurationFor,
+      filterValueRowValueCellConfigurations,
     };
   },
 });
