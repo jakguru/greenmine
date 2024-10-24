@@ -32,9 +32,6 @@ export interface Item<T = any> {
   group_name: string | null;
   group_count: number | null;
   group_totals: GroupTotals;
-  impact?: string;
-  urgency?: string;
-  sprint?: string;
 }
 
 export interface EntryHash<T = any> {
@@ -48,12 +45,20 @@ export interface EntryHashValue<T = any> {
   url?: string;
 }
 
+export type KnownQueryTypes =
+  | "IssueQuery"
+  | "ProjectQuery"
+  | "TimeEntryQuery"
+  | "UserQuery";
+
+export type QueryType = KnownQueryTypes | string;
+
 export interface QueryData {
   valid: boolean;
   new_record: boolean;
   id: number | null;
   name: string;
-  type: string;
+  type: QueryType;
   columns: {
     current: ColumnGroups;
     available: ColumnGroups;

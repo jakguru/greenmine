@@ -19,6 +19,7 @@ class UiController < ApplicationController
         rgt: project.rgt
       }
     end
+    priorities = IssuePriority.active
     render json: {
       name: Redmine::Info.app_name,
       i18n: ::I18n.locale,
@@ -44,6 +45,7 @@ class UiController < ApplicationController
         gravatarEnabled: Setting.gravatar_enabled?,
         selfRegistrationEnabled: Setting.self_registration?
       },
+      priorities: priorities.map { |priority| {id: priority.id, name: priority.name, position: priority.position} },
       fetchedAt: Time.now
     }
   end

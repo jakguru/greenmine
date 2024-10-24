@@ -131,6 +131,15 @@
           </v-slide-group>
         </v-toolbar>
       </v-sheet>
+      <v-sheet color="transparent" class="py-3">
+        <QueriesPartialDataTable
+          v-model:model-value="value"
+          :query="query"
+          :payload="payload"
+          :submitting="submitting"
+          :dirty="dirty"
+        />
+      </v-sheet>
     </v-card>
   </v-container>
 </template>
@@ -150,6 +159,7 @@ import {
   QueriesPartialColumns,
   QueriesPartialGroupings,
   QueriesPartialOptions,
+  QueriesPartialDataTable,
 } from "./partials";
 import type { PropType } from "vue";
 import type { ApiService, ToastService } from "@jakguru/vueprint";
@@ -169,6 +179,7 @@ export default defineComponent({
     QueriesPartialColumns,
     QueriesPartialGroupings,
     QueriesPartialOptions,
+    QueriesPartialDataTable,
   },
   props: {
     title: {
