@@ -1,0 +1,6 @@
+en:
+  field_impact: Impact
+  field_priority: Urgency
+  field_calculated_priority: Priority
+  label_issue_priority_updated: Urgency updated
+  label_issue_impact_updated: Impact updated

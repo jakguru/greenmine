@@ -106,7 +106,7 @@ export interface ColumnMeta {
 }
 
 export interface ColumnSort extends Column {
-  sort: string;
+  sort: "asc" | "desc";
 }
 
 export interface ColumnTotal extends Column {

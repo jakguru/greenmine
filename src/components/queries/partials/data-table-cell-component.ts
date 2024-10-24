@@ -173,11 +173,20 @@ export const QueriesPartialDataTableCell = defineComponent({
     const priorities = computed(() =>
       [...appData.value.priorities].sort((a, b) => a.position - b.position),
     );
+    const impacts = computed(() =>
+      [...appData.value.impacts].sort((a, b) => a.position - b.position),
+    );
     const lowestPriorityPosition = computed(() =>
       Math.min(...priorities.value.map((p) => p.position)),
     );
     const highestPriorityPosition = computed(() =>
       Math.max(...priorities.value.map((p) => p.position)),
+    );
+    const lowestImpactPosition = computed(() =>
+      Math.min(...impacts.value.map((p) => p.position)),
+    );
+    const highestImpactPosition = computed(() =>
+      Math.max(...impacts.value.map((p) => p.position)),
     );
     const query = computed(() => props.query);
     const column = computed(() => props.column);
@@ -191,6 +200,24 @@ export const QueriesPartialDataTableCell = defineComponent({
       switch (column.value.key) {
         case "identifier":
           return h("code", attrs.value, value.value.display);
+        case "calculated_priority":
+          return h(
+            VChip,
+            {
+              color: calculateColorForPriority(
+                1,
+                10,
+                value.value.value,
+                "#F44336",
+                "#607D8B",
+              ),
+              variant: "flat",
+              size: "small",
+              class: ["font-weight-bold"],
+              ...attrs.value,
+            },
+            value.value.display,
+          );
         default:
           return h("span", attrs.value, value.value.display);
       }
@@ -277,7 +304,7 @@ export const QueriesPartialDataTableCell = defineComponent({
               color: value.value.value.is_closed ? "done" : "working",
               variant: "flat",
               size: "small",
-              class: ["font-weight-black"],
+              class: ["font-weight-bold"],
               ...attrs.value,
             },
             value.value.display,
@@ -295,7 +322,25 @@ export const QueriesPartialDataTableCell = defineComponent({
               ),
               variant: "flat",
               size: "small",
-              class: ["font-weight-black"],
+              class: ["font-weight-bold"],
+              ...attrs.value,
+            },
+            value.value.display,
+          );
+        case "IssueImpact":
+          return h(
+            VChip,
+            {
+              color: calculateColorForPriority(
+                lowestImpactPosition.value,
+                highestImpactPosition.value,
+                value.value.value.position,
+                "#607D8B",
+                "#F44336",
+              ),
+              variant: "flat",
+              size: "small",
+              class: ["font-weight-bold"],
               ...attrs.value,
             },
             value.value.display,

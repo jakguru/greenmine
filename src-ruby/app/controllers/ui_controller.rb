@@ -20,6 +20,7 @@ class UiController < ApplicationController
       }
     end
     priorities = IssuePriority.active
+    impacts = IssueImpact.active
     render json: {
       name: Redmine::Info.app_name,
       i18n: ::I18n.locale,
@@ -46,6 +47,7 @@ class UiController < ApplicationController
         selfRegistrationEnabled: Setting.self_registration?
       },
       priorities: priorities.map { |priority| {id: priority.id, name: priority.name, position: priority.position} },
+      impacts: impacts.map { |impact| {id: impact.id, name: impact.name, position: impact.position} },
       fetchedAt: Time.now
     }
   end

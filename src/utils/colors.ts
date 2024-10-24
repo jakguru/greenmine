@@ -51,3 +51,89 @@ export const calculateColorForPriority = (
 
   return interpolateColor(lowColorHex, highColorHex, factor);
 };
+
+export const calculateColorFromNumber = (number: number): string => {
+  const choices = [
+    "bazooka",
+    "asphalt",
+    "mud",
+    "grass",
+    "done",
+    "bright",
+    "saladish",
+    "yolk",
+    "working",
+    "peach",
+    "sunset",
+    "stuck",
+    "sofia",
+    "lipstick",
+    "bubble",
+    "purple",
+    "berry",
+    "indigo",
+    "navy",
+    "aquamarine",
+    "chili",
+    "river",
+    "winter",
+    "explosive",
+    "american",
+    "blackish",
+    "orchid",
+    "tan",
+    "sky",
+    "coffee",
+    "royal",
+    "lavender",
+    "steel",
+    "lilac",
+    "pecan",
+    "marble",
+    "gainsboro",
+    "glitter",
+    "turquoise",
+    "aqua",
+    "jeans",
+    "eggplant",
+    "mustered",
+    "jade",
+    "cannabis",
+    "amethyst",
+    "charcoal",
+    "gold",
+    "iris",
+    "malachite",
+    "snow-white",
+    "riverstone-gray",
+    "wolf-gray",
+    "dark-marble",
+    "jaco-gray",
+    "storm-gray",
+    "trolley-grey",
+  ];
+  if (number < 0) {
+    number = number * -1;
+  }
+  number = Math.abs(number);
+  const choicesIndex =
+    number < choices.length ? number : number % choices.length;
+  const color = choices[choicesIndex];
+  const power = Math.min(Math.floor(number / choices.length), 11);
+  const powerMap = new Map<number, string>([
+    [0, "lighten-5"],
+    [1, "lighten-4"],
+    [2, "lighten-3"],
+    [3, "lighten-2"],
+    [4, "lighten-1"],
+    [5, ""],
+    [6, "darken-1"],
+    [7, "darken-2"],
+    [8, "darken-3"],
+    [9, "darken-4"],
+    [10, "darken-5"],
+  ]);
+  return [color, powerMap.get(power)]
+    .filter((v) => "string" === typeof v && v.trim().length > 0)
+    .join("-");
+};

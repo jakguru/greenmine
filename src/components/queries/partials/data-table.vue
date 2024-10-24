@@ -128,7 +128,6 @@ export default defineComponent({
       });
       return ret;
     });
-    // @TODO: Add "sort by" to table bindings
     const tableBindings = computed(() => ({
       headers: headers.value,
       items: payload.value.items,
@@ -140,6 +139,13 @@ export default defineComponent({
       selectStrategy: "page" as "page" | "all" | "single" | undefined,
       showCurrentPage: true,
       showSelect: true,
+      multiSort: true,
+      sortBy: query.value.columns.current.sort
+        ? [...query.value.columns.current.sort].map((c) => ({
+            key: c.key,
+            order: c.sort,
+          }))
+        : undefined,
       groupBy: grouping.value ? [{ key: "group_name" }] : undefined,
       loading: submitting.value,
     }));
