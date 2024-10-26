@@ -1,4 +1,4 @@
-import { DateTime } from "luxon";
+import { DateTime, Duration } from "luxon";
 
 export const formatDateTime = (value: string | null) => {
   if (!value) {
@@ -20,4 +20,22 @@ export const formatDateTimeAsUTC = (value: string | null) => {
     return "";
   }
   return [dto.toUTC().toLocaleString(DateTime.DATETIME_MED), "UTC"].join(" ");
+};
+
+export const formatDuration = (hours: number | null) => {
+  if (hours === null) {
+    return "";
+  }
+  const duration = Duration.fromObject({ hours });
+  duration.shiftTo("hours", "minutes", "seconds");
+  return duration.toFormat("hh:mm:ss");
+};
+
+export const formatDurationForHumans = (hours: number | null) => {
+  if (hours === null) {
+    return "";
+  }
+  const duration = Duration.fromObject({ hours });
+  duration.shiftToAll();
+  return duration.toHuman();
 };

@@ -32,7 +32,7 @@ module FridayHelper
           inline: query.inline_columns.map { |column| make_column_hash(column, params) }.compact,
           block: query.block_columns.map { |column| make_column_hash(column, params) }.compact,
           totalable: query.totalable_columns.map { |column| make_column_hash(column, params) }.compact,
-          groupable: query.group_by.nil? ? [] : [make_column_hash_by_name(query.group_by, query.columns, params)].compact,
+          groupable: query.group_by.nil? ? [] : [make_column_hash_by_name(query.group_by, query.groupable_columns, params)].compact,
           sort: query.sort_criteria.map { |sort_entry| make_column_sort_hash(sort_entry[0], sort_entry[1], query.columns, params) }.compact
         },
         available: {
@@ -59,14 +59,23 @@ module FridayHelper
       create: query.new_record? && user.allowed_to?(:save_queries, nil, global: true),
       edit: query.editable_by?(user)
     }
-
+    order_option = if query.respond_to?(:order_option)
+      query.order_option
+    else
+      [query.group_by_sort_order, query.options[:order] || query.sort_clause].flatten.reject(&:blank?)
+    end
     if query.valid?
       payload[:items_length] = scope.count
       payload[:items_per_page] = per_page_option
       payload[:page] = params[:page].nil? ? 1 : params[:page].to_i
       payload[:pages] = Redmine::Pagination::Paginator.new payload[:items_length], payload[:items_per_page], params[:page]
       raw = if @query.display_type == "list"
-        scope.offset(payload[:pages].offset).limit(payload[:items_per_page]).to_a
+        scope
+          .offset(payload[:pages].offset)
+          .limit(payload[:items_per_page])
+          .order(order_option)
+          .joins(query.joins_for_order_statement(order_option.join(",")))
+          .to_a
       else
         scope.to_a
       end
@@ -223,7 +232,9 @@ module FridayHelper
   # Make a standardized hash of the column for the response, with sort direction
   def make_column_sort_hash(column, direction, all, params)
     base_hash = make_column_hash_by_name(column, all, params)
-    base_hash[:sort] = direction
+    if !base_hash.nil?
+      base_hash[:sort] = direction
+    end
     base_hash
   end
 
@@ -246,16 +257,26 @@ module FridayHelper
 
   # Get a column by name from a list of columns
   def get_column_by_name(col_name, all)
-    all.find { |column| column.name.to_s == col_name }
+    all.find { |column| column.name.to_s == col_name || column.name.to_s + "_id" == col_name }
   end
 
   # This method is used to group the results of a query by the group_by column
   def grouped_friday_list(entries, query, &block)
     ancestors = []
+
     grouped_query_results(entries, query) do |entry, group_name, group_count, group_totals|
-      ancestors.pop while ancestors.any? && entry.respond_to?(:is_descendant_of?) && entry.is_descendant_of?(ancestors.last)
+      # Manage the ancestors list
+      while ancestors.any? && entry.respond_to?(:is_descendant_of?) && !entry.is_descendant_of?(ancestors.last)
+        ancestors.pop
+      end
+
+      # Yield the entry and group information to the block
       yield entry, ancestors.size, group_name, group_count, group_totals
-      ancestors << entry unless entry.respond_to?(:leaf?) && entry.leaf?
+
+      # Add entry to ancestors unless it is a leaf node
+      if !entry.respond_to?(:leaf?) || !entry.leaf?
+        ancestors << entry
+      end
     end
   end
 

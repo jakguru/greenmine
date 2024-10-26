@@ -134,10 +134,12 @@
       <v-sheet color="transparent" class="py-3">
         <QueriesPartialDataTable
           v-model:model-value="value"
+          v-model:payload-value="payloadValue"
           :query="query"
           :payload="payload"
           :submitting="submitting"
           :dirty="dirty"
+          @submit="onSubmit"
         />
       </v-sheet>
     </v-card>
@@ -151,7 +153,9 @@ import {
   useSystemAccentColor,
   loadRouteData,
   cloneObject,
+  checkObjectEquality,
 } from "@/utils/app";
+import { makeNewQueryPayloadFromQueryAndQueryPayload } from "@/friday";
 import { useRouter, useRoute } from "vue-router";
 import QueriesTabs from "./tabs.vue";
 import {
@@ -218,13 +222,24 @@ export default defineComponent({
     const toast = inject<ToastService>("toast");
     const query = computed(() => props.query);
     const value = ref<QueryData>(cloneObject(query.value));
+    const payload = computed(() => props.payload);
+    const payloadValue = ref<QueryResponsePayload>(cloneObject(payload.value));
     const dirty = computed(
-      () => JSON.stringify(query.value) !== JSON.stringify(value.value),
+      () =>
+        !checkObjectEquality(value.value, query.value) ||
+        !checkObjectEquality(payloadValue.value, payload.value),
     );
     watch(
       () => query.value,
       (v) => {
         value.value = cloneObject(v);
+      },
+      { immediate: true, deep: true },
+    );
+    watch(
+      () => payload.value,
+      (v) => {
+        payloadValue.value = cloneObject(v);
       },
       { immediate: true, deep: true },
     );
@@ -249,8 +264,21 @@ export default defineComponent({
       if (submitting.value) {
         return;
       }
-      const payload = {};
-      console.log("submit", payload, value.value);
+      const payload = makeNewQueryPayloadFromQueryAndQueryPayload(
+        value.value,
+        payloadValue.value,
+      );
+      submitting.value = true;
+      router
+        // @ts-expect-error the query object's type is correct, but the router's type is not
+        .push({ ...route, query: payload })
+        .catch((e) => {
+          console.warn(e);
+          // noop
+        })
+        .finally(() => {
+          submitting.value = false;
+        });
     };
     const onRefresh = async (e?: Event) => {
       if (e) {
@@ -331,6 +359,7 @@ export default defineComponent({
       selectedGroupingsCount,
       selectedGroupingsColor,
       value,
+      payloadValue,
       dirty,
       submitting,
       showAdditional,

@@ -272,6 +272,9 @@ export const QueriesPartialDataTableCell = defineComponent({
       }
     });
     const toReturn = computed(() => {
+      if (value.value === null) {
+        return h("span", {}, "");
+      }
       switch (value.value.type) {
         case "Project":
           return h(
@@ -301,7 +304,7 @@ export const QueriesPartialDataTableCell = defineComponent({
           return h(
             VChip,
             {
-              color: value.value.value.is_closed ? "done" : "working",
+              color: value.value.value.is_closed ? "mud" : "working",
               variant: "flat",
               size: "small",
               class: ["font-weight-bold"],

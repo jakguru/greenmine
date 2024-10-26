@@ -172,7 +172,7 @@
       </template>
     </v-navigation-drawer>
     <v-main>
-      <router-view v-if="loaded" v-slot="{ Component }">
+      <router-view v-if="loaded && !isTransitioning" v-slot="{ Component }">
         <component :is="Component" v-bind="routeData" />
       </router-view>
       <v-overlay
@@ -234,7 +234,7 @@ import {
   useSystemSurfaceColor,
 } from "@/utils/app";
 import { ThemeToggle } from "@/components/theme";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useRouteDataStore } from "@/stores/routeData";
 import { PartialMenu, PartialProjectsJumper } from "@/partials";
 import { GlobalSearchField } from "@/components/menu";
@@ -259,6 +259,7 @@ export default defineComponent({
   setup() {
     const theme = useTheme();
     const route = useRoute();
+    const router = useRouter();
     const { mobile: isMobile } = useDisplay();
     const isNotMobile = computed(() => !isMobile.value);
     const ls = inject<LocalStorageService>("ls");
@@ -312,7 +313,6 @@ export default defineComponent({
     const systemSurfaceColor = useSystemSurfaceColor();
     redmineizeApi(api);
     const loaded = ref(false);
-    const overlay = computed(() => !loaded.value);
     const appData = useAppData();
     const routeDataStore = useRouteDataStore();
     const routeData = computed(() => routeDataStore.data);
@@ -425,6 +425,16 @@ export default defineComponent({
         to: { name: "admin" },
       },
     ]);
+    const isTransitioning = ref(false);
+    const overlay = computed(() => !loaded.value || isTransitioning.value);
+    router.beforeEach((to, from) => {
+      if (to.name !== from.name) {
+        isTransitioning.value = true;
+      }
+    });
+    router.afterEach(() => {
+      isTransitioning.value = false;
+    });
     return {
       complete,
       systemBarColor,
@@ -447,6 +457,7 @@ export default defineComponent({
       projectSearchVal,
       globalSearchVal,
       administrationNav,
+      isTransitioning,
     };
   },
 });

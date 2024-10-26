@@ -6,7 +6,7 @@ module FridayPlugin
         alias_method :redmine_base_index, :index
 
         def index
-          use_session = !request.format.csv?
+          use_session = false
           retrieve_default_query(use_session)
           retrieve_query(IssueQuery, use_session)
           if friday_request?

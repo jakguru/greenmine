@@ -453,7 +453,6 @@ export default defineComponent({
         if (!isDifferent) {
           return;
         }
-        console.log({ toSet });
         modelValue.value.filters.current = toSet;
       },
       { deep: true },

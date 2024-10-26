@@ -245,3 +245,9 @@ export const matchesSchema = <T = unknown>(
 export const cloneObject = <T = unknown>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
 };
+
+export const checkObjectEquality = <T = unknown>(a: T, b: T): boolean => {
+  const clonedA = cloneObject(a);
+  const clonedB = cloneObject(b);
+  return JSON.stringify(clonedA) === JSON.stringify(clonedB);
+};
