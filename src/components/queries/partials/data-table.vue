@@ -77,14 +77,20 @@
     </template>
     <template v-if="hasGlobalTotals" #top>
       <div class="d-flex justify-end px-4 pb-2">
-        <div v-for="t in payload.totals" :key="t.key" class="px-2">
-          <v-chip>
-            <strong class="me-2">{{ t.title }}</strong>
-            <abbr :title="formatDurationForHumans(Number(t.total))">{{
-              formatDuration(Number(t.total))
-            }}</abbr>
-          </v-chip>
-        </div>
+        <v-slide-group show-arrows>
+          <v-slide-group-item
+            v-for="t in payload.totals"
+            :key="t.key"
+            class="px-2"
+          >
+            <v-chip>
+              <strong class="me-2">{{ t.title }}</strong>
+              <abbr :title="formatDurationForHumans(Number(t.total))">{{
+                formatDuration(Number(t.total))
+              }}</abbr>
+            </v-chip>
+          </v-slide-group-item>
+        </v-slide-group>
       </div>
       <v-divider />
     </template>
