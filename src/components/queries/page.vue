@@ -63,6 +63,14 @@
                 @submit="onSubmit"
               />
             </v-slide-group-item>
+            <v-slide-group-item v-if="showSortingMenu">
+              <QueriesPartialSorting
+                v-model:model-value="value"
+                :dirty="dirty"
+                :submitting="submitting"
+                @submit="onSubmit"
+              />
+            </v-slide-group-item>
             <v-slide-group-item v-if="showGroupingsMenu">
               <QueriesPartialGroupings
                 v-model:model-value="value"
@@ -161,6 +169,7 @@ import QueriesTabs from "./tabs.vue";
 import {
   QueriesPartialFilters,
   QueriesPartialColumns,
+  QueriesPartialSorting,
   QueriesPartialGroupings,
   QueriesPartialOptions,
   QueriesPartialDataTable,
@@ -181,6 +190,7 @@ export default defineComponent({
     QueriesTabs,
     QueriesPartialFilters,
     QueriesPartialColumns,
+    QueriesPartialSorting,
     QueriesPartialGroupings,
     QueriesPartialOptions,
     QueriesPartialDataTable,
@@ -311,6 +321,12 @@ export default defineComponent({
         query.value.columns.available.inline.length > 0
       );
     });
+    const showSortingMenu = computed(() => {
+      return (
+        query.value.columns.available.sortable &&
+        query.value.columns.available.sortable.length > 0
+      );
+    });
     const selectedColumnsCount = computed(() => {
       return query.value.columns.current.inline.length;
     });
@@ -353,6 +369,7 @@ export default defineComponent({
       selectedFiltersCount,
       selectedFiltersColor,
       showColumnsMenu,
+      showSortingMenu,
       selectedColumnsCount,
       selectedColumnsColor,
       showGroupingsMenu,

@@ -349,6 +349,14 @@ export default {
     days: "days",
     showExpandable: "Additional Information",
     showTotalsFor: "Show Totals for",
+    yes: "Yes",
+    no: "No",
+    sorting: "Sorting",
+    current: "Current",
+    order: {
+      asc: "Asc.",
+      desc: "Desc.",
+    },
   },
   theme: {
     base: {

@@ -211,7 +211,7 @@ export default defineComponent({
       showSelect: true,
       showExpand: hasBlocks.value,
       multiSort: true,
-      mustSort: false,
+      mustSort: true,
       sortBy: query.value.columns.current.sort
         ? [...query.value.columns.current.sort].map((c) => ({
             key: c.key,

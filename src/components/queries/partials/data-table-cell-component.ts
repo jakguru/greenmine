@@ -1,9 +1,17 @@
 import { defineComponent, computed, h } from "vue";
 import { RouterLink } from "vue-router";
 import { VChip } from "vuetify/components/VChip";
-import { formatDateTime, formatDateTimeAsUTC } from "@/utils/formatting";
+import { VProgressLinear } from "vuetify/components/VProgressLinear";
+import {
+  formatDateTime,
+  formatDateTimeAsUTC,
+  formatDuration,
+} from "@/utils/formatting";
 import { useAppData } from "@/utils/app";
 import { calculateColorForPriority } from "@/utils/colors";
+import { useI18n } from "vue-i18n";
+
+import ProjectById from "./custom-data-table-cells/project-by-id.vue";
 
 import type { PropType } from "vue";
 import type { QueryData, Item, EntryHashValue } from "@/friday";
@@ -169,6 +177,7 @@ export const QueriesPartialDataTableCell = defineComponent({
     },
   },
   setup(props) {
+    const { t } = useI18n({ useScope: "global" });
     const appData = useAppData();
     const priorities = computed(() =>
       [...appData.value.priorities].sort((a, b) => a.position - b.position),
@@ -193,13 +202,18 @@ export const QueriesPartialDataTableCell = defineComponent({
     const value = computed(() => props.value);
     const item = computed(() => props.item);
     const attrs = computed(() => ({
-      "friday-type": value.value.type,
+      "friday-type": value.value ? value.value.type : "unknown",
       "friday-column": column.value.key,
     }));
     const toReturnByColumnKey = computed(() => {
       switch (column.value.key) {
         case "identifier":
           return h("code", attrs.value, value.value.display);
+        case "estimated_hours":
+        case "total_estimated_hours":
+        case "spent_hours":
+        case "total_spent_hours":
+          return h("code", attrs.value, formatDuration(value.value.value));
         case "calculated_priority":
           return h(
             VChip,
@@ -218,7 +232,21 @@ export const QueriesPartialDataTableCell = defineComponent({
             },
             value.value.display,
           );
+        case "done_ratio":
+          return h(
+            VProgressLinear,
+            {
+              value: value.value.value,
+              color: value.value.value === 100 ? "success" : "warning",
+              height: 20,
+              ...attrs.value,
+            },
+            { default: () => h("small", `${value.value.display}%`) },
+          );
         default:
+          if (!value.value) {
+            return h("span", attrs.value, "");
+          }
           return h("span", attrs.value, value.value.display);
       }
     });
@@ -235,6 +263,38 @@ export const QueriesPartialDataTableCell = defineComponent({
                   ...attrs.value,
                 },
                 value.value.display,
+              );
+            case "parent":
+              if (item.value.entry.parent.value === null) {
+                return h("span", attrs.value, "");
+              }
+              return h(
+                RouterLink,
+                {
+                  to: {
+                    name: "issues-id",
+                    params: { id: value.value.value.id },
+                  },
+                  ...attrs.value,
+                },
+                value.value.display
+                  .replace(`: ${value.value.value.subject}`, "")
+                  .trim(),
+              );
+            case "parent.subject":
+              if (item.value.entry.parent.value === null) {
+                return h("span", attrs.value, "");
+              }
+              return h(
+                RouterLink,
+                {
+                  to: {
+                    name: "issues-id",
+                    params: { id: item.value.entry.parent.value.id },
+                  },
+                  ...attrs.value,
+                },
+                item.value.entry.parent.value.subject,
               );
             default:
               return toReturnByColumnKey.value;
@@ -254,6 +314,24 @@ export const QueriesPartialDataTableCell = defineComponent({
                 },
                 value.value.display,
               );
+            case "status":
+              return h(
+                VChip,
+                {
+                  color: value.value.value === 0 ? "mud" : "success",
+                  variant: "flat",
+                  size: "small",
+                  class: ["font-weight-bold"],
+                  ...attrs.value,
+                },
+                value.value.value === 0
+                  ? t("labels.archived")
+                  : t("labels.active"),
+              );
+            case "parent_id":
+              return h(ProjectById, {
+                projectId: value.value.value,
+              });
             default:
               return toReturnByColumnKey.value;
           }
@@ -272,8 +350,8 @@ export const QueriesPartialDataTableCell = defineComponent({
       }
     });
     const toReturn = computed(() => {
-      if (value.value === null) {
-        return h("span", {}, "");
+      if (value.value === null || value.value === undefined) {
+        return toReturnByQueryType.value;
       }
       switch (value.value.type) {
         case "Project":
@@ -357,6 +435,38 @@ export const QueriesPartialDataTableCell = defineComponent({
             },
             formatDateTime(value.value.value),
           );
+        case "TrueClass":
+          return h(
+            VChip,
+            {
+              color: "success",
+              variant: "flat",
+              size: "small",
+              class: ["font-weight-bold"],
+              ...attrs.value,
+            },
+            t("labels.yes"),
+          );
+        case "FalseClass":
+          return h(
+            VChip,
+            {
+              color: "error",
+              variant: "flat",
+              size: "small",
+              class: ["font-weight-bold"],
+              ...attrs.value,
+            },
+            t("labels.no"),
+          );
+        case "Attachment::ActiveRecord_Associations_CollectionProxy":
+          return value.value.value.map((_attachment: any) => {
+            return h("pre", attrs.value, JSON.stringify(_attachment, null, 2));
+          });
+        case "IssueRelation::Relations":
+          return value.value.value.map((_relation: any) => {
+            return h("pre", attrs.value, JSON.stringify(_relation, null, 2));
+          });
         default:
           return toReturnByQueryType.value;
       }

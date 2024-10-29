@@ -52,6 +52,15 @@ class UiController < ApplicationController
     }
   end
 
+  def get_project_link_info_by_id
+    project = Project.find(params[:id])
+    render json: {
+      id: project.id,
+      name: project.name,
+      identifier: project.identifier
+    }
+  end
+
   private
 
   def projects_for_jump_box(user = User.current)
