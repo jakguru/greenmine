@@ -26,7 +26,9 @@
         />
       </v-sheet>
       <v-divider />
-      <RenderCode :content="environment" :show-line-numbers="false" />
+      <v-sheet color="transparent" class="pa-3">
+        <RenderCode :content="environment" :show-line-numbers="false" />
+      </v-sheet>
     </v-card>
   </v-container>
 </template>

@@ -15,7 +15,22 @@ end
 Redmine::Plugin.register :friday do
   name "Friday"
   author "Jak Guru"
-  description "A new updated UI for Redmine using VueJS + Vuetify"
+  description "A Redmine plugin to transform Redmine into a modern UX/UI Experience"
   version "1.0.0"
   requires_redmine version_or_higher: "5.1"
+
+  settings partial: "settings/friday",
+    default: {
+      "repository_base_path" => "/var/redmine/repos"
+    }
+end
+
+if ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")
+  x = Sidekiq.configure_embed do |config|
+    # config.logger.level = Logger::DEBUG
+    config.queues = %w[critical default low]
+    config.concurrency = 2
+  end
+  x.run
+  Rails.logger.info "Sidekiq started"
 end

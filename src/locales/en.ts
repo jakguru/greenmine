@@ -230,7 +230,17 @@ export default {
     "roles-permissions": { title: "" },
     settings: { title: "", admin: { title: "System Settings" } },
     "settings-edit": { title: "" },
-    "settings-plugin-id": { title: "" },
+    "settings-plugin-id": {
+      title: "Manage Plugin",
+      specificTitle: "{plugin} Configuration",
+      content: {
+        incompatible: {
+          headline: "I'm sorry Dave, I'm afraid I can't do that.",
+          title: "Incompatible Plugin",
+          text: "This plugin cannot be managed via the Friday UI. Please disable the Friday UI to manage this plugin.",
+        },
+      },
+    },
     "sys-fetch-changesets": { title: "" },
     "sys-projects": { title: "" },
     "time-entries": { title: "" },
@@ -373,6 +383,7 @@ export default {
       asc: "Asc.",
       desc: "Desc.",
     },
+    configure: "Configure",
   },
   theme: {
     base: {

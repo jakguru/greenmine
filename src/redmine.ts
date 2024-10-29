@@ -185,3 +185,21 @@ export interface GroupedEntry<T = unknown> {
   group_count: number | null;
   group_totals: string | null;
 }
+
+export interface PluginData<SettingsDefaultType = Record<string, unknown>> {
+  author: string;
+  description: string;
+  directory: string;
+  id: string;
+  name: string;
+  path: {
+    assets_dir: string;
+    dir: string;
+    initializer: string;
+  };
+  settings?: {
+    partial: string;
+    default: SettingsDefaultType;
+  };
+  version: string;
+}

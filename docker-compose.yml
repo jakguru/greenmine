@@ -13,6 +13,7 @@ services:
       REDMINE_DB_PASSWORD: redmine
       REDMINE_SECRET_KEY_BASE: supersecretkey
       REDMINE_PLUGINS_MIGRATE: "1"
+      REDIS_URL: redis://redis:6379/0
   vanilla:
     image: redmine
     restart: unless-stopped
@@ -34,7 +35,15 @@ services:
       MYSQL_DATABASE: redmine
     ports:
       - 8866:3306
+  redis:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - redis:/data
 
 volumes:
   greenmine-files:
+    driver: local
+  redis:
     driver: local

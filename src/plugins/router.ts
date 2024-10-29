@@ -120,8 +120,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/admin/plugins",
     name: "admin-plugins",
-    // "component": () => import("@/pages/admin/plugins.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/admin/plugins.vue"),
     meta: {
       title: "pages.admin-plugins.title",
     },
@@ -1715,8 +1714,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/settings/plugin/:id",
     name: "settings-plugin-id",
-    // "component": () => import("@/pages/settings/plugin/id.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/settings/plugin/id.vue"),
     meta: {
       title: "pages.settings-plugin-id.title",
     },

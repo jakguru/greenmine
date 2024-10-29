@@ -13,8 +13,14 @@ const srcRubyDir = resolve(cwd, "src-ruby");
 const destRubyDir = resolve(cwd, "plugins", "friday");
 
 const nodemonConfig = {
-  watch: ["dev/**/*", "src-ruby/**/*", "package.json", "vite.config.mts"],
-  ext: "ts,mts,json,env,scss,vue,md,yml,rb,erb",
+  watch: [
+    "dev/**/*",
+    "src-ruby/**/*",
+    "package.json",
+    "vite.config.mts",
+    "src-ruby/Gemfile",
+  ],
+  ext: "ts,mts,json,env,scss,vue,md,yml,rb,erb,Gemfile",
   ignore: ["node_modules"],
   exec: "npx jiti bin/noop.ts",
   delay: "2500",

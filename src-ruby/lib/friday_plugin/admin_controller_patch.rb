@@ -5,6 +5,7 @@ module FridayPlugin
         base.send(:include, FridayHelper)
         alias_method :redmine_base_index, :index
         alias_method :redmine_base_info, :info
+        alias_method :redmine_base_plugins, :plugins
 
         def index
           if friday_request?
@@ -36,6 +37,14 @@ module FridayPlugin
             }
           else
             redmine_base_info
+          end
+        end
+
+        def plugins
+          if friday_request?
+            render json: {plugins: Redmine::Plugin.all}
+          else
+            redmine_base_plugins
           end
         end
       end
