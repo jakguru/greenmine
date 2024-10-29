@@ -144,6 +144,14 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/admin/sidekiq",
+    name: "admin-sidekiq",
+    component: () => import("@/pages/admin/sidekiq.vue"),
+    meta: {
+      title: "pages.admin-sidekiq.title",
+    },
+  },
+  {
     path: "/attachments/:id",
     name: "attachments-id",
     // "component": () => import("@/pages/attachments/id.vue")

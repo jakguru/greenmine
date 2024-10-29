@@ -36,6 +36,19 @@ export default {
     "admin-plugins": { title: "Integrated Plugins" },
     "admin-projects-context-menu": { title: "" },
     "admin-projects": { title: "Project Management" },
+    "admin-sidekiq": {
+      title: "Sidekiq Information",
+      content: {
+        stats: {
+          processed: "Processed",
+          failed: "Failed",
+          busy: "Busy",
+          scheduled_size: "Scheduled",
+          retry_size: "Retry",
+          enqueued: "Enqueued",
+        },
+      },
+    },
     "attachments-id": { title: "" },
     "attachments-id-filename": { title: "" },
     "attachments-object-type-object-id-download": { title: "" },

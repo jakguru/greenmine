@@ -48,7 +48,10 @@ class UiController < ApplicationController
       },
       priorities: priorities.map { |priority| {id: priority.id, name: priority.name, position: priority.position} },
       impacts: impacts.map { |impact| {id: impact.id, name: impact.name, position: impact.position} },
-      fetchedAt: Time.now
+      fetchedAt: Time.now,
+      friday: {
+        sidekiq: ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")
+      }
     }
   end
 

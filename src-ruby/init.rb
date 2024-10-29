@@ -27,7 +27,6 @@ end
 
 if ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")
   x = Sidekiq.configure_embed do |config|
-    # config.logger.level = Logger::DEBUG
     config.queues = %w[critical default low]
     config.concurrency = 2
   end
