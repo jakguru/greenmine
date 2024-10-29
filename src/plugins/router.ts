@@ -103,8 +103,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/admin",
     name: "admin",
-    // "component": () => import("@/pages/admin.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/admin/index.vue"),
+    // component: fourOhFour,
     meta: {
       title: "pages.admin.title",
     },
@@ -112,8 +112,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/admin/info",
     name: "admin-info",
-    // "component": () => import("@/pages/admin/info.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/admin/info.vue"),
     meta: {
       title: "pages.admin-info.title",
     },

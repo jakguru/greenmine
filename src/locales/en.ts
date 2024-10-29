@@ -16,7 +16,23 @@ export default {
     "account-twofa-confirm": { title: "" },
     activity: { title: "Activity" },
     admin: { title: "Administration", menu: { title: "View All" } },
-    "admin-info": { title: "System Information" },
+    "admin-info": {
+      title: "System Information",
+      content: {
+        redmine: "Redmine Build Version",
+        checklist: {
+          defaultAdministratorAccountChanged:
+            "Default administrator account changed",
+          fileRepositoryWritable: "Attachments directory writable",
+          pluginAssetsWritable: "Plugin assets directory writable",
+          allMigrationsHaveBeenRun: "All database migrations have been run",
+          minimagickAvailable: "MiniMagick available",
+          convertAvailable: "ImageMagick convert available",
+          gsAvailable: "ImageMagick PDF support available",
+          defaultActiveJobQueueChanged: "Default queue adapter changed",
+        },
+      },
+    },
     "admin-plugins": { title: "Integrated Plugins" },
     "admin-projects-context-menu": { title: "" },
     "admin-projects": { title: "Project Management" },

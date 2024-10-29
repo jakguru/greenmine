@@ -44,12 +44,17 @@ export default defineComponent({
       type: String as PropType<AceMode>,
       default: "text",
     },
+    showLineNumbers: {
+      type: Boolean,
+      default: true,
+    },
   },
   setup(props) {
     const theme = useTheme();
     const { t } = useI18n({ useScope: "global" });
     const toast = inject<ToastService>("toast");
     const mode = computed(() => props.mode);
+    const showLineNumbers = computed(() => props.showLineNumbers);
     const themeIsDark = computed(
       () => theme.global.name.value === "friday-dark",
     );
@@ -65,6 +70,7 @@ export default defineComponent({
       options: {
         useWorker: true,
         showPrintMargin: false,
+        showGutter: showLineNumbers.value,
       },
       value: content.value,
     }));
