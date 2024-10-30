@@ -256,6 +256,10 @@ export default {
       fields: {
         repository_base_path: "Repository Storage Directory Path",
       },
+      onSave: {
+        success: "Plugin settings saved successfully",
+        error: "An error occurred while saving the plugin settings",
+      },
     },
     "sys-fetch-changesets": { title: "" },
     "sys-projects": { title: "" },
