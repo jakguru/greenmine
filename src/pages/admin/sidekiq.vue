@@ -67,10 +67,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from "vue";
+import {
+  defineComponent,
+  computed,
+  inject,
+  onMounted,
+  onBeforeUnmount,
+} from "vue";
+import { useReloadRouteData } from "@/utils/app";
+import { useRoute } from "vue-router";
 // import { useI18n } from "vue-i18n";
 
-import { PropType } from "vue";
+import type { PropType } from "vue";
+import type { ApiService, ToastService, CronService } from "@jakguru/vueprint";
 
 interface Stats {
   dead_size: number;
@@ -153,9 +162,27 @@ export default defineComponent({
     const busy = computed(() =>
       processes.value.reduce((acc, p) => acc + p.attribs.busy, 0),
     );
+    const route = useRoute();
+    const api = inject<ApiService>("api");
+    const toast = inject<ToastService>("toast");
+    const cron = inject<CronService>("cron");
+    const reloadRouteData = useReloadRouteData(route, api, toast);
     // const { t } = useI18n({ useScope: "global" });
+    const doReloadRouteData = () => reloadRouteData.call();
+    onMounted(() => {
+      if (cron) {
+        cron.$on("* * * * *", doReloadRouteData);
+      }
+    });
+    onBeforeUnmount(() => {
+      if (cron) {
+        cron.$off("* * * * *", doReloadRouteData);
+      }
+    });
     return {
       busy,
+      routeDataLoading: reloadRouteData.loading,
+      reloadRouteData: doReloadRouteData,
     };
   },
 });

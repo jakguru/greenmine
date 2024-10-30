@@ -44,7 +44,7 @@ export default {
           failed: "Failed",
           busy: "Busy",
           scheduled_size: "Scheduled",
-          retry_size: "Retry",
+          retry_size: "Retries",
           enqueued: "Enqueued",
         },
       },
@@ -252,6 +252,9 @@ export default {
           title: "Incompatible Plugin",
           text: "This plugin cannot be managed via the Friday UI. Please disable the Friday UI to manage this plugin.",
         },
+      },
+      fields: {
+        repository_base_path: "Repository Storage Directory Path",
       },
     },
     "sys-fetch-changesets": { title: "" },

@@ -2,6 +2,7 @@ import { computed, ref, inject } from "vue";
 import { getDebugger } from "@jakguru/vueprint/utilities/debug";
 import { i18n } from "@/plugins/i18n";
 import { useAppDataStore } from "@/stores/appData";
+import { useRouteDataStore } from "@/stores/routeData";
 import { useTheme } from "vuetify";
 import type Joi from "joi";
 
@@ -250,4 +251,18 @@ export const checkObjectEquality = <T = unknown>(a: T, b: T): boolean => {
   const clonedA = cloneObject(a);
   const clonedB = cloneObject(b);
   return JSON.stringify(clonedA) === JSON.stringify(clonedB);
+};
+
+export const useReloadRouteData = (
+  route: RouteLocationNormalizedGeneric,
+  api: ApiService | undefined,
+  toast: ToastService | undefined,
+) => {
+  const routeDataStore = useRouteDataStore();
+  return new AsyncAction(async () => {
+    appDebug("Reloading route data");
+    const data = await loadRouteData(route, api, toast);
+    routeDataStore.set(data);
+    appDebug("Route data reloaded");
+  });
 };

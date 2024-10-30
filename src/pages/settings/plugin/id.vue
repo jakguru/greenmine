@@ -25,6 +25,7 @@
         </v-toolbar-title>
       </v-toolbar>
       <v-divider />
+      <FridayForm v-bind="fridayFormBindings" />
     </v-card>
   </v-container>
 </template>
@@ -34,12 +35,18 @@ import { defineComponent, computed, onMounted } from "vue";
 import fourOhSixImage from "@/assets/images/406.svg?url";
 import { useHead } from "@unhead/vue";
 import { useI18n } from "vue-i18n";
+import { VTextField } from "vuetify/components/VTextField";
+import { useRoute } from "vue-router";
+
+import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 
 import type { PropType } from "vue";
 import type { PluginData } from "@/redmine";
+import type { FridayFormStructure } from "@/components/forms";
 
 export default defineComponent({
   name: "SettingsPluginId",
+  components: { FridayForm },
   props: {
     plugin: {
       type: Object as PropType<PluginData>,
@@ -51,6 +58,7 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const route = useRoute();
     const plugin = computed(() => props.plugin);
     const settings = computed(() => props.settings);
     const isFriday = computed(() => plugin.value.id === "friday");
@@ -62,9 +70,34 @@ export default defineComponent({
         }),
       });
     });
+    const formStructure = computed<FridayFormStructure>(() => [
+      [
+        {
+          cols: 12,
+          fieldComponent: VTextField,
+          formKey: "repository_base_path",
+          valueKey: "repository_base_path",
+          validator: getFormFieldValidator(
+            t,
+            Joi.string().required(),
+            t("pages.settings-plugin-id.fields.repository_base_path"),
+          ),
+          bindings: {
+            label: t("pages.settings-plugin-id.fields.repository_base_path"),
+          },
+        },
+      ],
+    ]);
+    const fridayFormBindings = computed(() => ({
+      action: route.fullPath,
+      method: "post",
+      structure: formStructure.value,
+      values: settings.value,
+    }));
     return {
       isFriday,
       fourOhSixImage,
+      fridayFormBindings,
     };
   },
 });
