@@ -145,6 +145,7 @@ export default defineComponent({
           ),
           bindings: {
             label: t("pages.settings-plugin-id.fields.repository_base_path"),
+            density: "compact",
           },
         },
       ],

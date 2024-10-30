@@ -88,11 +88,11 @@ export default defineComponent({
           prependIcon: "mdi-folder-cog",
           to: { name: "settings" },
         },
-        {
-          title: t("pages.auth-sources.admin.title"),
-          prependIcon: "mdi-shield-account-variant",
-          to: { name: "auth-sources" },
-        },
+        // {
+        //   title: t("pages.auth-sources.admin.title"),
+        //   prependIcon: "mdi-shield-account-variant",
+        //   to: { name: "auth-sources" },
+        // },
         {
           title: t("pages.admin-plugins.title"),
           prependIcon: "mdi-puzzle",

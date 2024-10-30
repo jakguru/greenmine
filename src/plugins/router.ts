@@ -205,15 +205,15 @@ const routes: RouteRecordRaw[] = [
       title: "pages.attachments-download-id-filename.title",
     },
   },
-  {
-    path: "/auth_sources",
-    name: "auth-sources",
-    // "component": () => import("@/pages/auth_sources.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.auth-sources.title",
-    },
-  },
+  // {
+  //   path: "/auth_sources",
+  //   name: "auth-sources",
+  //   // "component": () => import("@/pages/auth_sources.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.auth-sources.title",
+  //   },
+  // },
   {
     path: "/auth_sources/:id",
     name: "auth-sources-id",
