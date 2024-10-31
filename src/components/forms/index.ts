@@ -1,5 +1,6 @@
 import dot from "dot-object";
 import Joi from "joi";
+import { tlds } from "@hapi/tlds";
 import {
   defineComponent,
   h,
@@ -20,7 +21,7 @@ import type { FormFieldValidator } from "@/types";
 import type { FormContext } from "vee-validate";
 import type { ApiService } from "@jakguru/vueprint";
 
-export { Joi, useI18n, getFormFieldValidator };
+export { Joi, tlds, useI18n, getFormFieldValidator };
 
 export interface FridayFormStructureField {
   cols: number;

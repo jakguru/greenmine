@@ -1704,8 +1704,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/settings",
     name: "settings",
-    // "component": () => import("@/pages/settings.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/settings/index.vue"),
     meta: {
       title: "pages.settings.title",
     },

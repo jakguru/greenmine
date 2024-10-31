@@ -266,3 +266,14 @@ export const useReloadRouteData = (
     appDebug("Route data reloaded");
   });
 };
+
+export const useReloadAppData = (
+  ls: LocalStorageService | undefined,
+  api: ApiService | undefined,
+) => {
+  return new AsyncAction(async () => {
+    appDebug("Reloading app data");
+    await loadAppData(ls, api);
+    appDebug("App data reloaded");
+  });
+};
