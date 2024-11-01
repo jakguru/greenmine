@@ -171,25 +171,27 @@
         </template>
       </template>
     </v-navigation-drawer>
-    <v-main>
-      <router-view v-if="loaded && !isTransitioning" v-slot="{ Component }">
-        <component :is="Component" v-bind="routeData" />
-      </router-view>
-      <v-overlay
-        :model-value="overlay"
-        class="align-center justify-center"
-        persistent
-        scrim="background"
-        opacity="1"
-        no-click-animation
-      >
-        <v-progress-circular
-          color="primary"
-          size="64"
-          indeterminate
-        ></v-progress-circular>
-      </v-overlay>
-    </v-main>
+    <router-view v-slot="{ Component }">
+      <v-main v-if="loaded && !isTransitioning && !routeIsLoading">
+        <transition name="fade">
+          <component :is="Component" v-bind="routeData" />
+        </transition>
+      </v-main>
+    </router-view>
+    <v-overlay
+      :model-value="overlay"
+      class="align-center justify-center"
+      persistent
+      scrim="background"
+      opacity="1"
+      no-click-animation
+    >
+      <v-progress-circular
+        color="primary"
+        size="64"
+        indeterminate
+      ></v-progress-circular>
+    </v-overlay>
     <v-footer app :color="systemBarColor">
       <v-toolbar-items class="h-100 ml-auto">
         <v-btn
@@ -316,6 +318,7 @@ export default defineComponent({
     const appData = useAppData();
     const routeDataStore = useRouteDataStore();
     const routeData = computed(() => routeDataStore.data);
+    const routeIsLoading = computed(() => routeDataStore.loading);
     const reloadRouteData = new AsyncAction(async () => {
       appDebug("Reloading route data");
       const data = await loadRouteData(route, api, toast);
@@ -443,7 +446,9 @@ export default defineComponent({
       }),
     );
     const isTransitioning = ref(false);
-    const overlay = computed(() => !loaded.value || isTransitioning.value);
+    const overlay = computed(
+      () => !loaded.value || isTransitioning.value || routeIsLoading.value,
+    );
     router.beforeEach((to, from) => {
       if (to.name !== from.name) {
         isTransitioning.value = true;
@@ -475,6 +480,7 @@ export default defineComponent({
       globalSearchVal,
       administrationNav,
       isTransitioning,
+      routeIsLoading,
     };
   },
 });

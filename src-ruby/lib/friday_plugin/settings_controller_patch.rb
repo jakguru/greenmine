@@ -74,7 +74,7 @@ module FridayPlugin
                     props: {
                       items: [
                         {value: "gzip", label: "GZIP"},
-                        {value: nil, label: "labels.none"}
+                        {value: "", label: "labels.none"}
                       ]
                     },
                     value: Setting.send(:wiki_compression)
@@ -121,7 +121,7 @@ module FridayPlugin
                   gravatar_default: {
                     type: "select",
                     props: {
-                      items: gravatar_default_setting_options.map { |option| {value: option[1], label: option[0]} } << {value: nil, label: "labels.none"}
+                      items: gravatar_default_setting_options.map { |option| {value: option[1], label: option[0]} } << {value: "", label: "labels.none"}
                     },
                     value: Setting.send(:gravatar_default)
                   },
@@ -199,14 +199,14 @@ module FridayPlugin
                   session_lifetime: {
                     type: "select",
                     props: {
-                      items: session_lifetime_options.map { |option| {value: option[1], label: option[0]} }
+                      items: session_lifetime_options.map { |option| {value: option[1].to_s, label: option[0]} }
                     },
                     value: Setting.send(:session_lifetime)
                   },
                   session_timeout: {
                     type: "select",
                     props: {
-                      items: session_timeout_options.map { |option| {value: option[1], label: option[0]} }
+                      items: session_timeout_options.map { |option| {value: option[1].to_s, label: option[0]} }
                     },
                     value: Setting.send(:session_timeout)
                   },
@@ -311,7 +311,7 @@ module FridayPlugin
                   default_users_time_zone: {
                     type: "select",
                     props: {
-                      items: ActiveSupport::TimeZone.all.collect { |tz| {value: tz.name, label: tz.to_s} } << {value: nil, label: l(:label_none)}
+                      items: ActiveSupport::TimeZone.all.collect { |tz| {value: tz.name, label: tz.to_s} } << {value: "", label: l(:label_none)}
                     },
                     value: Setting.send(:default_users_time_zone)
                   },
@@ -692,7 +692,10 @@ module FridayPlugin
               setting = params[:settings] ? params[:settings].permit!.to_h : {}
               Setting.send :"plugin_#{plugin.id}=", setting
             end
-            settings = Setting.send :"plugin_#{plugin.id}"
+            settings = Setting.send(:"plugin_#{plugin.id}")
+            plugin.settings[:default].each do |name, value|
+              settings[name] = value if settings[name].nil?
+            end
             render json: {plugin: plugin, settings: settings}
           else
             redmine_base_plugin

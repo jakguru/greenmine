@@ -21,7 +21,10 @@ Redmine::Plugin.register :friday do
 
   settings partial: "settings/friday",
     default: {
-      "repository_base_path" => "/var/redmine/repos"
+      "repository_base_path" => "/var/redmine/repos",
+      "gitlab_api_base_url" => "https://gitlab.com",
+      "gitlab_api_token" => "",
+      "gitlab_api_enabled" => "0"
     }
 end
 

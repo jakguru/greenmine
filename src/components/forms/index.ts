@@ -15,6 +15,7 @@ import { useForm } from "vee-validate";
 import { useI18n } from "vue-i18n";
 import { getFormFieldValidator } from "@/utils/validation";
 import { VContainer, VRow, VCol } from "vuetify/components/VGrid";
+import { cloneObject } from "@/utils/app";
 
 import type { PropType } from "vue";
 import type { FormFieldValidator } from "@/types";
@@ -230,14 +231,14 @@ export const FridayForm = defineComponent({
       structure.value.forEach((row) => {
         row.forEach((field) => {
           const { formKey, valueKey } = field;
-          ret[formKey] = dot.pick(valueKey, values.value);
+          ret[formKey] = dot.pick(valueKey, cloneObject(values.value));
         });
       });
       return ret;
     };
     const makeForm = () => {
       return useForm({
-        initialValues: makeInitialValues(),
+        initialValues: cloneObject(makeInitialValues()),
         validationSchema: makeValidationSchema(),
         validateOnMount: validateOnMount.value,
       });
@@ -430,6 +431,9 @@ export const FridayForm = defineComponent({
                 props.clearable = !isLoading.value;
                 props.autocapitalize = "off";
                 props.spellcheck = false;
+                props["onUpdate:modelValue"] = (v: unknown) => {
+                  modelValue.value = v;
+                };
                 return props;
               },
               label: field.label,
@@ -453,7 +457,7 @@ export const FridayForm = defineComponent({
           );
           ret[field.formKey] = {
             ...fieldProps.value,
-            modelValue,
+            modelValue: modelValue.value,
           };
         });
       });

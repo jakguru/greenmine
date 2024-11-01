@@ -13,6 +13,7 @@
       <v-breadcrumbs v-bind="breadcrumbsBindings" />
       <v-divider />
       <v-tabs v-bind="vTabBindings" />
+      <v-divider />
       <FridayForm
         v-bind="fridayFormBindings"
         @success="onSuccess"
@@ -69,13 +70,13 @@ import {
   useReloadRouteData,
   useReloadAppData,
 } from "@/utils/app";
-
 import {
   Joi,
   getFormFieldValidator,
   FridayForm,
   tlds,
 } from "@/components/forms";
+import { VPasswordField, VMarkdownField } from "@/components/fields";
 
 import type { PropType } from "vue";
 import type { SettingsPayloadSettings } from "@/friday";
@@ -153,7 +154,12 @@ export default defineComponent({
         value: "repositories",
       },
     ]);
-    const tab = ref("general");
+    const tab = computed({
+      get: () => (route.query.tab as string | undefined) ?? "general",
+      set: (v: string) => {
+        router.push({ query: { tab: v } });
+      },
+    });
     const vTabBindings = computed(() => ({
       modelValue: tab.value,
       items: tabs.value,
@@ -229,11 +235,11 @@ export default defineComponent({
             fieldComponent: VTextField,
             formKey: key,
             valueKey: key,
-            label: t(`pages.settings.fields.${key}`),
+            label: t(`pages.settings.content.fields.${key}`),
             bindings: {
               ...options.bindings,
               ...settingsFieldInfo.props,
-              label: t(`pages.settings.fields.${key}`),
+              label: t(`pages.settings.content.fields.${key}`),
             },
             validator: getFormFieldValidator(
               t,
@@ -267,7 +273,7 @@ export default defineComponent({
                     return Joi.string().required();
                 }
               })(),
-              t(`pages.settings.fields.${key}`),
+              t(`pages.settings.content.fields.${key}`),
             ),
           };
         case "checkbox":
@@ -282,11 +288,11 @@ export default defineComponent({
             fieldComponent: VSwitch,
             formKey: key,
             valueKey: key,
-            label: t(`pages.settings.fields.${key}`),
+            label: t(`pages.settings.content.fields.${key}`),
             bindings: {
               ...options.bindings,
               ...settingsFieldInfo.props,
-              label: t(`pages.settings.fields.${key}`),
+              label: t(`pages.settings.content.fields.${key}`),
               falseValue: "0",
               trueValue: "1",
             },
@@ -303,11 +309,38 @@ export default defineComponent({
             fieldComponent: VAutocomplete,
             formKey: key,
             valueKey: key,
-            label: t(`pages.settings.fields.${key}`),
+            label: t(`pages.settings.content.fields.${key}`),
             bindings: {
               ...options.bindings,
               ...settingsFieldInfo.props,
-              label: t(`pages.settings.fields.${key}`),
+              items: settingsFieldInfo.props.items.map((i: any) => ({
+                label: t(i.label),
+                value: i.value,
+              })),
+              label: t(`pages.settings.content.fields.${key}`),
+              itemTitle: "label",
+              itemValue: "value",
+              chips: true === settingsFieldInfo.props.multiple,
+              closableChips: true === settingsFieldInfo.props.multiple,
+            },
+          };
+        case "markdown":
+          return {
+            cols: options.cols,
+            xs: options.xs,
+            sm: options.sm,
+            md: options.md,
+            lg: options.lg,
+            xl: options.xl,
+            xxl: options.xxl,
+            fieldComponent: VMarkdownField,
+            formKey: key,
+            valueKey: key,
+            label: t(`pages.settings.content.fields.${key}`),
+            bindings: {
+              ...options.bindings,
+              ...settingsFieldInfo.props,
+              label: t(`pages.settings.content.fields.${key}`),
             },
           };
         default:
@@ -327,7 +360,7 @@ export default defineComponent({
             ]),
             formKey: key,
             valueKey: key,
-            label: t(`pages.settings.fields.${key}`),
+            label: t(`pages.settings.content.fields.${key}`),
           };
       }
     };
@@ -385,6 +418,78 @@ export default defineComponent({
                 cols: 12,
                 sm: 6,
                 md: 4,
+              }),
+            ],
+          ];
+        case "authentication":
+          return [
+            [
+              makeFridayFormFieldFor("login_required", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("self_registration", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("show_custom_fields_on_registration", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("password_min_length", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("password_max_age", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("password_required_char_classes", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("twofa", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+              makeFridayFormFieldFor("session_lifetime", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+              makeFridayFormFieldFor("session_timeout", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+              makeFridayFormFieldFor("lost_password", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+            ],
+          ];
+        case "api":
+          return [
+            [
+              makeFridayFormFieldFor("rest_api_enabled", {
+                cols: 12,
+                sm: 6,
+              }),
+              makeFridayFormFieldFor("jsonp_enabled", {
+                cols: 12,
+                sm: 6,
               }),
             ],
           ];

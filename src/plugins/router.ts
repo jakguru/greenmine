@@ -2058,17 +2058,20 @@ export const router = createRouter({
   },
 });
 
-router.beforeEach(async (to) => {
+router.beforeEach(async (to, from, next) => {
   const api = inject<ApiService>("api");
   const toast = inject<ToastService>("toast");
   const ls = inject<LocalStorageService>("localStorage");
   loadAppData(ls, api);
+  const store = useRouteDataStore();
+  if (to.name !== from.name) {
+    store.isLoading(true);
+  }
   const props = await loadRouteData(to, api, toast);
   if ("boolean" === typeof props) {
     return props;
   }
-  const store = useRouteDataStore();
-  store.set(props);
+  store.store(props);
   const appDataStore = useAppDataStore();
   const appData =
     "object" === typeof appDataStore.data &&
@@ -2079,4 +2082,11 @@ router.beforeEach(async (to) => {
   if (null !== appData) {
     updateHead(to, appData);
   }
+  next();
+});
+
+router.beforeResolve(() => {
+  const store = useRouteDataStore();
+  store.set(store.cache);
+  store.isLoading(false);
 });

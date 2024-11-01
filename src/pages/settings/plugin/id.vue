@@ -77,6 +77,8 @@ import fourOhSixImage from "@/assets/images/406.svg?url";
 import { useHead } from "@unhead/vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
+import { VSwitch } from "vuetify/components/VSwitch";
+import { VPasswordField } from "@/components/fields";
 import { useRoute } from "vue-router";
 import { useSystemAccentColor } from "@/utils/app";
 
@@ -134,6 +136,7 @@ export default defineComponent({
       [
         {
           cols: 12,
+          md: 4,
           fieldComponent: VTextField,
           formKey: "repository_base_path",
           valueKey: "repository_base_path",
@@ -146,6 +149,61 @@ export default defineComponent({
           bindings: {
             label: t("pages.settings-plugin-id.fields.repository_base_path"),
             density: "compact",
+          },
+        },
+      ],
+      [
+        {
+          cols: 12,
+          md: 4,
+          fieldComponent: VTextField,
+          formKey: "gitlab_api_base_url",
+          valueKey: "gitlab_api_base_url",
+          label: t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
+          validator: getFormFieldValidator(
+            t,
+            Joi.string().optional().allow(""),
+            t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
+          ),
+          bindings: {
+            label: t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
+            density: "compact",
+          },
+        },
+        {
+          cols: 12,
+          md: 4,
+          fieldComponent: VPasswordField,
+          formKey: "gitlab_api_token",
+          valueKey: "gitlab_api_token",
+          label: t("pages.settings-plugin-id.fields.gitlab_api_token"),
+          validator: getFormFieldValidator(
+            t,
+            Joi.string().optional().allow(""),
+            t("pages.settings-plugin-id.fields.gitlab_api_token"),
+          ),
+          bindings: {
+            label: t("pages.settings-plugin-id.fields.gitlab_api_token"),
+            density: "compact",
+          },
+        },
+        {
+          cols: 12,
+          md: 4,
+          fieldComponent: VSwitch,
+          formKey: "gitlab_api_enabled",
+          valueKey: "gitlab_api_enabled",
+          label: t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
+          validator: getFormFieldValidator(
+            t,
+            Joi.any().valid("0", "1"),
+            t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
+          ),
+          bindings: {
+            label: t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
+            density: "compact",
+            falseValue: "0",
+            trueValue: "1",
           },
         },
       ],
