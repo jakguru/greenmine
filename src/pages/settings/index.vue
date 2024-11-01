@@ -493,6 +493,64 @@ export default defineComponent({
               }),
             ],
           ];
+        case "projects":
+          return [
+            [
+              makeFridayFormFieldFor("default_projects_public", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("sequential_project_identifiers", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("default_projects_modules", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("default_projects_tracker_ids", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("new_project_user_role_id", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("default_project_query", {
+                cols: 12,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("project_list_defaults.column_names", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+          ];
+        case "users":
+          return [];
+        case "issues":
+          return [];
+        case "activities":
+          return [];
+        case "files":
+          return [];
+        case "notifications":
+          return [];
+        case "email":
+          return [];
+        case "repositories":
+          return [];
         default:
           return [];
       }

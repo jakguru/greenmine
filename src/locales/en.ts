@@ -295,12 +295,15 @@ export default {
           session_timeout: "Session Inactivity Timeout",
           rest_api_enabled: "Enable RESTful API",
           jsonp_enabled: "Enable JSONP support",
-          default_projects_public: "",
-          default_projects_modules: "",
-          default_projects_tracker_ids: "",
-          sequential_project_identifiers: "",
-          new_project_user_role_id: "",
-          default_project_query: "",
+          default_projects_public: "New Projects are public by default",
+          default_projects_modules: "Default enabled modules for new projects",
+          default_projects_tracker_ids:
+            "Default issue trackers for new projects",
+          sequential_project_identifiers:
+            "Generate sequential project identifiers",
+          new_project_user_role_id:
+            "Role for non-admin user that creates a project",
+          default_project_query: "Default project query",
           max_additional_emails: "",
           email_domains_allowed: "",
           email_domains_denied: "",
@@ -361,7 +364,7 @@ export default {
           commit_logtime_enabled: "",
           commit_logtime_activity_id: "",
           project_list_defaults: {
-            column_names: "",
+            column_names: "Default Columns Displayed",
           },
           time_entry_list_defaults: {
             column_names: "",
