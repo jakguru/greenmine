@@ -22,7 +22,7 @@ class UiController < ApplicationController
     priorities = IssuePriority.active
     impacts = IssueImpact.active
     render json: {
-      name: Redmine::Info.app_name,
+      name: Setting.send(:app_title),
       i18n: ::I18n.locale,
       identity: {
         authenticated: User.current.logged?,

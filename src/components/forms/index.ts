@@ -210,7 +210,25 @@ export const FridayForm = defineComponent({
     const action = computed(() => props.action);
     const method = computed(() => props.method);
     const structure = computed(() => props.structure);
-    const values = computed(() => props.values);
+    const rawValues = computed(() => props.values);
+    const values = computed(() => {
+      const ret: Record<string, unknown> = {};
+      const raw = cloneObject(rawValues.value);
+      Object.keys(raw).forEach((key) => {
+        if (key.includes(".")) {
+          const keys = key.split(".");
+          const rootKey = keys.shift()!;
+          const remaining = keys.join(".");
+          const dotted = {
+            [remaining]: raw[key],
+          };
+          ret[rootKey] = dot.object(dotted);
+        } else {
+          ret[key] = raw[key];
+        }
+      });
+      return ret;
+    });
     const validateOnMount = computed(() => props.validateOnMount);
     const validHttpStatus = computed(() => props.validHttpStatus);
     const modifyPayload = computed(
@@ -234,6 +252,7 @@ export const FridayForm = defineComponent({
           ret[formKey] = dot.pick(valueKey, cloneObject(values.value));
         });
       });
+      console.log("makeInitialValues", { ret });
       return ret;
     };
     const makeForm = () => {
@@ -276,7 +295,21 @@ export const FridayForm = defineComponent({
           submitAbortController.value.abort();
         }
         submitAbortController.value = new AbortController();
-        const payload = modifyPayload.value(values);
+        const payloadValues: Record<string, unknown> = {};
+        Object.keys(values).forEach((key) => {
+          if (key.includes(".")) {
+            const keys = key.split(".");
+            const rootKey = keys.shift()!;
+            const remaining = keys.join(".");
+            const dotted = {
+              [remaining]: rawValues.value[key],
+            };
+            payloadValues[rootKey] = dot.object(dotted);
+          } else {
+            payloadValues[key] = values[key];
+          }
+        });
+        const payload = modifyPayload.value(payloadValues);
         try {
           const { status, data } = await api.request({
             method: method.value,
@@ -378,6 +411,9 @@ export const FridayForm = defineComponent({
     }));
     const hyperscriptForField = (field: FridayFormStructureField) => {
       const props = bindings.value[field.formKey];
+      if ("project_list_defaults.column_names" === field.formKey) {
+        console.log(field.formKey, { props });
+      }
       if ("string" === typeof field.fieldComponent) {
         switch (field.fieldComponent) {
           default:

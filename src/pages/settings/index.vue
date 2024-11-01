@@ -76,7 +76,11 @@ import {
   FridayForm,
   tlds,
 } from "@/components/forms";
-import { VPasswordField, VMarkdownField } from "@/components/fields";
+import {
+  VPasswordField,
+  VMarkdownField,
+  VQueryColumnSelectionField,
+} from "@/components/fields";
 
 import type { PropType } from "vue";
 import type { SettingsPayloadSettings } from "@/friday";
@@ -343,6 +347,29 @@ export default defineComponent({
               label: t(`pages.settings.content.fields.${key}`),
             },
           };
+        case "querycolumnselection":
+          return {
+            cols: options.cols,
+            xs: options.xs,
+            sm: options.sm,
+            md: options.md,
+            lg: options.lg,
+            xl: options.xl,
+            xxl: options.xxl,
+            fieldComponent: VQueryColumnSelectionField,
+            formKey: key,
+            valueKey: key,
+            label: t(`pages.settings.content.fields.${key}`),
+            bindings: {
+              ...options.bindings,
+              ...settingsFieldInfo.props,
+              label: t(`pages.settings.content.fields.${key}`),
+              items: settingsFieldInfo.props.items.map((i: any) => ({
+                label: t(i.label),
+                value: i.value,
+              })),
+            },
+          };
         default:
           return {
             cols: options.cols,
@@ -532,8 +559,6 @@ export default defineComponent({
             [
               makeFridayFormFieldFor("project_list_defaults.column_names", {
                 cols: 12,
-                sm: 6,
-                md: 4,
               }),
             ],
           ];
