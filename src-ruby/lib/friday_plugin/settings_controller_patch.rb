@@ -256,7 +256,7 @@ module FridayPlugin
                   "project_list_defaults.column_names": {
                     type: "querycolumnselection",
                     props: {
-                      formKey: "project_list_defaults.column_names",
+                      formKey: "project_list_defaults_column_names",
                       items: project_query.available_inline_columns.collect { |c| {value: c.name, label: c.caption} }
                     },
                     value: project_query.inline_columns.collect(&:name)
@@ -461,7 +461,7 @@ module FridayPlugin
                   "time_entry_list_defaults.column_names": {
                     type: "querycolumnselection",
                     props: {
-                      formKey: "time_entry_list_defaults.column_names",
+                      formKey: "time_entry_list_defaults_column_names",
                       items: time_entry_query.available_inline_columns.collect { |c| {value: c.name, label: c.caption} }
                     },
                     value: time_entry_query.inline_columns.collect(&:name)
@@ -469,6 +469,7 @@ module FridayPlugin
                   "time_entry_list_defaults.totalable_names": {
                     type: "select",
                     props: {
+                      formKey: "time_entry_list_defaults.totalable_names",
                       multiple: true,
                       items: time_entry_query.available_totalable_columns.map { |c| {value: c.name.to_s, label: c.caption} }
                     },

@@ -432,38 +432,42 @@ export interface QueryColumnSelectionSettingField {
   value: string[];
 }
 
-export interface TextProps {
+interface BaseProps {
+  formKey?: string;
+}
+
+export interface TextProps extends BaseProps {
   type?: "text" | "password" | "email" | "number";
   min?: number;
   max?: number;
   hint?: string;
 }
 
-export interface MarkdownProps {}
+export interface MarkdownProps extends BaseProps {}
 
-export interface SelectSingleProps {
+export interface SelectSingleProps extends BaseProps {
   items: Option[];
   multiple: false;
   disabled?: boolean;
 }
 
-export interface SelectMultipleProps {
+export interface SelectMultipleProps extends BaseProps {
   items: Option[];
   multiple: true;
   disabled?: boolean;
 }
 
-export interface CheckboxProps {
+export interface CheckboxProps extends BaseProps {
   disabled?: boolean;
 }
 
-export interface CsvProps {}
+export interface CsvProps extends BaseProps {}
 
-export interface LbsvProps {
+export interface LbsvProps extends BaseProps {
   hint?: string;
 }
 
-export interface QueryColumnSelectionProps {
+export interface QueryColumnSelectionProps extends BaseProps {
   formKey: string;
   items: Option[];
 }

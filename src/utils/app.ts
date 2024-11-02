@@ -248,6 +248,9 @@ export const cloneObject = <T = unknown>(obj: T): T => {
 };
 
 export const checkObjectEquality = <T = unknown>(a: T, b: T): boolean => {
+  if (typeof a !== typeof b) {
+    return false;
+  }
   const clonedA = cloneObject(a);
   const clonedB = cloneObject(b);
   return JSON.stringify(clonedA) === JSON.stringify(clonedB);

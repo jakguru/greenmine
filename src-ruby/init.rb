@@ -22,9 +22,23 @@ Redmine::Plugin.register :friday do
   settings partial: "settings/friday",
     default: {
       "repository_base_path" => "/var/redmine/repos",
+      "monday_access_token" => "",
+      "monday_board_id" => "",
+      "monday_group_id" => "topics",
+      "monday_enabled" => "0",
       "gitlab_api_base_url" => "https://gitlab.com",
       "gitlab_api_token" => "",
-      "gitlab_api_enabled" => "0"
+      "gitlab_api_enabled" => "0",
+      "sentry_api_base_url" => "",
+      "sentry_api_token" => "",
+      "sentry_api_organization" => "",
+      "sentry_api_enabled" => "0",
+      "google_translate_api_key" => "",
+      "google_translate_enabled" => "0",
+      "chatgpt_api_key" => "",
+      "chatgpt_org_id" => "",
+      "chatgpt_project_id" => "",
+      "chatgpt_enabled" => "0"
     }
 end
 

@@ -252,7 +252,6 @@ export const FridayForm = defineComponent({
           ret[formKey] = dot.pick(valueKey, cloneObject(values.value));
         });
       });
-      console.log("makeInitialValues", { ret });
       return ret;
     };
     const makeForm = () => {
@@ -297,16 +296,23 @@ export const FridayForm = defineComponent({
         submitAbortController.value = new AbortController();
         const payloadValues: Record<string, unknown> = {};
         Object.keys(values).forEach((key) => {
-          if (key.includes(".")) {
-            const keys = key.split(".");
+          const field: FridayFormStructureField | undefined = structure.value
+            .flat()
+            .find((v) => v.formKey === key);
+          if (!field) {
+            return;
+          }
+          const { valueKey } = field;
+          if (valueKey.includes(".")) {
+            const keys = valueKey.split(".");
             const rootKey = keys.shift()!;
             const remaining = keys.join(".");
             const dotted = {
-              [remaining]: rawValues.value[key],
+              [remaining]: values[key],
             };
             payloadValues[rootKey] = dot.object(dotted);
           } else {
-            payloadValues[key] = values[key];
+            payloadValues[valueKey] = values[key];
           }
         });
         const payload = modifyPayload.value(payloadValues);

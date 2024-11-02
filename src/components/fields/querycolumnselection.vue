@@ -147,6 +147,7 @@
 import { defineComponent, computed, ref, watch } from "vue";
 import { useTheme, useLocale } from "vuetify";
 import Draggable from "vuedraggable";
+import { checkObjectEquality } from "@/utils/app";
 import type { PropType } from "vue";
 import type { VInput } from "vuetify/components/VInput";
 
@@ -379,16 +380,22 @@ export default defineComponent({
     const value = ref<string[]>(props.modelValue);
     watch(
       () => props.modelValue,
-      (val) => {
-        value.value = val;
+      (is, was) => {
+        if (checkObjectEquality(is, was)) {
+          return;
+        }
+        value.value = is;
       },
       { immediate: true },
     );
     watch(
       () => value.value,
-      (val) => {
-        emit("update:modelValue", val);
-        emit("update:model-value", val);
+      (is, was) => {
+        if (checkObjectEquality(is, was)) {
+          return;
+        }
+        emit("update:modelValue", is);
+        emit("update:model-value", is);
         if (onInput.value) {
           onInput.value();
         }
@@ -403,7 +410,7 @@ export default defineComponent({
     const selectedColumns = computed({
       get: () =>
         Array.isArray(value.value)
-          ? value.value.map((column) =>
+          ? [...value.value].map((column) =>
               items.value.find((item) => item.value === column),
             )
           : [],
@@ -439,7 +446,9 @@ export default defineComponent({
       value.value.push(field.value);
     };
     const onClearAll = () => {
-      value.value = [];
+      while (value.value.length > 0) {
+        value.value.pop();
+      }
     };
     const onAddAll = () => {
       remainingColumns.value.forEach((c) => {
@@ -468,5 +477,21 @@ export default defineComponent({
 <style lang="scss">
 .v-column-selector__field {
   overflow-y: hidden;
+
+  .ghost {
+    opacity: 0.5;
+    background: #c8ebfb;
+  }
+
+  .draggable-list-wrapper {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .draggable-group {
+    .v-list-item {
+      cursor: move;
+    }
+  }
 }
 </style>

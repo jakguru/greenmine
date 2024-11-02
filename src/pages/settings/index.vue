@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, ref, h } from "vue";
+import { defineComponent, computed, inject, h } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
@@ -80,6 +80,7 @@ import {
   VPasswordField,
   VMarkdownField,
   VQueryColumnSelectionField,
+  VCSVField,
 } from "@/components/fields";
 
 import type { PropType } from "vue";
@@ -135,13 +136,9 @@ export default defineComponent({
     }));
     const tabs = computed(() => [
       { text: t("pages.settings.content.tabs.general"), value: "general" },
-      {
-        text: t("pages.settings.content.tabs.authentication"),
-        value: "authentication",
-      },
-      { text: t("pages.settings.content.tabs.api"), value: "api" },
-      { text: t("pages.settings.content.tabs.projects"), value: "projects" },
+      { text: t("pages.settings.content.tabs.display"), value: "display" },
       { text: t("pages.settings.content.tabs.users"), value: "users" },
+      { text: t("pages.settings.content.tabs.projects"), value: "projects" },
       { text: t("pages.settings.content.tabs.issues"), value: "issues" },
       {
         text: t("pages.settings.content.tabs.activities"),
@@ -153,6 +150,7 @@ export default defineComponent({
         value: "notifications",
       },
       { text: t("pages.settings.content.tabs.email"), value: "email" },
+      { text: t("pages.settings.content.tabs.api"), value: "api" },
       {
         text: t("pages.settings.content.tabs.repositories"),
         value: "repositories",
@@ -237,7 +235,9 @@ export default defineComponent({
             xl: options.xl,
             xxl: options.xxl,
             fieldComponent: VTextField,
-            formKey: key,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
             valueKey: key,
             label: t(`pages.settings.content.fields.${key}`),
             bindings: {
@@ -290,7 +290,9 @@ export default defineComponent({
             xl: options.xl,
             xxl: options.xxl,
             fieldComponent: VSwitch,
-            formKey: key,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
             valueKey: key,
             label: t(`pages.settings.content.fields.${key}`),
             bindings: {
@@ -311,7 +313,9 @@ export default defineComponent({
             xl: options.xl,
             xxl: options.xxl,
             fieldComponent: VAutocomplete,
-            formKey: key,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
             valueKey: key,
             label: t(`pages.settings.content.fields.${key}`),
             bindings: {
@@ -328,6 +332,27 @@ export default defineComponent({
               closableChips: true === settingsFieldInfo.props.multiple,
             },
           };
+        case "csv":
+          return {
+            cols: options.cols,
+            xs: options.xs,
+            sm: options.sm,
+            md: options.md,
+            lg: options.lg,
+            xl: options.xl,
+            xxl: options.xxl,
+            fieldComponent: VCSVField,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
+            valueKey: key,
+            label: t(`pages.settings.content.fields.${key}`),
+            bindings: {
+              ...options.bindings,
+              ...settingsFieldInfo.props,
+              label: t(`pages.settings.content.fields.${key}`),
+            },
+          };
         case "markdown":
           return {
             cols: options.cols,
@@ -338,7 +363,9 @@ export default defineComponent({
             xl: options.xl,
             xxl: options.xxl,
             fieldComponent: VMarkdownField,
-            formKey: key,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
             valueKey: key,
             label: t(`pages.settings.content.fields.${key}`),
             bindings: {
@@ -357,7 +384,9 @@ export default defineComponent({
             xl: options.xl,
             xxl: options.xxl,
             fieldComponent: VQueryColumnSelectionField,
-            formKey: key,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
             valueKey: key,
             label: t(`pages.settings.content.fields.${key}`),
             bindings: {
@@ -385,7 +414,9 @@ export default defineComponent({
               " for key: ",
               h("code", {}, [key]),
             ]),
-            formKey: key,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
             valueKey: key,
             label: t(`pages.settings.content.fields.${key}`),
           };
@@ -401,12 +432,23 @@ export default defineComponent({
               makeFridayFormFieldFor("protocol", { cols: 12, md: 6 }),
               makeFridayFormFieldFor("host_name", { cols: 12, md: 6 }),
             ],
+          ];
+        case "display":
+          return [
+            [makeFridayFormFieldFor("default_language", { cols: 12, md: 4 })],
             [
-              makeFridayFormFieldFor("default_language", { cols: 12, md: 4 }),
+              makeFridayFormFieldFor("default_users_time_zone", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
               makeFridayFormFieldFor("force_default_language_for_anonymous", {
                 cols: 12,
                 md: 4,
               }),
+            ],
+            [
               makeFridayFormFieldFor("force_default_language_for_loggedin", {
                 cols: 12,
                 md: 4,
@@ -415,19 +457,27 @@ export default defineComponent({
             [
               makeFridayFormFieldFor("search_results_per_page", {
                 cols: 12,
-                sm: 6,
-                md: 3,
+                md: 4,
               }),
+            ],
+            [
               makeFridayFormFieldFor("activity_days_default", {
                 cols: 12,
-                sm: 6,
-                md: 3,
+                md: 4,
               }),
-              makeFridayFormFieldFor("feeds_limit", { cols: 12, sm: 6, md: 3 }),
+            ],
+            [makeFridayFormFieldFor("feeds_limit", { cols: 12, md: 4 })],
+            [
               makeFridayFormFieldFor("wiki_compression", {
                 cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("login_required", {
+                cols: 12,
                 sm: 6,
-                md: 3,
+                md: 4,
               }),
             ],
             [
@@ -447,21 +497,47 @@ export default defineComponent({
                 md: 4,
               }),
             ],
-          ];
-        case "authentication":
-          return [
             [
-              makeFridayFormFieldFor("login_required", {
+              makeFridayFormFieldFor("display_subprojects_issues", {
                 cols: 12,
                 sm: 6,
                 md: 4,
               }),
+            ],
+            [
+              makeFridayFormFieldFor("gantt_items_limit", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("gantt_months_limit", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+          ];
+        case "users":
+          return [
+            [
               makeFridayFormFieldFor("self_registration", {
                 cols: 12,
                 sm: 6,
                 md: 4,
               }),
               makeFridayFormFieldFor("show_custom_fields_on_registration", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("unsubscribe", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("max_additional_emails", {
                 cols: 12,
                 sm: 6,
                 md: 4,
@@ -473,11 +549,6 @@ export default defineComponent({
                 sm: 6,
                 md: 4,
               }),
-              makeFridayFormFieldFor("password_max_age", {
-                cols: 12,
-                sm: 6,
-                md: 4,
-              }),
               makeFridayFormFieldFor("password_required_char_classes", {
                 cols: 12,
                 sm: 6,
@@ -485,25 +556,37 @@ export default defineComponent({
               }),
             ],
             [
+              makeFridayFormFieldFor("email_domains_allowed", {
+                cols: 12,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("email_domains_denied", {
+                cols: 12,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("password_max_age", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
               makeFridayFormFieldFor("twofa", {
                 cols: 12,
                 sm: 6,
-                md: 3,
-              }),
-              makeFridayFormFieldFor("session_lifetime", {
-                cols: 12,
-                sm: 6,
-                md: 3,
-              }),
-              makeFridayFormFieldFor("session_timeout", {
-                cols: 12,
-                sm: 6,
-                md: 3,
+                md: 4,
               }),
               makeFridayFormFieldFor("lost_password", {
                 cols: 12,
                 sm: 6,
-                md: 3,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("session_lifetime", {
+                cols: 12,
+                sm: 6,
+                md: 4,
               }),
             ],
           ];
@@ -562,10 +645,87 @@ export default defineComponent({
               }),
             ],
           ];
-        case "users":
-          return [];
         case "issues":
-          return [];
+          return [
+            [
+              makeFridayFormFieldFor("issue_group_assignment", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("cross_project_subtasks", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+              makeFridayFormFieldFor("cross_project_issue_relations", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("link_copied_issue", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("close_duplicate_issues", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("non_working_week_days", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor(
+                "default_issue_start_date_to_creation_date",
+                {
+                  cols: 12,
+                  sm: 6,
+                  md: 4,
+                },
+              ),
+            ],
+            [
+              makeFridayFormFieldFor("issue_done_ratio", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("parent_issue_dates", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("parent_issue_done_ratio", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("default_issue_query", {
+                cols: 12,
+                sm: 6,
+              }),
+              makeFridayFormFieldFor("issue_list_default_totals", {
+                cols: 12,
+                sm: 6,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("issue_list_default_columns", {
+                cols: 12,
+              }),
+            ],
+          ];
         case "activities":
           return [];
         case "files":
