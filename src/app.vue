@@ -1,5 +1,5 @@
 <template>
-  <v-app v-if="complete">
+  <v-app v-if="complete" v-bind="vAppBindings">
     <v-app-bar
       app
       density="compact"
@@ -235,19 +235,24 @@ import {
   useSystemAppBarColor,
   useSystemSurfaceColor,
 } from "@/utils/app";
+import { defined } from "@/utils/flow";
 import { ThemeToggle } from "@/components/theme";
 import { useRoute, useRouter } from "vue-router";
 import { useRouteDataStore } from "@/stores/routeData";
 import { PartialMenu, PartialProjectsJumper } from "@/partials";
 import { GlobalSearchField } from "@/components/menu";
 import { updateHead } from "@/utils/head";
+import { hookRealtime } from "@/utils/realtime";
 import { AuthenticatedMenu } from "@/components/authenticated-menu";
-import type {
+import {
   LocalStorageService,
   ApiService,
   BusService,
   ToastService,
 } from "@jakguru/vueprint";
+import type Cable from "@rails/actioncable";
+import type { PropType } from "vue";
+import "./augmentations.d.ts";
 
 export default defineComponent({
   name: "FridayApp",
@@ -258,7 +263,14 @@ export default defineComponent({
     GlobalSearchField,
     AuthenticatedMenu,
   },
-  setup() {
+  props: {
+    consumer: {
+      type: Object as PropType<Cable.Consumer>,
+      required: true,
+    },
+  },
+  setup(props) {
+    const consumer = computed(() => props.consumer);
     const theme = useTheme();
     const route = useRoute();
     const router = useRouter();
@@ -330,7 +342,31 @@ export default defineComponent({
       await loadAppData(ls, api, true);
       appDebug("App data reloaded");
     });
+    const rtu = ref(false);
+    const onRtuConnected = () => {
+      rtu.value = true;
+    };
+    const onRtuDisconnected = () => {
+      rtu.value = false;
+    };
+    const onRtuApplication = () => {
+      reloadAppData.call();
+    };
     onMounted(() => {
+      if (bus) {
+        bus.on("rtu:connected", onRtuConnected, {
+          local: true,
+        });
+        bus.on("rtu:disconnected", onRtuDisconnected, {
+          local: true,
+        });
+        bus.on("rtu:rejected", onRtuDisconnected, {
+          local: true,
+        });
+        bus.on("rtu:application", onRtuApplication, {
+          local: true,
+        });
+      }
       loadAppData(ls, api)
         .catch(() => {})
         .finally(() => {
@@ -457,6 +493,15 @@ export default defineComponent({
     router.afterEach(() => {
       isTransitioning.value = false;
     });
+    defined<BusService>(bus).then((b) => {
+      if (!b) {
+        return;
+      }
+      hookRealtime(b, consumer.value);
+    });
+    const vAppBindings = computed(() => ({
+      class: [rtu.value ? "rtu-connected" : "rtu-disconnected"],
+    }));
     return {
       complete,
       systemBarColor,
@@ -481,6 +526,8 @@ export default defineComponent({
       administrationNav,
       isTransitioning,
       routeIsLoading,
+      rtu,
+      vAppBindings,
     };
   },
 });
@@ -488,6 +535,10 @@ export default defineComponent({
 
 <style lang="scss">
 #friday-app {
+  .rtu-disconnected {
+    filter: grayscale(100%) blur(5px);
+  }
+
   .site-name {
     font-size: 24px;
     font-weight: 700;

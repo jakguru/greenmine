@@ -1,12 +1,6 @@
 plugin_lib_dir = File.join(File.dirname(__FILE__), "lib", "friday_plugin")
 
-if Rails.try(:autoloaders).try(:zeitwerk_enabled?)
-  Rails.autoloaders.main.push_dir plugin_lib_dir
-else
-  Dir.glob(File.join(plugin_lib_dir, "**", "*.rb")).each do |file|
-    require_dependency file
-  end
-end
+Rails.autoloaders.main.push_dir plugin_lib_dir
 
 Rails.configuration.to_prepare do
   require_dependency "friday_plugin/news_patch"
@@ -49,4 +43,8 @@ if ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rak
   end
   x.run
   Rails.logger.info "Sidekiq started"
+end
+
+Rails.application.configure do
+  config.action_cable.mount_path = "/realtime"
 end

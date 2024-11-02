@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      actioncable:
+        specifier: link:@types/@rails/actioncable
+        version: link:@types/@rails/actioncable
       vue-router:
         specifier: ^4.4.5
         version: 4.4.5(vue@3.5.8(typescript@5.6.2))
@@ -21,6 +24,9 @@ importers:
       '@jakguru/vueprint':
         specifier: ^1.6.5
         version: 1.6.5(rollup@4.22.4)(typescript@5.6.2)(vite@5.4.7(@types/node@22.6.1)(sass@1.79.3))
+      '@rails/actioncable':
+        specifier: ^7.2.200
+        version: 7.2.200
       '@shikijs/markdown-it':
         specifier: ^1.22.0
         version: 1.22.0
@@ -57,6 +63,9 @@ importers:
       '@types/qs':
         specifier: ^6.9.16
         version: 6.9.16
+      '@types/rails__actioncable':
+        specifier: ^6.1.11
+        version: 6.1.11
       '@unhead/addons':
         specifier: ^1.11.7
         version: 1.11.7(rollup@4.22.4)
@@ -745,6 +754,9 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
+  '@rails/actioncable@7.2.200':
+    resolution: {integrity: sha512-gVmi3MabEa+Bkatvw0/k1Y3WTidcIf3qNbb9L8qc+AmT2UmkVqUZhJpSLvKmH10twCYIGzn7yySW/lOpg81Duw==}
+
   '@rollup/plugin-inject@5.0.5':
     resolution: {integrity: sha512-2+DEJbNBoPROPkgTDNe8/1YXWcqxbN5DTjASVIOx8HS+pITXushyNiBV56RB08zuptzz8gT3YfkqriTBVycepg==}
     engines: {node: '>=14.0.0'}
@@ -927,6 +939,9 @@ packages:
 
   '@types/qs@6.9.16':
     resolution: {integrity: sha512-7i+zxXdPD0T4cKDuxCUXJ4wHcsJLwENa6Z3dCu8cfCK743OGy5Nu1RmAGqDPsoTDINVEcdXKRvR/zre+P2Ku1A==}
+
+  '@types/rails__actioncable@6.1.11':
+    resolution: {integrity: sha512-L6A3Rg6sGsv2cqalOgdOmyFvL1Pw69Mg0WuG6NtY9chzabhtkiSFY5fczo72mqRGezrMvl0Jy80v+N719CW+Tg==}
 
   '@types/sizzle@2.3.8':
     resolution: {integrity: sha512-0vWLNK2D5MT9dg0iOo8GlKguPAU02QjmZitPEsXRuJXU/OGIOt9vT9Fc26wtYuavLxtO45v9PGleoL9Z0k1LHg==}
@@ -3542,6 +3557,8 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
+  '@rails/actioncable@7.2.200': {}
+
   '@rollup/plugin-inject@5.0.5(rollup@4.22.4)':
     dependencies:
       '@rollup/pluginutils': 5.1.2(rollup@4.22.4)
@@ -3702,6 +3719,8 @@ snapshots:
       undici-types: 6.19.8
 
   '@types/qs@6.9.16': {}
+
+  '@types/rails__actioncable@6.1.11': {}
 
   '@types/sizzle@2.3.8': {}
 

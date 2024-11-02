@@ -11,6 +11,7 @@ import * as VuetifyComponents from "vuetify/components";
 import * as VuetifyDirectives from "vuetify/directives";
 import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
 
+import { createConsumer } from "@rails/actioncable";
 import FridayApp from "@/app.vue";
 
 import type {
@@ -192,8 +193,12 @@ const vueprintClientPluginOptions: VueClientBootstrapOptions = {
   },
 };
 
+const consumer = createConsumer();
+
 const pinia = createPinia();
-createApp(FridayApp)
+createApp(FridayApp, {
+  consumer,
+})
   .use(i18n)
   .use(router)
   .use(pinia)

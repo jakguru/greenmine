@@ -8,6 +8,7 @@ services:
       - greenmine-files:/usr/src/redmine/files
       - ./plugins:/usr/src/redmine/plugins
       - ./configuration.yml:/usr/src/redmine/config/configuration.yml:rw
+      - ./cable.yml:/usr/src/redmine/config/cable.yml:rw
     environment:
       REDMINE_DB_MYSQL: db
       REDMINE_DB_PASSWORD: redmine
@@ -22,6 +23,7 @@ services:
     volumes: 
       - greenmine-files:/usr/src/redmine/files
       - ./configuration.yml:/usr/src/redmine/config/configuration.yml:rw
+      - ./cable.yml:/usr/src/redmine/config/cable.yml:rw
     environment:
       REDMINE_DB_MYSQL: db
       REDMINE_DB_PASSWORD: redmine

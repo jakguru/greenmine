@@ -13,6 +13,7 @@ module FridayPlugin
             if request.post?
               errors = Setting.set_all_from_params(params[:settings].to_unsafe_hash)
               if errors.blank?
+                ActionCable.server.broadcast("rtu_application", {updated: true})
                 render status: 201, json: {success: true}
               else
                 render status: 422, json: {errors: errors}
@@ -692,6 +693,7 @@ module FridayPlugin
             if request.post?
               setting = params[:settings] ? params[:settings].permit!.to_h : {}
               Setting.send :"plugin_#{plugin.id}=", setting
+              ActionCable.server.broadcast("rtu_application", {updated: true})
             end
             settings = Setting.send(:"plugin_#{plugin.id}")
             plugin.settings[:default].each do |name, value|

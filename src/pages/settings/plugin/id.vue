@@ -85,14 +85,19 @@ import { VTextField } from "vuetify/components/VTextField";
 import { VSwitch } from "vuetify/components/VSwitch";
 import { VPasswordField } from "@/components/fields";
 import { useRoute } from "vue-router";
-import { useSystemAccentColor } from "@/utils/app";
+import { useSystemAccentColor, useReloadRouteData } from "@/utils/app";
 
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 
 import type { PropType } from "vue";
 import type { PluginData } from "@/redmine";
 import type { FridayFormStructure } from "@/components/forms";
-import type { SwalService, ToastService } from "@jakguru/vueprint";
+import type {
+  ApiService,
+  SwalService,
+  ToastService,
+  BusService,
+} from "@jakguru/vueprint";
 
 export default defineComponent({
   name: "SettingsPluginId",
@@ -108,8 +113,10 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const api = inject<ApiService>("api");
     const toast = inject<ToastService>("toast");
     const swal = inject<SwalService>("swal");
+    const bus = inject<BusService>("bus");
     const route = useRoute();
     const accentColor = useSystemAccentColor();
     const plugin = computed(() => props.plugin);
@@ -130,12 +137,19 @@ export default defineComponent({
         },
       ],
     }));
+    const reloadRouteDataAction = useReloadRouteData(route, api, toast);
+    const onRtuApplication = () => {
+      reloadRouteDataAction.call();
+    };
     onMounted(() => {
       useHead({
         title: t("pages.settings-plugin-id.specificTitle", {
           plugin: plugin.value.name,
         }),
       });
+      if (bus) {
+        bus.on("rtu:application", onRtuApplication, { local: true });
+      }
     });
     const formStructure = computed<FridayFormStructure>(() => [
       [

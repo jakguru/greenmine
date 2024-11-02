@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, h } from "vue";
+import { defineComponent, computed, inject, h, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
@@ -94,6 +94,7 @@ import type {
   ToastService,
   LocalStorageService,
   ApiService,
+  BusService,
 } from "@jakguru/vueprint";
 
 export default defineComponent({
@@ -118,6 +119,7 @@ export default defineComponent({
     const swal = inject<SwalService>("swal");
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
+    const bus = inject<BusService>("bus");
     const route = useRoute();
     const router = useRouter();
     const reloadRouteDataAction = useReloadRouteData(route, api, toast);
@@ -756,6 +758,14 @@ export default defineComponent({
       modifyPayload,
       validHttpStatus: 201,
     }));
+    const onRtuApplication = () => {
+      reloadRouteDataAction.call();
+    };
+    onMounted(() => {
+      if (bus) {
+        bus.on("rtu:application", onRtuApplication, { local: true });
+      }
+    });
     return {
       breadcrumbsBindings,
       vTabBindings,
