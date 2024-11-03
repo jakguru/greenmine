@@ -159,34 +159,34 @@ export default defineComponent({
         text: t("pages.settings.content.tabs.repositories"),
         value: "repositories",
       },
-      // {
-      //   text: t("pages.settings.content.tabs.monday_com"),
-      //   value: "monday_com",
-      // },
-      // {
-      //   text: t("pages.settings.content.tabs.gitlab"),
-      //   value: "gitlab",
-      // },
-      // {
-      //   text: t("pages.settings.content.tabs.sentry"),
-      //   value: "sentry",
-      // },
-      // {
-      //   text: t("pages.settings.content.tabs.google_translate"),
-      //   value: "google_translate",
-      // },
-      // {
-      //   text: t("pages.settings.content.tabs.chat_gpt"),
-      //   value: "chat_gpt",
-      // },
-      // {
-      //   text: t("pages.settings.content.tabs.slack"),
-      //   value: "slack",
-      // },
-      // {
-      //   text: t("pages.settings.content.tabs.pagerduty"),
-      //   value: "pagerduty",
-      // },
+      {
+        text: t("pages.settings.content.tabs.monday_com"),
+        value: "monday_com",
+      },
+      {
+        text: t("pages.settings.content.tabs.gitlab"),
+        value: "gitlab",
+      },
+      {
+        text: t("pages.settings.content.tabs.sentry"),
+        value: "sentry",
+      },
+      {
+        text: t("pages.settings.content.tabs.google_translate"),
+        value: "google_translate",
+      },
+      {
+        text: t("pages.settings.content.tabs.chat_gpt"),
+        value: "chat_gpt",
+      },
+      {
+        text: t("pages.settings.content.tabs.slack"),
+        value: "slack",
+      },
+      {
+        text: t("pages.settings.content.tabs.pagerduty"),
+        value: "pagerduty",
+      },
     ]);
     const tab = computed({
       get: () => (route.query.tab as string | undefined) ?? "general",
@@ -1010,6 +1010,12 @@ export default defineComponent({
               }),
             ],
             [
+              makeFridayFormFieldFor("plugin_friday.repository_base_path", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
               makeFridayFormFieldFor("sys_api_key", {
                 cols: 12,
                 md: 9,
@@ -1032,6 +1038,111 @@ export default defineComponent({
             [
               makeFridayFormFieldFor("commit_update_keywords", {
                 cols: 12,
+              }),
+            ],
+          ];
+        case "monday_com":
+          return [
+            [
+              makeFridayFormFieldFor("plugin_friday.monday_access_token", {
+                cols: 12,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("plugin_friday.monday_enabled", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("plugin_friday.monday_board_id", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("plugin_friday.monday_group_id", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+          ];
+        case "gitlab":
+          return [
+            [
+              makeFridayFormFieldFor("plugin_friday.gitlab_api_token", {
+                cols: 12,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("plugin_friday.gitlab_api_enabled", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("plugin_friday.gitlab_api_base_url", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+          ];
+        case "sentry":
+          return [
+            [
+              makeFridayFormFieldFor("plugin_friday.sentry_api_token", {
+                cols: 12,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("plugin_friday.sentry_api_organization", {
+                cols: 12,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("plugin_friday.sentry_api_enabled", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("plugin_friday.sentry_api_base_url", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+          ];
+        case "google_translate":
+          return [
+            [
+              makeFridayFormFieldFor("plugin_friday.google_translate_api_key", {
+                cols: 12,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("plugin_friday.google_translate_enabled", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+          ];
+        case "chat_gpt":
+          return [
+            [
+              makeFridayFormFieldFor("plugin_friday.chatgpt_api_key", {
+                cols: 12,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("plugin_friday.chatgpt_enabled", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("plugin_friday.chatgpt_org_id", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("plugin_friday.chatgpt_project_id", {
+                cols: 12,
+                md: 4,
               }),
             ],
           ];

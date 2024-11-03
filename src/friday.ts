@@ -373,6 +373,24 @@ export interface SettingsPayloadSettings {
   commit_logtime_enabled: CheckboxSettingField;
   commit_logtime_activity_id: SelectSingleSettingField;
   commit_update_keywords: RepositoryCommitUpdateKeywordsSettingField;
+  "plugin_friday.repository_base_path": TextSettingField;
+  "plugin_friday.monday_access_token": PasswordSettingField;
+  "plugin_friday.monday_board_id": TextSettingField;
+  "plugin_friday.monday_group_id": TextSettingField;
+  "plugin_friday.monday_enabled": CheckboxSettingField;
+  "plugin_friday.gitlab_api_base_url": TextSettingField;
+  "plugin_friday.gitlab_api_token": PasswordSettingField;
+  "plugin_friday.gitlab_api_enabled": CheckboxSettingField;
+  "plugin_friday.sentry_api_base_url": TextSettingField;
+  "plugin_friday.sentry_api_token": PasswordSettingField;
+  "plugin_friday.sentry_api_organization": TextSettingField;
+  "plugin_friday.sentry_api_enabled": CheckboxSettingField;
+  "plugin_friday.google_translate_api_key": PasswordSettingField;
+  "plugin_friday.google_translate_enabled": TextSettingField;
+  "plugin_friday.chatgpt_api_key": PasswordSettingField;
+  "plugin_friday.chatgpt_org_id": TextSettingField;
+  "plugin_friday.chatgpt_project_id": TextSettingField;
+  "plugin_friday.chatgpt_enabled": CheckboxSettingField;
 }
 
 export type SettingField =

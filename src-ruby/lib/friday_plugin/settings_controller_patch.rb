@@ -675,6 +675,132 @@ module FridayPlugin
                       percentages: [{value: "", label: ""}] + (0..10).to_a.collect { |p| {value: (p * 10).to_s, label: "#{p * 10}%"} }
                     },
                     value: Setting.send(:commit_update_keywords)
+                  },
+                  "plugin_friday.repository_base_path": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_repository_base_path"
+                    },
+                    value: Setting["plugin_friday"]["repository_base_path"]
+                  },
+                  "plugin_friday.monday_access_token": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_monday_access_token"
+                    },
+                    value: Setting["plugin_friday"]["monday_access_token"]
+                  },
+                  "plugin_friday.monday_board_id": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_monday_board_id"
+                    },
+                    value: Setting["plugin_friday"]["monday_board_id"]
+                  },
+                  "plugin_friday.monday_group_id": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_monday_group_id"
+                    },
+                    value: Setting["plugin_friday"]["monday_group_id"]
+                  },
+                  "plugin_friday.monday_enabled": {
+                    type: "checkbox",
+                    props: {
+                      formKey: "plugin_friday_monday_enabled"
+                    },
+                    value: Setting["plugin_friday"]["monday_enabled"]
+                  },
+                  "plugin_friday.gitlab_api_base_url": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_gitlab_api_base_url"
+                    },
+                    value: Setting["plugin_friday"]["gitlab_api_base_url"]
+                  },
+                  "plugin_friday.gitlab_api_token": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_gitlab_api_token"
+                    },
+                    value: Setting["plugin_friday"]["gitlab_api_token"]
+                  },
+                  "plugin_friday.gitlab_api_enabled": {
+                    type: "checkbox",
+                    props: {
+                      formKey: "plugin_friday_gitlab_api_enabled"
+                    },
+                    value: Setting["plugin_friday"]["gitlab_api_enabled"]
+                  },
+                  "plugin_friday.sentry_api_base_url": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_sentry_api_base_url"
+                    },
+                    value: Setting["plugin_friday"]["sentry_api_base_url"]
+                  },
+                  "plugin_friday.sentry_api_token": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_sentry_api_token"
+                    },
+                    value: Setting["plugin_friday"]["sentry_api_token"]
+                  },
+                  "plugin_friday.sentry_api_organization": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_sentry_api_organization"
+                    },
+                    value: Setting["plugin_friday"]["sentry_api_organization"]
+                  },
+                  "plugin_friday.sentry_api_enabled": {
+                    type: "checkbox",
+                    props: {
+                      formKey: "plugin_friday_sentry_api_enabled"
+                    },
+                    value: Setting["plugin_friday"]["sentry_api_enabled"]
+                  },
+                  "plugin_friday.google_translate_api_key": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_google_translate_api_key"
+                    },
+                    value: Setting["plugin_friday"]["google_translate_api_key"]
+                  },
+                  "plugin_friday.google_translate_enabled": {
+                    type: "checkbox",
+                    props: {
+                      formKey: "plugin_friday_google_translate_enabled"
+                    },
+                    value: Setting["plugin_friday"]["google_translate_enabled"]
+                  },
+                  "plugin_friday.chatgpt_api_key": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_chatgpt_api_key"
+                    },
+                    value: Setting["plugin_friday"]["chatgpt_api_key"]
+                  },
+                  "plugin_friday.chatgpt_org_id": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_chatgpt_org_id"
+                    },
+                    value: Setting["plugin_friday"]["chatgpt_org_id"]
+                  },
+                  "plugin_friday.chatgpt_project_id": {
+                    type: "text",
+                    props: {
+                      formKey: "plugin_friday_chatgpt_project_id"
+                    },
+                    value: Setting["plugin_friday"]["chatgpt_project_id"]
+                  },
+                  "plugin_friday.chatgpt_enabled": {
+                    type: "checkbox",
+                    props: {
+                      formKey: "plugin_friday_chatgpt_enabled"
+                    },
+                    value: Setting["plugin_friday"]["chatgpt_enabled"]
                   }
                 }
               }
