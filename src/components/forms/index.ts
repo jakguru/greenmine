@@ -222,7 +222,11 @@ export const FridayForm = defineComponent({
           const dotted = {
             [remaining]: raw[key],
           };
-          ret[rootKey] = dot.object(dotted);
+          if (ret[rootKey]) {
+            ret[rootKey] = Object.assign({}, ret[rootKey], dot.object(dotted));
+          } else {
+            ret[rootKey] = dot.object(dotted);
+          }
         } else {
           ret[key] = raw[key];
         }
@@ -246,10 +250,11 @@ export const FridayForm = defineComponent({
     };
     const makeInitialValues = () => {
       const ret: Record<string, unknown> = {};
+      const vals = cloneObject(values.value);
       structure.value.forEach((row) => {
         row.forEach((field) => {
           const { formKey, valueKey } = field;
-          ret[formKey] = dot.pick(valueKey, cloneObject(values.value));
+          ret[formKey] = dot.pick(valueKey, vals);
         });
       });
       return ret;
@@ -310,7 +315,15 @@ export const FridayForm = defineComponent({
             const dotted = {
               [remaining]: values[key],
             };
-            payloadValues[rootKey] = dot.object(dotted);
+            if (payloadValues[rootKey]) {
+              payloadValues[rootKey] = Object.assign(
+                {},
+                payloadValues[rootKey],
+                dot.object(dotted),
+              );
+            } else {
+              payloadValues[rootKey] = dot.object(dotted);
+            }
           } else {
             payloadValues[valueKey] = values[key];
           }

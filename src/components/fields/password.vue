@@ -1,13 +1,14 @@
 <script lang="ts">
-import { computed, defineComponent, ref } from "vue";
+import { computed, defineComponent, ref, h } from "vue";
 import { VTextField } from "vuetify/components/VTextField";
 import { useDefaults } from "vuetify";
+import { capitalize } from "@/utils/formatting";
 
 export default defineComponent({
   name: "VPasswordField",
   props: { ...VTextField.props },
   emits: Object.keys({ ...VTextField.emits }),
-  setup(props, { emit }) {
+  setup(props, { slots, emit }) {
     const passwordFieldType = ref("password");
     const passwordFieldTypeIcon = computed(() =>
       passwordFieldType.value === "password"
@@ -20,34 +21,33 @@ export default defineComponent({
     };
     const passedProps = computed(() => props);
     const defaults = useDefaults(passedProps.value, "VTextField");
+    const updatedEmitters = computed(() => {
+      const ret: any = {};
+      Object.keys({ ...VTextField.emits }).forEach((evnt) => {
+        const key = `on${capitalize(evnt)}`;
+        ret[key] = (e: any) => emit(evnt, e);
+      });
+      ret["onClick:append-inner"] = togglePasswordFieldType;
+      return ret;
+    });
     const updatedProps = computed(() => ({
       ...defaults,
       type: passwordFieldType.value,
       "append-inner-icon": passwordFieldTypeIcon.value,
+      ...updatedEmitters.value,
     }));
-    const updatedEmitters = computed(() => {
-      const ret: any = {
-        "click:append-inner": togglePasswordFieldType,
-      };
-      Object.keys({ ...VTextField.emits }).forEach((evnt) => {
-        ret[evnt] = (e: any) => emit(evnt, e);
-      });
-      return ret;
-    });
-    const field = ref<VTextField | undefined>(undefined);
-    return { updatedProps, updatedEmitters, field };
+    return () =>
+      h(
+        VTextField,
+        {
+          ...updatedProps.value,
+          class: "v-password-field",
+        },
+        slots,
+      );
   },
 });
 </script>
-
-<template>
-  <v-text-field
-    ref="field"
-    v-bind="updatedProps"
-    class="v-password-field"
-    v-on="updatedEmitters"
-  />
-</template>
 
 <style lang="scss">
 .v-password-field {

@@ -361,32 +361,41 @@ export interface SettingsPayloadSettings {
   mail_handler_enable_regex_excluded_filenames: CheckboxSettingField;
   mail_handler_preferred_body_part: SelectSingleSettingField;
   mail_handler_api_enabled: CheckboxSettingField;
-  mail_handler_api_key: TextSettingField;
+  mail_handler_api_key: PasswordSettingField;
   enabled_scm: SelectMultipleSettingField;
   autofetch_changesets: CheckboxSettingField;
   sys_api_enabled: CheckboxSettingField;
-  sys_api_key: TextSettingField;
+  sys_api_key: PasswordSettingField;
   repository_log_display_limit: TextSettingField;
   commit_logs_formatting: CheckboxSettingField;
   commit_ref_keywords: CsvSettingField;
   commit_cross_project_ref: CheckboxSettingField;
   commit_logtime_enabled: CheckboxSettingField;
   commit_logtime_activity_id: SelectSingleSettingField;
+  commit_update_keywords: RepositoryCommitUpdateKeywordsSettingField;
 }
 
 export type SettingField =
   | TextSettingField
+  | PasswordSettingField
   | MarkdownSettingField
   | SelectSingleSettingField
   | SelectMultipleSettingField
   | CheckboxSettingField
   | CsvSettingField
   | LbsvSettingField
-  | QueryColumnSelectionSettingField;
+  | QueryColumnSelectionSettingField
+  | RepositoryCommitUpdateKeywordsSettingField;
 
 export interface TextSettingField {
   type: "text";
   props: TextProps;
+  value: string;
+}
+
+export interface PasswordSettingField {
+  type: "password";
+  props: PasswordProps;
   value: string;
 }
 
@@ -432,12 +441,36 @@ export interface QueryColumnSelectionSettingField {
   value: string[];
 }
 
+export interface RepositoryCommitUpdateKeywordsSettingField {
+  type: "repository_commit_update_keywords";
+  props: RepositoryCommitUpdateKeywordsProps;
+  value: Array<{
+    if_tracker_id?: string;
+    keywords?: string;
+    status_id?: string;
+    done_ratio?: string;
+  }>;
+}
+
 interface BaseProps {
   formKey?: string;
 }
 
+export interface RepositoryCommitUpdateKeywordsProps extends BaseProps {
+  trackers: Option[];
+  statuses: Option[];
+  percentages: Option[];
+}
+
 export interface TextProps extends BaseProps {
-  type?: "text" | "password" | "email" | "number";
+  type?: "text" | "email" | "number";
+  min?: number;
+  max?: number;
+  hint?: string;
+}
+
+export interface PasswordProps extends BaseProps {
+  type?: "password";
   min?: number;
   max?: number;
   hint?: string;

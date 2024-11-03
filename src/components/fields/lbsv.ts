@@ -3,7 +3,7 @@ import { VCombobox } from "vuetify/components/VCombobox";
 import { useDefaults } from "vuetify";
 import { capitalize } from "@/utils/formatting";
 
-const VCSVProps: Record<
+const VLBSVProps: Record<
   string,
   {
     type: any;
@@ -19,9 +19,9 @@ const VCSVProps: Record<
   },
 };
 
-export const VCSVField = defineComponent({
-  name: "VCSVField",
-  props: VCSVProps,
+export const VLBSVField = defineComponent({
+  name: "VLBSVField",
+  props: VLBSVProps,
   emits: Object.keys({ ...VCombobox.emits }),
   setup(props, { emit }) {
     const sourceValue = computed(() => props.modelValue);
@@ -31,7 +31,7 @@ export const VCSVField = defineComponent({
       (v: string) => {
         modelValue.value = v
           .trim()
-          .split(",")
+          .split("\n")
           .map((v: string) => v.trim())
           .filter((v: string) => v.length > 0);
       },
@@ -40,7 +40,7 @@ export const VCSVField = defineComponent({
     watch(
       () => modelValue.value,
       (v: string[]) => {
-        emit("update:modelValue", v.join(","));
+        emit("update:modelValue", v.join("\n"));
       },
     );
     const passedProps = computed(() => props);

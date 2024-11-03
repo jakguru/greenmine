@@ -111,6 +111,9 @@ importers:
       fast-deep-equal:
         specifier: ^3.1.3
         version: 3.1.3
+      generate-password-browser:
+        specifier: ^1.1.0
+        version: 1.1.0
       generate-password-ts:
         specifier: ^1.6.5
         version: 1.6.5
@@ -1217,6 +1220,9 @@ packages:
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
 
+  buffer@6.0.3:
+    resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
+
   builtin-status-codes@3.0.0:
     resolution: {integrity: sha512-HpGFw18DgFWlncDfjTa2rcQ4W88O1mC8e8yZ2AvQY5KDaktSTwo+KRf6nHK6FRI5FyRyb/5T6+TSxfP7QyGsmQ==}
 
@@ -1677,6 +1683,9 @@ packages:
 
   function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
+
+  generate-password-browser@1.1.0:
+    resolution: {integrity: sha512-qsQve0rVbCqGqAfKgZwjxKUfI1d1nyd22dz+kE8gn1iw1LxGkR+Slsl79XXfm2wxuK27IkopTs5KXcOEQnhg0w==}
 
   generate-password-ts@1.6.5:
     resolution: {integrity: sha512-MTvcuBZWQChMlqRVK3PGBmF/QdYkSL3YuTfoxbLy8GExa+VDkB0vybQhXBiT0TsBLvDvTC+7OIT1ptsYFpXpGA==}
@@ -4103,6 +4112,11 @@ snapshots:
       base64-js: 1.5.1
       ieee754: 1.2.1
 
+  buffer@6.0.3:
+    dependencies:
+      base64-js: 1.5.1
+      ieee754: 1.2.1
+
   builtin-status-codes@3.0.0: {}
 
   call-bind@1.0.7:
@@ -4733,6 +4747,11 @@ snapshots:
     optional: true
 
   function-bind@1.1.2: {}
+
+  generate-password-browser@1.1.0:
+    dependencies:
+      buffer: 6.0.3
+      randombytes: 2.1.0
 
   generate-password-ts@1.6.5:
     dependencies:

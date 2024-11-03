@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, h, onMounted } from "vue";
+import { defineComponent, computed, inject, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
@@ -77,10 +77,12 @@ import {
   tlds,
 } from "@/components/forms";
 import {
-  VPasswordField,
+  VPasswordFieldWithGenerator,
   VMarkdownField,
   VQueryColumnSelectionField,
   VCSVField,
+  VLBSVField,
+  VRepositoryCommitUpdateKeywordsField,
 } from "@/components/fields";
 
 import type { PropType } from "vue";
@@ -157,6 +159,34 @@ export default defineComponent({
         text: t("pages.settings.content.tabs.repositories"),
         value: "repositories",
       },
+      // {
+      //   text: t("pages.settings.content.tabs.monday_com"),
+      //   value: "monday_com",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.gitlab"),
+      //   value: "gitlab",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.sentry"),
+      //   value: "sentry",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.google_translate"),
+      //   value: "google_translate",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.chat_gpt"),
+      //   value: "chat_gpt",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.slack"),
+      //   value: "slack",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.pagerduty"),
+      //   value: "pagerduty",
+      // },
     ]);
     const tab = computed({
       get: () => (route.query.tab as string | undefined) ?? "general",
@@ -178,6 +208,24 @@ export default defineComponent({
       },
     }));
     const modifyPayload = (payload: Record<string, unknown>) => {
+      if (
+        payload.commit_update_keywords as SettingsPayloadSettings["commit_update_keywords"]["value"]
+      ) {
+        payload.commit_update_keywords = {
+          if_tracker_id: (
+            payload.commit_update_keywords as SettingsPayloadSettings["commit_update_keywords"]["value"]
+          ).map((i) => i.if_tracker_id),
+          status_id: (
+            payload.commit_update_keywords as SettingsPayloadSettings["commit_update_keywords"]["value"]
+          ).map((i) => i.status_id),
+          keywords: (
+            payload.commit_update_keywords as SettingsPayloadSettings["commit_update_keywords"]["value"]
+          ).map((i) => i.keywords),
+          done_ratio: (
+            payload.commit_update_keywords as SettingsPayloadSettings["commit_update_keywords"]["value"]
+          ).map((i) => i.done_ratio),
+        };
+      }
       return {
         authenticity_token: formAuthenticityToken.value,
         settings: payload,
@@ -227,61 +275,6 @@ export default defineComponent({
     ): FridayFormStructureField => {
       const settingsFieldInfo = settings.value[key];
       switch (settingsFieldInfo.type) {
-        case "text":
-          return {
-            cols: options.cols,
-            xs: options.xs,
-            sm: options.sm,
-            md: options.md,
-            lg: options.lg,
-            xl: options.xl,
-            xxl: options.xxl,
-            fieldComponent: VTextField,
-            formKey: settingsFieldInfo.props.formKey
-              ? settingsFieldInfo.props.formKey
-              : key,
-            valueKey: key,
-            label: t(`pages.settings.content.fields.${key}`),
-            bindings: {
-              ...options.bindings,
-              ...settingsFieldInfo.props,
-              label: t(`pages.settings.content.fields.${key}`),
-            },
-            validator: getFormFieldValidator(
-              t,
-              (() => {
-                switch (settingsFieldInfo.props.type) {
-                  case "email":
-                    return Joi.string()
-                      .email({ tlds: { allow: tlds } })
-                      .required();
-                  case "number":
-                    if (
-                      settingsFieldInfo.props.min &&
-                      settingsFieldInfo.props.max
-                    ) {
-                      return Joi.number()
-                        .min(settingsFieldInfo.props.min)
-                        .max(settingsFieldInfo.props.max)
-                        .required();
-                    } else if (settingsFieldInfo.props.min) {
-                      return Joi.number()
-                        .min(settingsFieldInfo.props.min)
-                        .required();
-                    } else if (settingsFieldInfo.props.max) {
-                      return Joi.number()
-                        .max(settingsFieldInfo.props.max)
-                        .required();
-                    } else {
-                      return Joi.number().required();
-                    }
-                  default:
-                    return Joi.string().required();
-                }
-              })(),
-              t(`pages.settings.content.fields.${key}`),
-            ),
-          };
         case "checkbox":
           return {
             cols: options.cols,
@@ -355,6 +348,53 @@ export default defineComponent({
               label: t(`pages.settings.content.fields.${key}`),
             },
           };
+        case "lbsv":
+          return {
+            cols: options.cols,
+            xs: options.xs,
+            sm: options.sm,
+            md: options.md,
+            lg: options.lg,
+            xl: options.xl,
+            xxl: options.xxl,
+            fieldComponent: VLBSVField,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
+            valueKey: key,
+            label: t(`pages.settings.content.fields.${key}`),
+            bindings: {
+              ...options.bindings,
+              ...settingsFieldInfo.props,
+              label: t(`pages.settings.content.fields.${key}`),
+            },
+          };
+        case "password":
+          return {
+            cols: options.cols,
+            xs: options.xs,
+            sm: options.sm,
+            md: options.md,
+            lg: options.lg,
+            xl: options.xl,
+            xxl: options.xxl,
+            fieldComponent: VPasswordFieldWithGenerator,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
+            valueKey: key,
+            label: t(`pages.settings.content.fields.${key}`),
+            bindings: {
+              ...options.bindings,
+              ...settingsFieldInfo.props,
+              label: t(`pages.settings.content.fields.${key}`),
+              length: 20,
+              numbers: true,
+              lowercase: true,
+              uppercase: true,
+              strict: true,
+            },
+          };
         case "markdown":
           return {
             cols: options.cols,
@@ -401,6 +441,42 @@ export default defineComponent({
               })),
             },
           };
+        case "repository_commit_update_keywords":
+          return {
+            cols: options.cols,
+            xs: options.xs,
+            sm: options.sm,
+            md: options.md,
+            lg: options.lg,
+            xl: options.xl,
+            xxl: options.xxl,
+            fieldComponent: VRepositoryCommitUpdateKeywordsField,
+            formKey: settingsFieldInfo.props.formKey
+              ? settingsFieldInfo.props.formKey
+              : key,
+            valueKey: key,
+            label: t(`pages.settings.content.fields.${key}`),
+            bindings: {
+              ...options.bindings,
+              ...settingsFieldInfo.props,
+              label: t(`pages.settings.content.fields.${key}`),
+              trackers: settingsFieldInfo.props.trackers.map((i: any) => ({
+                label: t(i.label),
+                value: i.value,
+              })),
+              statuses: settingsFieldInfo.props.statuses.map((i: any) => ({
+                label: t(i.label),
+                value: i.value,
+              })),
+              percentages: settingsFieldInfo.props.percentages.map(
+                (i: any) => ({
+                  label: t(i.label),
+                  value: i.value,
+                }),
+              ),
+            },
+          };
+        case "text":
         default:
           return {
             cols: options.cols,
@@ -410,17 +486,51 @@ export default defineComponent({
             lg: options.lg,
             xl: options.xl,
             xxl: options.xxl,
-            fieldComponent: h("span", {}, [
-              "Unknown field type: ",
-              h("code", {}, [settingsFieldInfo.type]),
-              " for key: ",
-              h("code", {}, [key]),
-            ]),
+            fieldComponent: VTextField,
             formKey: settingsFieldInfo.props.formKey
               ? settingsFieldInfo.props.formKey
               : key,
             valueKey: key,
             label: t(`pages.settings.content.fields.${key}`),
+            bindings: {
+              ...options.bindings,
+              ...settingsFieldInfo.props,
+              label: t(`pages.settings.content.fields.${key}`),
+            },
+            validator: getFormFieldValidator(
+              t,
+              (() => {
+                switch (settingsFieldInfo.props.type) {
+                  case "email":
+                    return Joi.string()
+                      .email({ tlds: { allow: tlds } })
+                      .required();
+                  case "number":
+                    if (
+                      settingsFieldInfo.props.min &&
+                      settingsFieldInfo.props.max
+                    ) {
+                      return Joi.number()
+                        .min(settingsFieldInfo.props.min)
+                        .max(settingsFieldInfo.props.max)
+                        .required();
+                    } else if (settingsFieldInfo.props.min) {
+                      return Joi.number()
+                        .min(settingsFieldInfo.props.min)
+                        .required();
+                    } else if (settingsFieldInfo.props.max) {
+                      return Joi.number()
+                        .max(settingsFieldInfo.props.max)
+                        .required();
+                    } else {
+                      return Joi.number().required();
+                    }
+                  default:
+                    return Joi.string().required();
+                }
+              })(),
+              t(`pages.settings.content.fields.${key}`),
+            ),
           };
       }
     };
@@ -729,15 +839,202 @@ export default defineComponent({
             ],
           ];
         case "activities":
-          return [];
+          return [
+            [
+              makeFridayFormFieldFor("timelog_required_fields", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("timelog_max_hours_per_day", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("timelog_accept_0_hours", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("timelog_accept_future_dates", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor(
+                "time_entry_list_defaults.totalable_names",
+                {
+                  cols: 12,
+                },
+              ),
+            ],
+            [
+              makeFridayFormFieldFor("time_entry_list_defaults.column_names", {
+                cols: 12,
+              }),
+            ],
+          ];
         case "files":
-          return [];
+          return [
+            [
+              makeFridayFormFieldFor("attachment_extensions_allowed", {
+                cols: 12,
+                sm: 6,
+              }),
+              makeFridayFormFieldFor("attachment_extensions_denied", {
+                cols: 12,
+                sm: 6,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("attachment_max_size", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+              makeFridayFormFieldFor("bulk_download_max_size", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+              makeFridayFormFieldFor("file_max_size_displayed", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+              makeFridayFormFieldFor("diff_max_lines_displayed", {
+                cols: 12,
+                sm: 6,
+                md: 3,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("repositories_encodings", {
+                cols: 12,
+              }),
+            ],
+          ];
         case "notifications":
-          return [];
+          return [
+            [
+              makeFridayFormFieldFor("mail_from", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("plain_text_mail", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("show_status_changes_in_mail_subject", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("notified_events", {
+                cols: 12,
+                sm: 6,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("emails_header", {
+                cols: 12,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("emails_footer", {
+                cols: 12,
+              }),
+            ],
+          ];
         case "email":
-          return [];
+          return [
+            [
+              makeFridayFormFieldFor("mail_handler_body_delimiters", {
+                cols: 12,
+                md: 9,
+              }),
+              makeFridayFormFieldFor("mail_handler_enable_regex_delimiters", {
+                cols: 12,
+                md: 9,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("mail_handler_excluded_filenames", {
+                cols: 12,
+                md: 9,
+              }),
+              makeFridayFormFieldFor(
+                "mail_handler_enable_regex_excluded_filenames",
+                {
+                  cols: 12,
+                  md: 9,
+                },
+              ),
+            ],
+            [
+              makeFridayFormFieldFor("mail_handler_preferred_body_part", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("mail_handler_api_key", {
+                cols: 12,
+                md: 9,
+              }),
+              makeFridayFormFieldFor("mail_handler_api_enabled", {
+                cols: 12,
+                md: 3,
+              }),
+            ],
+          ];
         case "repositories":
-          return [];
+          return [
+            [
+              makeFridayFormFieldFor("enabled_scm", {
+                cols: 12,
+                md: 9,
+              }),
+              makeFridayFormFieldFor("autofetch_changesets", {
+                cols: 12,
+                md: 3,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("sys_api_key", {
+                cols: 12,
+                md: 9,
+              }),
+              makeFridayFormFieldFor("sys_api_enabled", {
+                cols: 12,
+                md: 3,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("repository_log_display_limit", {
+                cols: 12,
+                md: 4,
+              }),
+              makeFridayFormFieldFor("commit_logs_formatting", {
+                cols: 12,
+                md: 4,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor("commit_update_keywords", {
+                cols: 12,
+              }),
+            ],
+          ];
         default:
           return [];
       }

@@ -1,4 +1,4 @@
-require_dependency "issue_query"
+require_dependency "project_query"
 
 module FridayPlugin
   module ProjectQueryPatch

@@ -249,6 +249,7 @@ import {
   ApiService,
   BusService,
   ToastService,
+  SwalService,
 } from "@jakguru/vueprint";
 import type Cable from "@rails/actioncable";
 import type { PropType } from "vue";
@@ -280,6 +281,7 @@ export default defineComponent({
     const api = inject<ApiService>("api");
     const bus = inject<BusService>("bus");
     const toast = inject<ToastService>("toast");
+    const swal = inject<SwalService>("swal");
     const onThemeChanged = (ct: string) => {
       if (theme && ct) {
         theme.global.name.value = ct;
@@ -343,11 +345,34 @@ export default defineComponent({
       appDebug("App data reloaded");
     });
     const rtu = ref(false);
+    const rtuDisconnectedDialogAbortController = ref<
+      AbortController | undefined
+    >(undefined);
     const onRtuConnected = () => {
       rtu.value = true;
+      reloadAppData.call();
+      if (rtuDisconnectedDialogAbortController.value) {
+        rtuDisconnectedDialogAbortController.value.abort();
+      }
     };
     const onRtuDisconnected = () => {
       rtu.value = false;
+      if (swal) {
+        rtuDisconnectedDialogAbortController.value = new AbortController();
+        rtuDisconnectedDialogAbortController.value.signal.onabort = () => {
+          swal.close();
+        };
+        swal.fire({
+          icon: "warning",
+          title: t("rtu.disconnected.title"),
+          text: t("rtu.disconnected.text"),
+          showConfirmButton: false,
+          showCancelButton: false,
+          showDenyButton: false,
+          showCloseButton: false,
+          allowOutsideClick: false,
+        });
+      }
     };
     const onRtuApplication = () => {
       reloadAppData.call();

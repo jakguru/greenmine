@@ -470,11 +470,11 @@ module FridayPlugin
                   "time_entry_list_defaults.totalable_names": {
                     type: "select",
                     props: {
-                      formKey: "time_entry_list_defaults.totalable_names",
+                      formKey: "time_entry_list_defaults_totalable_names",
                       multiple: true,
-                      items: time_entry_query.available_totalable_columns.map { |c| {value: c.name.to_s, label: c.caption} }
+                      items: time_entry_query.available_totalable_columns.nil? ? [] : time_entry_query.available_totalable_columns.map { |c| {value: c.name.to_s, label: c.caption} }
                     },
-                    value: time_entry_query.totalable_columns.collect(&:name)
+                    value: time_entry_query.totalable_columns.nil? ? [] : time_entry_query.totalable_columns.collect(&:name)
                   },
                   attachment_max_size: {
                     type: "text",
@@ -598,7 +598,7 @@ module FridayPlugin
                     value: Setting.send(:mail_handler_api_enabled)
                   },
                   mail_handler_api_key: {
-                    type: "text",
+                    type: "password",
                     props: {
                       type: "password",
                       disabled: !Setting.mail_handler_api_enabled?
@@ -624,7 +624,7 @@ module FridayPlugin
                     value: Setting.send(:sys_api_enabled)
                   },
                   sys_api_key: {
-                    type: "text",
+                    type: "password",
                     props: {
                       type: "password",
                       disabled: !Setting.sys_api_enabled?
@@ -666,6 +666,15 @@ module FridayPlugin
                       disabled: !Setting.commit_logtime_enabled?
                     },
                     value: Setting.send(:commit_logtime_activity_id)
+                  },
+                  commit_update_keywords: {
+                    type: "repository_commit_update_keywords",
+                    props: {
+                      trackers: [{value: "", label: l(:label_all)}] + Tracker.sorted.collect { |t| {value: t.id.to_s, label: t.name} },
+                      statuses: [{value: "0", label: ""}] + IssueStatus.sorted.collect { |s| {value: s.id.to_s, label: s.name} },
+                      percentages: [{value: "", label: ""}] + (0..10).to_a.collect { |p| {value: (p * 10).to_s, label: "#{p * 10}%"} }
+                    },
+                    value: Setting.send(:commit_update_keywords)
                   }
                 }
               }
