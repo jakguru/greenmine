@@ -11,6 +11,19 @@ module FridayPlugin
         def index
           if friday_request?
             if request.post?
+              params[:settings].each do |key, value|
+                if key.start_with?("plugin_")
+                  plugin = Redmine::Plugin.find(key.sub("plugin_", ""))
+                  settings = Setting.send(:"plugin_#{plugin.id}")
+                  plugin.settings[:default].each do |name, value|
+                    settings[name] = value if settings[name].nil?
+                  end
+                  setting = settings.merge(value.permit!.to_h)
+                  Setting.send :"plugin_#{plugin.id}=", setting
+                  Rails.logger.info("Plugin settings updated: #{plugin.id} - #{setting}")
+                  params[:settings].delete(key)
+                end
+              end
               errors = Setting.set_all_from_params(params[:settings].to_unsafe_hash)
               if errors.blank?
                 ActionCable.server.broadcast("rtu_application", {updated: true})
@@ -784,14 +797,16 @@ module FridayPlugin
                   "plugin_friday.chatgpt_org_id": {
                     type: "text",
                     props: {
-                      formKey: "plugin_friday_chatgpt_org_id"
+                      formKey: "plugin_friday_chatgpt_org_id",
+                      optional: true
                     },
                     value: Setting["plugin_friday"]["chatgpt_org_id"]
                   },
                   "plugin_friday.chatgpt_project_id": {
                     type: "text",
                     props: {
-                      formKey: "plugin_friday_chatgpt_project_id"
+                      formKey: "plugin_friday_chatgpt_project_id",
+                      optional: true
                     },
                     value: Setting["plugin_friday"]["chatgpt_project_id"]
                   },

@@ -485,6 +485,7 @@ export interface TextProps extends BaseProps {
   min?: number;
   max?: number;
   hint?: string;
+  optional?: boolean;
 }
 
 export interface PasswordProps extends BaseProps {

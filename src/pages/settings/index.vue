@@ -502,31 +502,56 @@ export default defineComponent({
               (() => {
                 switch (settingsFieldInfo.props.type) {
                   case "email":
-                    return Joi.string()
-                      .email({ tlds: { allow: tlds } })
-                      .required();
+                    return settingsFieldInfo.props.optional
+                      ? Joi.string()
+                          .email({ tlds: { allow: tlds } })
+                          .optional()
+                          .allow("")
+                      : Joi.string()
+                          .email({ tlds: { allow: tlds } })
+                          .required();
                   case "number":
                     if (
                       settingsFieldInfo.props.min &&
                       settingsFieldInfo.props.max
                     ) {
-                      return Joi.number()
-                        .min(settingsFieldInfo.props.min)
-                        .max(settingsFieldInfo.props.max)
-                        .required();
+                      return settingsFieldInfo.props.optional
+                        ? Joi.number()
+                            .min(settingsFieldInfo.props.min)
+                            .max(settingsFieldInfo.props.max)
+                            .optional()
+                            .allow("")
+                        : Joi.number()
+                            .min(settingsFieldInfo.props.min)
+                            .max(settingsFieldInfo.props.max)
+                            .required();
                     } else if (settingsFieldInfo.props.min) {
-                      return Joi.number()
-                        .min(settingsFieldInfo.props.min)
-                        .required();
+                      return settingsFieldInfo.props.optional
+                        ? Joi.number()
+                            .min(settingsFieldInfo.props.min)
+                            .optional()
+                            .allow("")
+                        : Joi.number()
+                            .min(settingsFieldInfo.props.min)
+                            .required();
                     } else if (settingsFieldInfo.props.max) {
-                      return Joi.number()
-                        .max(settingsFieldInfo.props.max)
-                        .required();
+                      return settingsFieldInfo.props.optional
+                        ? Joi.number()
+                            .max(settingsFieldInfo.props.max)
+                            .optional()
+                            .allow("")
+                        : Joi.number()
+                            .max(settingsFieldInfo.props.max)
+                            .required();
                     } else {
-                      return Joi.number().required();
+                      return settingsFieldInfo.props.optional
+                        ? Joi.number().optional().allow("")
+                        : Joi.number().required();
                     }
                   default:
-                    return Joi.string().required();
+                    return settingsFieldInfo.props.optional
+                      ? Joi.string().optional().allow("")
+                      : Joi.string().required();
                 }
               })(),
               t(`pages.settings.content.fields.${key}`),
