@@ -352,8 +352,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/enumerations",
     name: "enumerations",
-    // "component": () => import("@/pages/enumerations.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/enumerations/index.vue"),
     meta: {
       title: "pages.enumerations.title",
     },
@@ -361,8 +360,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/enumerations/:id/edit",
     name: "enumerations-id-edit",
-    // "component": () => import("@/pages/enumerations/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/enumerations/index.vue"),
     meta: {
       title: "pages.enumerations-id-edit.title",
     },
@@ -370,8 +368,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/enumerations/:type",
     name: "enumerations-type",
-    // "component": () => import("@/pages/enumerations/type.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/enumerations/index.vue"),
     meta: {
       title: "pages.enumerations-type.title",
     },
@@ -379,8 +376,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/enumerations/new",
     name: "enumerations-new",
-    // "component": () => import("@/pages/enumerations/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/enumerations/index.vue"),
     meta: {
       title: "pages.enumerations-new.title",
     },

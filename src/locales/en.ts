@@ -74,7 +74,30 @@ export default {
     "custom-fields-new": { title: "" },
     "documents-id": { title: "" },
     "documents-id-edit": { title: "" },
-    enumerations: { title: "", admin: { title: "Enumeration Management" } },
+    enumerations: {
+      title: "Enumerations",
+      admin: { title: "Enumeration Management" },
+      form: {
+        TimeEntryActivity: {
+          title: "Time Tracking Activities",
+        },
+        IssueImpact: {
+          title: "Issue Impact Levels",
+        },
+        IssuePriority: {
+          title: "Issue Urgency Levels",
+        },
+        DocumentCategory: {
+          title: "Document Categories",
+        },
+        cells: {
+          name: "Name",
+          isDefault: "Default",
+          isActive: "Active",
+          order: "Order",
+        },
+      },
+    },
     "enumerations-id-edit": { title: "" },
     "enumerations-type": { title: "" },
     "enumerations-new": { title: "" },
@@ -594,6 +617,12 @@ export default {
       keywords: "Keywords in Commit Message",
       status: "Status to Apply",
       percentages: "Done Ratio to Apply",
+    },
+    confirm: {
+      title: "Are you sure?",
+      text: "This action cannot be undone.",
+      ok: "Yes",
+      cancel: "No",
     },
   },
   theme: {

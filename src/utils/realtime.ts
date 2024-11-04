@@ -48,4 +48,22 @@ export const hookRealtime = (bus: BusService, consumer: Cable.Consumer) => {
       },
     },
   );
+  consumer.subscriptions.create(
+    {
+      channel: "FridayPlugin::RealTimeUpdatesChannel",
+      room: "enumerations",
+    },
+    {
+      received(data: RealtimeApplicationUpdateEventPayload) {
+        appDebug("Realtime updates channel for enumerations received", data);
+        bus.emit(
+          "rtu:enumerations",
+          {
+            local: true,
+          },
+          data,
+        );
+      },
+    },
+  );
 };

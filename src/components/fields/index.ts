@@ -5,6 +5,7 @@ import { VTextField } from "vuetify/components/VTextField";
 import { VBtn } from "vuetify/components/VBtn";
 import { useI18n } from "vue-i18n";
 import VPasswordField from "./password.vue";
+import VSaveableTextField from "./savable-text-field.vue";
 import VMarkdownField from "./markdown.vue";
 import VQueryColumnSelectionField from "./querycolumnselection.vue";
 import VRepositoryCommitUpdateKeywordsField from "./repositorycommitupdatekeywords.vue";
@@ -13,6 +14,7 @@ export { VCSVField } from "./csv";
 export { VLBSVField } from "./lbsv";
 export {
   VPasswordField,
+  VSaveableTextField,
   VMarkdownField,
   VQueryColumnSelectionField,
   VRepositoryCommitUpdateKeywordsField,

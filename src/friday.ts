@@ -528,3 +528,16 @@ export interface Option {
   value: string | number | null;
   label: string;
 }
+
+export interface EnumerableValue {
+  id: number;
+  name: string;
+  is_default: boolean;
+  position: number;
+  active: boolean;
+}
+
+export interface EnumerableProp {
+  name: string;
+  values: EnumerableValue[];
+}

@@ -12,6 +12,10 @@ declare module "@jakguru/vueprint" {
       data: RealtimeApplicationUpdateEventPayload,
       from?: string,
     ) => void;
+    "rtu:enumerations": (
+      data: RealtimeApplicationUpdateEventPayload,
+      from?: string,
+    ) => void;
   }
 }
 export {};

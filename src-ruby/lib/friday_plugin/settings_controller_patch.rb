@@ -20,7 +20,6 @@ module FridayPlugin
                   end
                   setting = settings.merge(value.permit!.to_h)
                   Setting.send :"plugin_#{plugin.id}=", setting
-                  Rails.logger.info("Plugin settings updated: #{plugin.id} - #{setting}")
                   params[:settings].delete(key)
                 end
               end
