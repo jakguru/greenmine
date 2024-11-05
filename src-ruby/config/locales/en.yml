@@ -1,6 +1,17 @@
 en:
   field_impact: Impact
   field_priority: Urgency
+  field_sprint: Sprint
+  field_sprints: Sprint(s)
+  field_time_tracking: Time Tracking
+  field_issues: Issues
+  field_end_date: End Date
+  label_sprint_new: New Sprint
+  label_backlog: Backlog
+  field_monday_item_id: Monday Item ID
+  state_open: Open
+  state_closed: Closed
+  state_new: New
   field_calculated_priority: Priority
   label_issue_priority_updated: Urgency updated
   label_issue_impact_updated: Impact updated

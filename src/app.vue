@@ -487,7 +487,9 @@ export default defineComponent({
         {
           title: t("pages.admin-sidekiq.title"),
           prependIcon: "mdi-queue-first-in-last-out",
-          to: { name: "admin-sidekiq" },
+          // to: { name: "admin-sidekiq" },
+          href: "/admin/sidekiq",
+          target: "_blank",
         },
         {
           title: t("pages.admin.menu.title"),
@@ -495,7 +497,7 @@ export default defineComponent({
           to: { name: "admin" },
         },
       ].filter((i) => {
-        if (i.to.name === "admin-sidekiq") {
+        if (i.href === "/admin/sidekiq" || i.to?.name === "admin-sidekiq") {
           return (
             appData.value &&
             appData.value.friday &&

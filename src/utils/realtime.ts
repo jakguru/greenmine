@@ -2,6 +2,10 @@ import { appDebug } from "@/utils/app";
 import type { BusService } from "@jakguru/vueprint";
 import type Cable from "@rails/actioncable";
 
+export interface RealtimeModelEventPayload {
+  updated: number[];
+}
+
 export interface RealtimeApplicationUpdateEventPayload {
   updated: boolean;
 }
@@ -58,6 +62,24 @@ export const hookRealtime = (bus: BusService, consumer: Cable.Consumer) => {
         appDebug("Realtime updates channel for enumerations received", data);
         bus.emit(
           "rtu:enumerations",
+          {
+            local: true,
+          },
+          data,
+        );
+      },
+    },
+  );
+  consumer.subscriptions.create(
+    {
+      channel: "FridayPlugin::RealTimeUpdatesChannel",
+      room: "issues",
+    },
+    {
+      received(data: RealtimeModelEventPayload) {
+        appDebug("Realtime updates channel for issues received", data);
+        bus.emit(
+          "rtu:issues",
           {
             local: true,
           },

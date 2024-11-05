@@ -335,6 +335,24 @@ export const QueriesPartialDataTableCell = defineComponent({
             default:
               return toReturnByColumnKey.value;
           }
+        case "SprintsQuery":
+          switch (column.value.key) {
+            case "id":
+            case "name":
+              return h(
+                RouterLink,
+                {
+                  to: {
+                    name: "sprints-id",
+                    params: { id: item.value.id },
+                  },
+                  ...attrs.value,
+                },
+                value.value.display,
+              );
+            default:
+              return toReturnByColumnKey.value;
+          }
         case "TimeEntryQuery":
           switch (column.value.key) {
             default:
@@ -373,6 +391,18 @@ export const QueriesPartialDataTableCell = defineComponent({
               to: {
                 name: "users-id",
                 params: { id: value.value.value.id },
+              },
+              ...attrs.value,
+            },
+            value.value.display,
+          );
+        case "Sprint":
+          return h(
+            RouterLink,
+            {
+              to: {
+                name: "sprint-id",
+                params: { id: value.value.value.identifier },
               },
               ...attrs.value,
             },

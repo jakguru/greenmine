@@ -39,6 +39,9 @@ class UiController < ApplicationController
         },
         IssueQuery: {
           operators: IssueQuery.operators_by_filter_type
+        },
+        SprintsQuery: {
+          operators: SprintsQuery.operators_by_filter_type
         }
       },
       settings: {

@@ -1,6 +1,9 @@
 /// <reference types="vite/client" />
 
-import type { RealtimeApplicationUpdateEventPayload } from "./utils/realtime";
+import type {
+  RealtimeApplicationUpdateEventPayload,
+  RealtimeModelEventPayload,
+} from "./utils/realtime";
 
 declare module "@jakguru/vueprint" {
   interface BusEventCallbackSignatures {
@@ -16,6 +19,7 @@ declare module "@jakguru/vueprint" {
       data: RealtimeApplicationUpdateEventPayload,
       from?: string,
     ) => void;
+    "rtu:issues": (data: RealtimeModelEventPayload, from?: string) => void;
   }
 }
 export {};

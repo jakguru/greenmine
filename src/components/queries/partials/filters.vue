@@ -597,6 +597,7 @@ export default defineComponent({
             case "o":
             case "c":
             case "*":
+            case "!*":
               break;
             default:
               cells.push({

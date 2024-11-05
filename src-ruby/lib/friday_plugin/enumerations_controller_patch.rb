@@ -28,6 +28,7 @@ module FridayPlugin
             if @enumeration.update(enumeration_params)
               ActionCable.server.broadcast("rtu_application", {updated: true})
               ActionCable.server.broadcast("rtu_enumerations", {updated: true})
+              enqueue_realtime_updates
               render json: @enumeration
             else
               render json: {errors: @enumeration.errors.full_messages}, status: :unprocessable_entity
@@ -40,8 +41,7 @@ module FridayPlugin
         def create
           if request.post? && @enumeration.save
             flash[:notice] = l(:notice_successful_create)
-            ActionCable.server.broadcast("rtu_application", {updated: true})
-            ActionCable.server.broadcast("rtu_enumerations", {updated: true})
+            enqueue_realtime_updates
             redirect_to enumerations_path
           else
             render action: "new"
@@ -52,18 +52,26 @@ module FridayPlugin
           if !@enumeration.in_use?
             # No associated objects
             @enumeration.destroy
-            ActionCable.server.broadcast("rtu_application", {updated: true})
-            ActionCable.server.broadcast("rtu_enumerations", {updated: true})
+            enqueue_realtime_updates
             redirect_to enumerations_path
             return
           elsif params[:reassign_to_id].present? && (reassign_to = @enumeration.class.find_by_id(params[:reassign_to_id].to_i))
             @enumeration.destroy(reassign_to)
-            ActionCable.server.broadcast("rtu_application", {updated: true})
-            ActionCable.server.broadcast("rtu_enumerations", {updated: true})
+            enqueue_realtime_updates
             redirect_to enumerations_path
             return
           end
           @enumerations = @enumeration.class.system.to_a - [@enumeration]
+        end
+
+        private
+
+        def enqueue_realtime_updates
+          ActionCable.server.broadcast("rtu_application", {updated: true})
+          ActionCable.server.broadcast("rtu_enumerations", {updated: true})
+          if @enumeration.is_a?(IssuePriority) || @enumeration.is_a?(IssueImpact)
+            UpdateCalculatedPriorityWorker.perform_async
+          end
         end
       end
     end

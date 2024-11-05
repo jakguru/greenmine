@@ -45,7 +45,7 @@ module FridayHelper
         }
       },
       filters: {
-        current: query.filters,
+        current: query.filters.nil? ? {} : query.filters,
         available: query.available_filters
       },
       display: {
@@ -202,6 +202,29 @@ module FridayHelper
           url: new_project_time_entry_path(project)
         }
       end
+    elsif klass == SprintsQuery
+      ret << {
+        title: l(:label_sprint_new),
+        url: new_sprint_path
+      }
+      if user.allowed_to?(:add_project, nil, global: true) || user.admin?
+        ret << {
+          title: l(:label_project_new),
+          url: new_project_path
+        }
+      end
+      if user.allowed_to?(:add_issues, nil, global: true) || user.admin?
+        ret << {
+          title: l(:label_issue_new),
+          url: new_issue_path
+        }
+      end
+      if user.allowed_to?(:log_time, nil, global: true) || user.allowed_to?(:log_time_for_other_users, nil, global: true) || user.admin?
+        ret << {
+          title: l(:button_log_time),
+          url: new_time_entry_path
+        }
+      end
     end
 
     ret
@@ -294,8 +317,16 @@ module FridayHelper
         col_key = column[:key].to_s
 
         # Assuming entry has a method corresponding to `col_key`, call it.
-        if entry.respond_to?(col_key)
-          entry_hash[col_key] = make_entry_hash_value(entry.send(col_key), user)
+        entry_hash[col_key] = if entry.respond_to?(col_key)
+          make_entry_hash_value(entry.send(col_key), user)
+        # If the entry does not respond to the method, check if we can call a method with a different name
+        elsif entry.respond_to?(method = "value_for_#{col_key.tr(".", "_")}_field_hash")
+          # specific statement
+          make_entry_hash_value(entry.send(method), user)
+        else
+          # If the entry does not respond to the method, set the value to nil
+          Rails.logger.warn("Unable to make entry hash: entry does not respond to method '#{col_key}' or '#{method}'")
+          nil
         end
       end
     end

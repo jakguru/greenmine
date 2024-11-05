@@ -16,6 +16,7 @@
         </v-toolbar>
         <v-toolbar tag="nav" color="transparent" density="compact">
           <QueriesTabs :query="query" :queries="queries" />
+          <slot name="tabs" />
         </v-toolbar>
         <v-divider />
         <v-toolbar color="transparent">
@@ -175,7 +176,12 @@ import {
   QueriesPartialDataTable,
 } from "./partials";
 import type { PropType } from "vue";
-import type { ApiService, ToastService } from "@jakguru/vueprint";
+import type {
+  ApiService,
+  ToastService,
+  BusService,
+  BusEventCallbackSignatures,
+} from "@jakguru/vueprint";
 import type {
   QueryResponseParams,
   QueryResponsePayload,
@@ -184,6 +190,7 @@ import type {
   Permissions,
   Createable,
 } from "@/friday";
+import type { RealtimeModelEventPayload } from "@/utils/realtime";
 export default defineComponent({
   name: "QueriesPage",
   components: {
@@ -224,13 +231,19 @@ export default defineComponent({
       type: Array as PropType<Array<Createable>>,
       required: true,
     },
+    modelRealtimeUpdateKey: {
+      type: String as PropType<keyof BusEventCallbackSignatures | undefined>,
+      default: undefined,
+    },
   },
   setup(props) {
     const router = useRouter();
     const route = useRoute();
     const api = inject<ApiService>("api");
     const toast = inject<ToastService>("toast");
+    const bus = inject<BusService>("bus");
     const query = computed(() => props.query);
+    const modelRealtimeUpdateKey = computed(() => props.modelRealtimeUpdateKey);
     const value = ref<QueryData>(cloneObject(query.value));
     const payload = computed(() => props.payload);
     const payloadValue = ref<QueryResponsePayload>(cloneObject(payload.value));
@@ -357,6 +370,29 @@ export default defineComponent({
     router.afterEach(() => {
       submitting.value = false;
     });
+    const onModelRealtimeUpdate = (incoming: RealtimeModelEventPayload) => {
+      const currentEntityIds = [...payload.value.items].map((i) => i.id);
+      const hasMatch = incoming.updated.some((u) =>
+        currentEntityIds.includes(u),
+      );
+      if (hasMatch) {
+        onRefresh();
+      }
+    };
+    watch(
+      () => modelRealtimeUpdateKey.value,
+      (is, was) => {
+        if (bus) {
+          if (was) {
+            bus.off(was, onModelRealtimeUpdate, { local: true });
+          }
+          if (is) {
+            bus.on(is, onModelRealtimeUpdate, { local: true });
+          }
+        }
+      },
+      { immediate: true },
+    );
     return {
       onSubmit,
       onRefresh,

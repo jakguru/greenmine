@@ -1715,6 +1715,31 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/sprints",
+    name: "sprints",
+    component: () => import("@/pages/sprints/index.vue"),
+    meta: {
+      title: "pages.sprints.title",
+    },
+  },
+  {
+    path: "/sprints/:id",
+    name: "sprints-id",
+    // "component": () => import("@/pages/sys/fetch_changesets.vue")
+    component: fourOhFour,
+    meta: {
+      title: "pages.sprints-id.title",
+    },
+  },
+  {
+    path: "/sprints/new",
+    name: "sprints-new",
+    component: () => import("@/pages/sprints/new.vue"),
+    meta: {
+      title: "pages.sprints-new.title",
+    },
+  },
+  {
     path: "/settings/plugin/:id",
     name: "settings-plugin-id",
     component: () => import("@/pages/settings/plugin/id.vue"),

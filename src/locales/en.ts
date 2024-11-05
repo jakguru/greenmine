@@ -466,6 +466,16 @@ export default {
         error: "An error occurred while saving the plugin settings",
       },
     },
+    sprints: { title: "Sprints" },
+    "sprints-id": { title: "Sprint Management" },
+    "sprints-new": {
+      title: "Create a Sprint",
+      fields: {
+        name: "Sprint Name",
+        start_date: "Start Date",
+        end_date: "End Date",
+      },
+    },
     "sys-fetch-changesets": { title: "" },
     "sys-projects": { title: "" },
     "time-entries": { title: "" },
@@ -624,6 +634,7 @@ export default {
       ok: "Yes",
       cancel: "No",
     },
+    backlog: "Backlog",
   },
   theme: {
     base: {

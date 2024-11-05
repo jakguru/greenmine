@@ -69,6 +69,13 @@ export default defineComponent({
       },
       {
         to: {
+          name: "sprints",
+        },
+        icon: "mdi-debug-step-over",
+        label: t("pages.sprints.title"),
+      },
+      {
+        to: {
           name: "projects",
         },
         icon: "mdi-code-block-braces",
