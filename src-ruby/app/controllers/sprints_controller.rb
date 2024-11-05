@@ -98,7 +98,8 @@ class SprintsController < ApplicationController
     render json: {
       sprint: sprint,
       issues: issues,
-      progress: get_sprint_progress(sprint)
+      progress: get_sprint_progress(sprint),
+      workload: get_sprint_workload_allocation_by_role(sprint)
     }
   end
 
@@ -162,5 +163,73 @@ class SprintsController < ApplicationController
       daily_estimated: daily_estimated,
       daily_worked: daily_worked
     }
+  end
+
+  # Returns the list of users who are allowed to log time on issues in the sprint
+  # for each user we get the total number of assignable hours in the sprint
+  # vs the total number of hours logged by the user in the sprint for issues
+  # that are assigned to the user and are in the sprint
+  def get_sprint_workload_allocation_by_role(sprint)
+    non_working_week_days = Setting.send(:non_working_week_days).map(&:to_i)
+    sprint_start_date = sprint.start_date.to_date
+    sprint_end_date = sprint.end_date.to_date
+
+    # Calculate total assignable hours for each user within the sprint period
+    assignable_hours_per_user = {}
+    User.joins(memberships: :project).joins("LEFT JOIN groups_users ON groups_users.user_id = #{User.table_name}.id").joins("LEFT JOIN issues ON issues.assigned_to_id = groups_users.group_id")
+      .where("#{User.table_name}.status = ?", User::STATUS_ACTIVE)
+      .distinct
+      .each do |user|
+      assignable_hours = 0
+      (sprint_start_date..sprint_end_date).each do |date|
+        next if non_working_week_days.include?(date.wday)
+        assignable_hours += 7 # assuming 7 working hours per working day
+      end
+      assignable_hours_per_user[user.id] = assignable_hours
+    end
+
+    # Calculate total hours logged by each user for the issues in the sprint
+    hours_logged_per_user = TimeEntry.joins(:issue)
+      .where(issues: {sprint_id: sprint.id})
+      .select("user_id, SUM(hours) AS hours_logged")
+      .group(:user_id)
+
+    # Daily estimated and daily logged hours within the sprint period
+    daily_estimated = {}
+    daily_logged = {}
+
+    sprint.issues.each do |issue|
+      issue_start_date = issue.start_date.nil? ? sprint_start_date : issue.start_date.to_date
+      issue_due_date = issue.due_date.nil? ? sprint_end_date : issue.due_date.to_date
+
+      (issue_start_date..issue_due_date).each do |date|
+        next if non_working_week_days.include?(date.wday) || date < sprint_start_date || date > sprint_end_date
+
+        daily_estimated[date] ||= 0
+        daily_estimated[date] += (issue.estimated_hours.to_f / (issue_due_date - issue_start_date + 1).to_i) if issue.estimated_hours
+        if issue.assigned_to.is_a?(Group)
+          issue.assigned_to.users.each do |user|
+            daily_estimated[date] += (issue.estimated_hours.to_f / (issue_due_date - issue_start_date + 1).to_i)
+          end
+        end
+
+        daily_logged[date] ||= 0
+        daily_logged[date] += issue.time_entries.where("spent_on = ?", date).sum(:hours).to_f
+      end
+    end
+
+    # Merge the data to get workload allocation by user
+    assignable_hours_per_user.map do |user_id, assignable_hours|
+      logged_data = hours_logged_per_user.find { |h| h.user_id == user_id }
+      hours_logged = logged_data ? logged_data.hours_logged : 0
+
+      {
+        user_id: user_id,
+        assignable_hours: assignable_hours,
+        hours_logged: hours_logged,
+        daily_estimated: daily_estimated,
+        daily_logged: daily_logged
+      }
+    end
   end
 end
