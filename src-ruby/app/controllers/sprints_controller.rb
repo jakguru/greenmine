@@ -99,7 +99,11 @@ class SprintsController < ApplicationController
       sprint: sprint,
       issues: issues,
       progress: get_sprint_progress(sprint),
-      workload: get_sprint_workload_allocation_by_role(sprint)
+      workload: get_sprint_workload_allocation_by_role(sprint),
+      by_calculated_priority: get_sprint_breakdown_by_calculated_priority(sprint),
+      by_tracker: get_sprint_breakdown_by_tracker(sprint),
+      by_activity: get_sprint_breakdown_by_activity(sprint),
+      by_project: get_sprint_breakdown_by_project(sprint)
     }
   end
 
@@ -173,13 +177,13 @@ class SprintsController < ApplicationController
     non_working_week_days = Setting.send(:non_working_week_days).map(&:to_i)
     sprint_start_date = sprint.start_date.to_date
     sprint_end_date = sprint.end_date.to_date
-
+  
     # Calculate total assignable hours for each user within the sprint period
     assignable_hours_per_user = {}
-    User.joins(memberships: :project).joins("LEFT JOIN groups_users ON groups_users.user_id = #{User.table_name}.id").joins("LEFT JOIN issues ON issues.assigned_to_id = groups_users.group_id")
-      .where("#{User.table_name}.status = ?", User::STATUS_ACTIVE)
-      .distinct
-      .each do |user|
+    User.joins(memberships: :project).joins("LEFT JOIN groups_users ON groups_users.user_id = #{User.table_name}.id").joins('LEFT JOIN issues ON issues.assigned_to_id = groups_users.group_id')
+        .where("#{User.table_name}.status = ?", User::STATUS_ACTIVE)
+        .distinct
+        .each do |user|
       assignable_hours = 0
       (sprint_start_date..sprint_end_date).each do |date|
         next if non_working_week_days.include?(date.wday)
@@ -187,49 +191,131 @@ class SprintsController < ApplicationController
       end
       assignable_hours_per_user[user.id] = assignable_hours
     end
-
+  
     # Calculate total hours logged by each user for the issues in the sprint
-    hours_logged_per_user = TimeEntry.joins(:issue)
-      .where(issues: {sprint_id: sprint.id})
-      .select("user_id, SUM(hours) AS hours_logged")
-      .group(:user_id)
-
-    # Daily estimated and daily logged hours within the sprint period
-    daily_estimated = {}
-    daily_logged = {}
-
+    hours_logged_per_user = sprint.is_a?(BacklogSprint) ? TimeEntry.joins(:issue)
+                                      .where("NOT EXISTS (SELECT 1 FROM issue_sprints WHERE issue_sprints.issue_id = issues.id)")
+                                      .select("user_id, SUM(hours) AS hours_logged")
+                                      .group(:user_id) :
+                                      TimeEntry.joins(:issue)
+                                     .joins("INNER JOIN issue_sprints ON issue_sprints.issue_id = issues.id AND issue_sprints.sprint_id = #{sprint.id}")
+                                     .select("user_id, SUM(hours) AS hours_logged")
+                                     .group(:user_id)
+  
     sprint.issues.each do |issue|
       issue_start_date = issue.start_date.nil? ? sprint_start_date : issue.start_date.to_date
       issue_due_date = issue.due_date.nil? ? sprint_end_date : issue.due_date.to_date
-
+  
       (issue_start_date..issue_due_date).each do |date|
         next if non_working_week_days.include?(date.wday) || date < sprint_start_date || date > sprint_end_date
-
-        daily_estimated[date] ||= 0
-        daily_estimated[date] += (issue.estimated_hours.to_f / (issue_due_date - issue_start_date + 1).to_i) if issue.estimated_hours
-        if issue.assigned_to.is_a?(Group)
-          issue.assigned_to.users.each do |user|
-            daily_estimated[date] += (issue.estimated_hours.to_f / (issue_due_date - issue_start_date + 1).to_i)
-          end
-        end
-
-        daily_logged[date] ||= 0
-        daily_logged[date] += issue.time_entries.where("spent_on = ?", date).sum(:hours).to_f
       end
     end
-
+  
     # Merge the data to get workload allocation by user
-    assignable_hours_per_user.map do |user_id, assignable_hours|
+    workload_allocation = assignable_hours_per_user.map do |user_id, assignable_hours|
+      user = User.select(:id, :firstname, :lastname).find(user_id)
       logged_data = hours_logged_per_user.find { |h| h.user_id == user_id }
       hours_logged = logged_data ? logged_data.hours_logged : 0
-
+  
       {
-        user_id: user_id,
+        user: { id: user.id, firstname: user.firstname, lastname: user.lastname },
         assignable_hours: assignable_hours,
         hours_logged: hours_logged,
-        daily_estimated: daily_estimated,
-        daily_logged: daily_logged
       }
     end
+  
+    workload_allocation
+  end
+  
+  # Returns the breakdown of hours estimated & hours logged for all of the issues in the sprint, grouped by calculated priority
+  def get_sprint_breakdown_by_calculated_priority(sprint)
+    breakdown = {}
+  
+    sprint.issues.includes(:time_entries).group_by(&:calculated_priority).each do |priority, issues|
+      total_estimated_hours = 0
+      total_logged_hours = 0
+  
+      issues.each do |issue|
+        total_estimated_hours += issue.estimated_hours.to_f if issue.estimated_hours
+        total_logged_hours += issue.time_entries.sum(:hours).to_f
+      end
+  
+      breakdown[priority] = {
+        total_estimated_hours: total_estimated_hours,
+        total_logged_hours: total_logged_hours
+      }
+    end
+  
+    breakdown
+  end
+
+  # Returns the breakdown of hours estimated & hours logged for all of the issues in the sprint, grouped by tracker
+  def get_sprint_breakdown_by_tracker(sprint)
+    breakdown = {}
+  
+    sprint.issues.includes(:time_entries).group_by(&:tracker).each do |tracker, issues|
+      total_estimated_hours = 0
+      total_logged_hours = 0
+  
+      issues.each do |issue|
+        total_estimated_hours += issue.estimated_hours.to_f if issue.estimated_hours
+        total_logged_hours += issue.time_entries.sum(:hours).to_f
+      end
+  
+      breakdown[tracker.name] = {
+        total_estimated_hours: total_estimated_hours,
+        total_logged_hours: total_logged_hours
+      }
+    end
+  
+    breakdown
+  end
+
+  # Returns the breakdown of hours logged for all of the issues in the sprint, grouped by the logged activity
+  def get_sprint_breakdown_by_activity(sprint)
+    breakdown = {}
+  
+    sprint.issues.joins(:time_entries).group_by { |issue| issue.time_entries.map(&:activity) }.each do |activities, issues|
+      total_estimated_hours = 0
+      total_logged_hours = 0
+  
+      activities.each do |activity|
+        next if activity.nil?
+  
+        issues.each do |issue|
+          total_estimated_hours += issue.estimated_hours.to_f if issue.estimated_hours
+          total_logged_hours += issue.time_entries.where(activity: activity).sum(:hours).to_f
+        end
+  
+        breakdown[activity.name] = {
+          total_estimated_hours: total_estimated_hours,
+          total_logged_hours: total_logged_hours
+        }
+      end
+    end
+  
+    breakdown
+  end
+
+  # Returns the breakdown of hours estimated & hours logged for all of the issues in the sprint, grouped by project
+  def get_sprint_breakdown_by_project(sprint)
+    breakdown = {}
+  
+    sprint.issues.includes(:time_entries, :project).group_by(&:project).each do |project, issues|
+      total_estimated_hours = 0
+      total_logged_hours = 0
+  
+      issues.each do |issue|
+        total_estimated_hours += issue.estimated_hours.to_f if issue.estimated_hours
+        total_logged_hours += issue.time_entries.sum(:hours).to_f
+      end
+  
+      breakdown[project.name] = {
+        total_estimated_hours: total_estimated_hours,
+        total_logged_hours: total_logged_hours
+      }
+    end
+  
+    breakdown
   end
 end
