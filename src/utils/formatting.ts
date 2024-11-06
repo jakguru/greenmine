@@ -9,7 +9,7 @@ export const formatDate = (value: string | null) => {
   if (!dto.isValid) {
     return "";
   }
-  return dto.toLocaleString(DateTime.DATE_MED);
+  return dto.toUTC().toLocaleString(DateTime.DATE_MED);
 };
 
 export const formatDateAsUTC = (value: string | null) => {

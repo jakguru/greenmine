@@ -203,10 +203,12 @@ module FridayHelper
         }
       end
     elsif klass == SprintsQuery
-      ret << {
-        title: l(:label_sprint_new),
-        url: new_sprint_path
-      }
+      if user.allowed_to?(:manage_sprints, nil, global: true) || user.admin?
+        ret << {
+          title: l(:label_sprint_new),
+          url: new_sprint_path
+        }
+      end
       if user.allowed_to?(:add_project, nil, global: true) || user.admin?
         ret << {
           title: l(:label_project_new),

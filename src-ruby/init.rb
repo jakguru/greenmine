@@ -15,6 +15,8 @@ Redmine::Plugin.register :friday do
 
   settings partial: "settings/friday",
     default: {
+      "users_allowed_to_manage_sprints" => [],
+      "groups_allowed_to_manage_sprints" => [],
       "repository_base_path" => "/var/redmine/repos",
       "monday_access_token" => "",
       "monday_board_id" => "",
@@ -34,6 +36,9 @@ Redmine::Plugin.register :friday do
       "chatgpt_project_id" => "",
       "chatgpt_enabled" => "0"
     }
+
+  permission :assign_to_sprint, require: :member
+  permission :unassign_from_sprint, require: :member
 end
 
 if ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")

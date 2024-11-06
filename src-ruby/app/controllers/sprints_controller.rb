@@ -105,7 +105,14 @@ class SprintsController < ApplicationController
       byCalculatedPriority: sprint.get_breakdown_by_calculated_priority,
       byTracker: sprint.get_breakdown_by_tracker,
       byActivity: sprint.get_breakdown_by_activity,
-      byProject: sprint.get_breakdown_by_project
+      byProject: sprint.get_breakdown_by_project,
+      navigation: {
+        next: sprint.next_sprint_id,
+        previous: sprint.previous_sprint_id
+      },
+      permissions: {
+        edit: User.current.allowed_to?(:manage_sprints, nil, global: true) || User.current.admin?
+      }
     }
   end
 end

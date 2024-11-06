@@ -815,6 +815,30 @@ module FridayPlugin
                       formKey: "plugin_friday_chatgpt_enabled"
                     },
                     value: Setting["plugin_friday"]["chatgpt_enabled"]
+                  },
+                  "plugin_friday.users_allowed_to_manage_sprints": {
+                    type: "select",
+                    props: {
+                      formKey: "plugin_friday_users_allowed_to_manage_sprints",
+                      items: User
+                        .where("status IN (#{User::STATUS_ACTIVE})")
+                        .where("admin = 0")
+                        .collect { |u| {value: u.id.to_s, label: u.name} },
+                      multiple: true
+                    },
+                    value: Setting["plugin_friday"]["users_allowed_to_manage_sprints"]
+                  },
+                  "plugin_friday.groups_allowed_to_manage_sprints": {
+                    type: "select",
+                    props: {
+                      formKey: "plugin_friday_groups_allowed_to_manage_sprints",
+                      items: Group
+                        .where("status IN (#{User::STATUS_ACTIVE})")
+                        .where("type = 'Group'")
+                        .collect { |u| {value: u.id.to_s, label: u.name} },
+                      multiple: true
+                    },
+                    value: Setting["plugin_friday"]["groups_allowed_to_manage_sprints"]
                   }
                 }
               }

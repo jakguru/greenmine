@@ -277,6 +277,7 @@ export default {
           display: "Display",
           authentication: "Authentication",
           api: "API",
+          sprints: "Sprints",
           projects: "Projects",
           users: "Users",
           issues: "Issue Tracking",
@@ -408,6 +409,10 @@ export default {
             totalable_names: "Default Totals Displayed",
           },
           plugin_friday: {
+            users_allowed_to_manage_sprints:
+              "Non-admin users allowed to manage sprints",
+            groups_allowed_to_manage_sprints:
+              "Groups whos non-admin members are allowed to manage sprints",
             repository_base_path: "Repository Storage Directory Path",
             monday_access_token: "Monday.com API Access Token",
             monday_board_id: "Monday.com Board ID",
@@ -469,7 +474,18 @@ export default {
     sprints: { title: "Sprints" },
     "sprints-id": {
       title: "Sprint Management",
-      specificTitle: "Manage Sprint #{id}: {name}",
+      specificTitle: "Sprint #{id}: {name}",
+      onSave: {
+        success: "Settings updated successfully",
+        error: "An error occurred while updating the settings",
+      },
+      content: {
+        tabs: {
+          summary: "Summary",
+          issues: "Issues",
+          edit: "Edit",
+        },
+      },
     },
     "sprints-new": {
       title: "Create a Sprint",
@@ -477,6 +493,10 @@ export default {
         name: "Sprint Name",
         start_date: "Start Date",
         end_date: "End Date",
+      },
+      onSave: {
+        success: "Settings updated successfully",
+        error: "An error occurred while updating the settings",
       },
     },
     "sys-fetch-changesets": { title: "" },

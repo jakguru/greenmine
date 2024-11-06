@@ -391,6 +391,8 @@ export interface SettingsPayloadSettings {
   "plugin_friday.chatgpt_org_id": TextSettingField;
   "plugin_friday.chatgpt_project_id": TextSettingField;
   "plugin_friday.chatgpt_enabled": CheckboxSettingField;
+  "plugin_friday.users_allowed_to_manage_sprints": SelectMultipleSettingField;
+  "plugin_friday.groups_allowed_to_manage_sprints": SelectMultipleSettingField;
 }
 
 export type SettingField =
@@ -631,4 +633,13 @@ export interface BreakdownByProject {
   project: string;
   total_estimated_hours: number;
   total_logged_hours: number;
+}
+
+export interface SprintNavigation {
+  next: number;
+  previous: number;
+}
+
+export interface SprintPermissions {
+  edit: boolean;
 }

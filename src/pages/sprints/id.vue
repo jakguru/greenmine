@@ -13,9 +13,21 @@
             })
           }}
         </v-toolbar-title>
+        <v-toolbar-items class="ms-auto">
+          <v-btn
+            :to="{ name: 'sprints-id', params: { id: navigation.previous } }"
+          >
+            <v-icon>mdi-chevron-left</v-icon>
+          </v-btn>
+          <v-btn :to="{ name: 'sprints-id', params: { id: navigation.next } }">
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-btn>
+        </v-toolbar-items>
       </v-toolbar>
       <v-divider />
       <v-breadcrumbs v-bind="breadcrumbsBindings" />
+      <v-divider />
+      <v-tabs v-bind="vTabBindings" />
       <v-divider />
       <FridayForm
         v-bind="fridayFormBindings"
@@ -66,7 +78,7 @@ import { defineComponent, computed, inject, onMounted } from "vue";
 import { useHead } from "@unhead/vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useSystemAccentColor } from "@/utils/app";
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 
@@ -84,6 +96,8 @@ import type {
   BreakdownByTracker,
   BreakdownByActivity,
   BreakdownByProject,
+  SprintNavigation,
+  SprintPermissions,
 } from "@/friday";
 
 export default defineComponent({
@@ -130,14 +144,24 @@ export default defineComponent({
       type: Object as PropType<BreakdownByProject>,
       required: true,
     },
+    navigation: {
+      type: Object as PropType<SprintNavigation>,
+      required: true,
+    },
+    permissions: {
+      type: Object as PropType<SprintPermissions>,
+      required: true,
+    },
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
     const swal = inject<SwalService>("swal");
+    const route = useRoute();
     const router = useRouter();
     const accentColor = useSystemAccentColor();
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const sprint = computed(() => props.sprint);
+    const permissions = computed(() => props.permissions);
     const { t } = useI18n({ useScope: "global" });
     const breadcrumbsBindings = computed(() => ({
       items: [
@@ -149,6 +173,34 @@ export default defineComponent({
           }),
         },
       ],
+    }));
+    const tabs = computed(() =>
+      [
+        { text: t("pages.sprints-id.content.tabs.summary"), value: "summary" },
+        { text: t("pages.sprints-id.content.tabs.issues"), value: "issues" },
+        permissions.value.edit
+          ? { text: t("pages.sprints-id.content.tabs.edit"), value: "edit" }
+          : undefined,
+      ].filter((v) => "undefined" !== typeof v),
+    );
+    const tab = computed({
+      get: () => (route.query.tab as string | undefined) ?? "summary",
+      set: (v: string) => {
+        router.push({ query: Object.assign({}, route.query, { tab: v }) });
+      },
+    });
+    const vTabBindings = computed(() => ({
+      modelValue: tab.value,
+      items: tabs.value,
+      density: "compact" as const,
+      mandatory: true,
+      showArrows: true,
+      sliderColor: "accent",
+      "onUpdate:modelValue": (v: unknown) => {
+        if (typeof v === "string") {
+          tab.value = v;
+        }
+      },
     }));
     const modifyPayload = (payload: Record<string, unknown>) => {
       return {
@@ -267,6 +319,8 @@ export default defineComponent({
     });
     return {
       breadcrumbsBindings,
+      vTabBindings,
+      tab,
       fridayFormBindings,
       accentColor,
       onSuccess,

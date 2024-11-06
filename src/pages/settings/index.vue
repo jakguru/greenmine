@@ -142,6 +142,7 @@ export default defineComponent({
       { text: t("pages.settings.content.tabs.general"), value: "general" },
       { text: t("pages.settings.content.tabs.display"), value: "display" },
       { text: t("pages.settings.content.tabs.users"), value: "users" },
+      { text: t("pages.settings.content.tabs.sprints"), value: "sprints" },
       { text: t("pages.settings.content.tabs.projects"), value: "projects" },
       { text: t("pages.settings.content.tabs.issues"), value: "issues" },
       {
@@ -1169,6 +1170,21 @@ export default defineComponent({
                 cols: 12,
                 md: 4,
               }),
+            ],
+          ];
+        case "sprints":
+          return [
+            [
+              makeFridayFormFieldFor(
+                "plugin_friday.users_allowed_to_manage_sprints",
+                { cols: 12 },
+              ),
+            ],
+            [
+              makeFridayFormFieldFor(
+                "plugin_friday.groups_allowed_to_manage_sprints",
+                { cols: 12 },
+              ),
             ],
           ];
         default:

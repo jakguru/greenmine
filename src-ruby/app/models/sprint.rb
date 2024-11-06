@@ -4,7 +4,7 @@ class Sprint < ActiveRecord::Base
   has_many :issues, through: :issue_sprints
 
   validates :name, :start_date, :end_date, presence: true
-  validate :no_overlap, :dates_consistency
+  validate :can_edit, :no_overlap, :dates_consistency
 
   # Hook to call after save
   # after_save :trigger_sprint_webhook
@@ -18,10 +18,15 @@ class Sprint < ActiveRecord::Base
     BacklogSprint.new.to_hash
   end
 
+  def can_edit
+    user.allowed_to?(:manage_sprints, nil, global: true) || user.admin?
+  end
+
   # Check sprint overlap
   def no_overlap
-    # overlapping_sprints = Sprint.where('(start_date <= ? AND end_date >= ?) OR (start_date <= ? AND end_date >= ?)', start_date, start_date, end_date, end_date)
-    # errors.add(:base, 'Sprints cannot overlap') if overlapping_sprints.exists?
+    overlapping_sprints = Sprint.where.not(id: id)
+      .where("(start_date < ? AND end_date > ?) OR (start_date < ? AND end_date > ?)", end_date, start_date, end_date, start_date)
+    errors.add(:base, "Sprints cannot overlap") if overlapping_sprints.exists?
   end
 
   # Check start/end date consistency
@@ -84,6 +89,20 @@ class Sprint < ActiveRecord::Base
       estimated: estimated_hours_by_status,
       worked: worked_hours_by_status
     }
+  end
+
+  def next_sprint_id
+    if is_a?(BacklogSprint)
+      return Sprint.order(start_date: :asc).first&.id || 0
+    end
+    Sprint.where("start_date >= ?", end_date.to_date).order(start_date: :asc).first&.id || 0
+  end
+
+  def previous_sprint_id
+    if is_a?(BacklogSprint)
+      return Sprint.order(end_date: :desc).first&.id || 0
+    end
+    Sprint.where("end_date <= ?", start_date.to_date).order(end_date: :desc).first&.id || 0
   end
 
   def get_workload_allocation_by_role
