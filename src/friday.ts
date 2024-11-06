@@ -541,3 +541,94 @@ export interface EnumerableProp {
   name: string;
   values: EnumerableValue[];
 }
+
+export interface SprintResponse {
+  sprint: Sprint;
+  issues: QueryResponse<Issue>;
+  progress: Progress;
+  workload: WorkloadAllocation[];
+  releases: Release[];
+  by_calculated_priority: BreakdownByCalculatedPriority[];
+  by_tracker: BreakdownByTracker[];
+  by_activity: BreakdownByActivity[];
+  by_project: BreakdownByProject[];
+}
+
+export interface Sprint {
+  id: number | null;
+  name: string;
+  state?: string;
+  start_date: string; // ISO string format
+  end_date: string; // ISO string format
+  total_estimated_work?: number;
+  total_time_logged?: number;
+  progress?: number;
+}
+
+export interface Issue {
+  id: number;
+  entry: EntryHash;
+  level: number;
+  group_name?: string;
+  group_count?: number;
+  group_totals?: GroupTotals;
+  calculated_priority?: string;
+  tracker?: Tracker;
+  project?: Project;
+  estimated_hours?: number;
+  logged_hours?: number;
+  status?: string;
+}
+
+export interface Tracker {
+  id: number;
+  name: string;
+}
+
+export interface Progress {
+  percent_complete: number;
+  completed_points?: number;
+  total_points?: number;
+}
+
+export interface WorkloadAllocation {
+  user: User;
+  assignable_hours: number;
+  hours_logged: number;
+}
+
+export interface User {
+  id: number;
+  firstname: string;
+  lastname: string;
+}
+
+export interface Release {
+  id: number;
+  name: string;
+  date: string; // ISO string format
+}
+
+export interface BreakdownByCalculatedPriority {
+  priority: string;
+  total_estimated_hours: number;
+  total_logged_hours: number;
+}
+
+export interface BreakdownByTracker {
+  tracker: string;
+  total_estimated_hours: number;
+  total_logged_hours: number;
+}
+
+export interface BreakdownByActivity {
+  activity: string;
+  total_estimated_hours: number;
+  total_logged_hours: number;
+}
+
+export interface BreakdownByProject {
+  project: string;
+  total_estimated_hours: number;
+  total_logged_hours: number;
+}

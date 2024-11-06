@@ -88,4 +88,22 @@ export const hookRealtime = (bus: BusService, consumer: Cable.Consumer) => {
       },
     },
   );
+  consumer.subscriptions.create(
+    {
+      channel: "FridayPlugin::RealTimeUpdatesChannel",
+      room: "sprints",
+    },
+    {
+      received(data: RealtimeModelEventPayload) {
+        appDebug("Realtime updates channel for sprints received", data);
+        bus.emit(
+          "rtu:sprints",
+          {
+            local: true,
+          },
+          data,
+        );
+      },
+    },
+  );
 };

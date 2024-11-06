@@ -467,7 +467,10 @@ export default {
       },
     },
     sprints: { title: "Sprints" },
-    "sprints-id": { title: "Sprint Management" },
+    "sprints-id": {
+      title: "Sprint Management",
+      specificTitle: "Manage Sprint #{id}: {name}",
+    },
     "sprints-new": {
       title: "Create a Sprint",
       fields: {
@@ -635,6 +638,13 @@ export default {
       cancel: "No",
     },
     backlog: "Backlog",
+    sprint: {
+      state: {
+        current: "Current",
+        future: "Future",
+        closed: "Closed",
+      },
+    },
   },
   theme: {
     base: {

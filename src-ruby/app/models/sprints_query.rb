@@ -5,34 +5,12 @@ class SprintsQuery < Query
     QueryColumn.new(:id, sortable: "#{Sprint.table_name}.id",
       default_order: "desc", caption: "#", frozen: true),
     QueryColumn.new(:name, sortable: "#{Sprint.table_name}.name"),
+    QueryColumn.new(:state),
     QueryColumn.new(:start_date, sortable: "#{Sprint.table_name}.start_date"),
     QueryColumn.new(:end_date, sortable: "#{Sprint.table_name}.end_date"),
-    QueryManyToManyColumn.new(
-      Sprint.table_name,
-      "id",
-      Issue.table_name,
-      "id",
-      "name",
-      :issue_sprints,
-      :sprint_id,
-      :issue_id,
-      caption: l(:field_issues),
-      sortable: false,
-      groupable: false,
-      value_formatter: lambda { |sprint|
-        if sprint.is_a?(Array)
-          Rails.logger.info("#{sprint} is an array")
-          sprint.map do |s|
-            s.to_s
-          end.join(", ").html_safe
-        elsif sprint.is_a?(Issue)
-          sprint.to_s
-        else
-          Rails.logger.info("#{sprint} is neither an array nor a Issue")
-          sprint.to_s
-        end
-      }
-    )
+    QueryColumn.new(:total_estimated_work),
+    QueryColumn.new(:total_time_logged),
+    QueryColumn.new(:progress)
   ]
 
   def initialize(attributes = nil, *args)
@@ -57,7 +35,7 @@ class SprintsQuery < Query
   end
 
   def default_columns_names
-    @default_columns_names ||= [:id, :name, :start_date, :end_date, "issue_sprints.name"]
+    @default_columns_names ||= [:id, :name, :state, :start_date, :end_date, :total_estimated_work, :total_time_logged, :progress]
   end
 
   def default_sort_criteria

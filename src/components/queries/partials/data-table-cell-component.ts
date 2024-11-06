@@ -6,6 +6,8 @@ import {
   formatDateTime,
   formatDateTimeAsUTC,
   formatDuration,
+  formatDate,
+  formatDateAsUTC,
 } from "@/utils/formatting";
 import { useAppData } from "@/utils/app";
 import { calculateColorForPriority } from "@/utils/colors";
@@ -125,6 +127,24 @@ interface DataTableItem<T = any>
     [key: string]: any;
   };
 }
+
+type SprintState =
+  | "sprint.state.current"
+  | "sprint.state.future"
+  | "sprint.state.closed";
+
+const getColorForSprintState = (state: SprintState) => {
+  switch (state) {
+    case "sprint.state.current":
+      return "success";
+    case "sprint.state.future":
+      return "primary";
+    case "sprint.state.closed":
+      return "mud";
+    default:
+      return "grey";
+  }
+};
 
 export const QueriesPartialDataTableCell = defineComponent({
   name: "QueriesPartialDataTableCell",
@@ -350,6 +370,32 @@ export const QueriesPartialDataTableCell = defineComponent({
                 },
                 value.value.display,
               );
+            case "state":
+              return h(
+                VChip,
+                {
+                  color: getColorForSprintState(value.value.value),
+                  variant: "flat",
+                  size: "small",
+                  class: ["font-weight-bold"],
+                  ...attrs.value,
+                },
+                t(`labels.${value.value.value}`),
+              );
+            case "progress":
+              return h(
+                VProgressLinear,
+                {
+                  value: value.value.value,
+                  color: value.value.value === 100 ? "success" : "accent",
+                  height: 20,
+                  ...attrs.value,
+                },
+                { default: () => h("small", `${value.value.display}%`) },
+              );
+            case "total_estimated_work":
+            case "total_time_logged":
+              return h("code", attrs.value, formatDuration(value.value.value));
             default:
               return toReturnByColumnKey.value;
           }
@@ -457,14 +503,27 @@ export const QueriesPartialDataTableCell = defineComponent({
             value.value.display,
           );
         case "ActiveSupport::TimeWithZone":
-          return h(
-            "abbr",
-            {
-              title: formatDateTimeAsUTC(value.value.value),
-              ...attrs.value,
-            },
-            formatDateTime(value.value.value),
-          );
+          switch (column.value.key) {
+            case "start_date":
+            case "end_date":
+              return h(
+                "abbr",
+                {
+                  title: formatDateAsUTC(value.value.value),
+                  ...attrs.value,
+                },
+                formatDate(value.value.value),
+              );
+            default:
+              return h(
+                "abbr",
+                {
+                  title: formatDateTimeAsUTC(value.value.value),
+                  ...attrs.value,
+                },
+                formatDateTime(value.value.value),
+              );
+          }
         case "TrueClass":
           return h(
             VChip,

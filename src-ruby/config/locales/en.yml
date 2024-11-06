@@ -6,6 +6,10 @@ en:
   field_time_tracking: Time Tracking
   field_issues: Issues
   field_end_date: End Date
+  field_state: State
+  field_progress: Progress
+  field_total_estimated_work: Total Estimated Work
+  field_total_time_logged: Total Time Logged
   label_sprint_new: New Sprint
   label_backlog: Backlog
   field_monday_item_id: Monday Item ID
@@ -15,3 +19,6 @@ en:
   field_calculated_priority: Priority
   label_issue_priority_updated: Urgency updated
   label_issue_impact_updated: Impact updated
+  sprint_state_future: Future
+  sprint_state_closed: Closed
+  sprint_state_current: Current

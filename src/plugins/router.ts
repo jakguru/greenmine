@@ -1725,8 +1725,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/sprints/:id",
     name: "sprints-id",
-    // "component": () => import("@/pages/sys/fetch_changesets.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/sprints/id.vue"),
     meta: {
       title: "pages.sprints-id.title",
     },
