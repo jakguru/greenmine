@@ -1,6 +1,17 @@
 import { DateTime, Duration } from "luxon";
 import ordinal from "ordinal";
 
+export const toISODate = (value: string | null) => {
+  if (!value) {
+    return "";
+  }
+  const dto = DateTime.fromISO(value);
+  if (!dto.isValid) {
+    return "";
+  }
+  return dto.toUTC().toISODate();
+};
+
 export const formatDate = (value: string | null) => {
   if (!value) {
     return "";

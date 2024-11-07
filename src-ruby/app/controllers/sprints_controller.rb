@@ -47,6 +47,11 @@ class SprintsController < ApplicationController
     end
   end
 
+  def show_burndown
+    find_sprint
+    render json: @sprint.get_burndown
+  end
+
   def update
     if @sprint.update(sprint_params)
       render json: @sprint, status: 201
@@ -99,8 +104,9 @@ class SprintsController < ApplicationController
       formAuthenticityToken: form_authenticity_token,
       sprint: sprint,
       issues: issues,
+      rate: sprint.progress,
       progress: sprint.get_progress,
-      workload: sprint.get_workload_allocation_by_role,
+      workload: sprint.get_workload,
       releases: sprint.get_releases,
       byCalculatedPriority: sprint.get_breakdown_by_calculated_priority,
       byTracker: sprint.get_breakdown_by_tracker,

@@ -202,6 +202,11 @@ export const useAppData = () => {
   });
 };
 
+export const useIsDark = () => {
+  const theme = useTheme();
+  return computed(() => (theme.current.value.dark ? true : false));
+};
+
 export const useSystemAppBarColor = () => {
   const theme = useTheme();
   return computed(() =>

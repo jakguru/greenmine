@@ -90,6 +90,9 @@ importers:
       dot-object:
         specifier: ^2.1.5
         version: 2.1.5
+      echarts:
+        specifier: ^5.5.1
+        version: 5.5.1
       eslint:
         specifier: ^9.11.0
         version: 9.11.1(jiti@2.3.3)
@@ -207,6 +210,9 @@ importers:
       vue:
         specifier: ^3.5.8
         version: 3.5.8(typescript@5.6.2)
+      vue-echarts:
+        specifier: ^7.0.3
+        version: 7.0.3(@vue/runtime-core@3.5.8)(echarts@5.5.1)(vue@3.5.8(typescript@5.6.2))
       vue-eslint-parser:
         specifier: ^9.4.3
         version: 9.4.3(eslint@9.11.1(jiti@2.3.3))
@@ -1445,6 +1451,9 @@ packages:
     resolution: {integrity: sha512-xHF8EP4XH/Ba9fvAF2LDd5O3IITVolerVV6xvkxoM8zlGEiCUrggpAnHyOoKJKCrhvPcGATFAUwIujj7bRG5UA==}
     hasBin: true
 
+  echarts@5.5.1:
+    resolution: {integrity: sha512-Fce8upazaAXUVUVsjgV6mBnGuqgO+JNDlcgF79Dksy4+wgGpQB2lmYoO4TSweFg/mZITdpGHomw/cNBJZj1icA==}
+
   elliptic@6.5.7:
     resolution: {integrity: sha512-ESVCtTwiA+XhY3wyh24QqRGBoP3rEdDUl3EDUUo9tft074fi19IrdpH7hLCMMP3CIj7jb3W96rn8lt/BqIlt5Q==}
 
@@ -2609,6 +2618,9 @@ packages:
     peerDependencies:
       typescript: '>=4.2.0'
 
+  tslib@2.3.0:
+    resolution: {integrity: sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==}
+
   tslib@2.7.0:
     resolution: {integrity: sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==}
 
@@ -2795,6 +2807,17 @@ packages:
   vscode-uri@3.0.8:
     resolution: {integrity: sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw==}
 
+  vue-demi@0.13.11:
+    resolution: {integrity: sha512-IR8HoEEGM65YY3ZJYAjMlKygDQn25D5ajNFNoKh9RSDMQtlzCxtfQjdQgv9jjK+m3377SsJXY8ysq8kLCZL25A==}
+    engines: {node: '>=12'}
+    hasBin: true
+    peerDependencies:
+      '@vue/composition-api': ^1.0.0-rc.1
+      vue: ^3.0.0-0 || ^2.6.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
     engines: {node: '>=12'}
@@ -2804,6 +2827,16 @@ packages:
       vue: ^3.0.0-0 || ^2.6.0
     peerDependenciesMeta:
       '@vue/composition-api':
+        optional: true
+
+  vue-echarts@7.0.3:
+    resolution: {integrity: sha512-/jSxNwOsw5+dYAUcwSfkLwKPuzTQ0Cepz1LxCOpj2QcHrrmUa/Ql0eQqMmc1rTPQVrh2JQ29n2dhq75ZcHvRDw==}
+    peerDependencies:
+      '@vue/runtime-core': ^3.0.0
+      echarts: ^5.5.1
+      vue: ^2.7.0 || ^3.1.1
+    peerDependenciesMeta:
+      '@vue/runtime-core':
         optional: true
 
   vue-eslint-parser@9.4.3:
@@ -2963,6 +2996,9 @@ packages:
 
   zhead@2.2.4:
     resolution: {integrity: sha512-8F0OI5dpWIA5IGG5NHUg9staDwz/ZPxZtvGVf01j7vHqSyZ0raHY+78atOVxRqb73AotX22uV1pXt3gYSstGag==}
+
+  zrender@5.6.0:
+    resolution: {integrity: sha512-uzgraf4njmmHAbEUxMJ8Oxg+P3fT04O+9p7gY+wJRVxo8Ge+KmYv0WJev945EH4wFuc4OY2NLXz46FZrWS9xJg==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -4411,6 +4447,11 @@ snapshots:
       commander: 6.2.1
       glob: 7.2.3
 
+  echarts@5.5.1:
+    dependencies:
+      tslib: 2.3.0
+      zrender: 5.6.0
+
   elliptic@6.5.7:
     dependencies:
       bn.js: 4.12.0
@@ -5741,6 +5782,8 @@ snapshots:
     dependencies:
       typescript: 5.6.2
 
+  tslib@2.3.0: {}
+
   tslib@2.7.0: {}
 
   tty-browserify@0.0.1: {}
@@ -5920,9 +5963,23 @@ snapshots:
 
   vscode-uri@3.0.8: {}
 
+  vue-demi@0.13.11(vue@3.5.8(typescript@5.6.2)):
+    dependencies:
+      vue: 3.5.8(typescript@5.6.2)
+
   vue-demi@0.14.10(vue@3.5.8(typescript@5.6.2)):
     dependencies:
       vue: 3.5.8(typescript@5.6.2)
+
+  vue-echarts@7.0.3(@vue/runtime-core@3.5.8)(echarts@5.5.1)(vue@3.5.8(typescript@5.6.2)):
+    dependencies:
+      echarts: 5.5.1
+      vue: 3.5.8(typescript@5.6.2)
+      vue-demi: 0.13.11(vue@3.5.8(typescript@5.6.2))
+    optionalDependencies:
+      '@vue/runtime-core': 3.5.8
+    transitivePeerDependencies:
+      - '@vue/composition-api'
 
   vue-eslint-parser@9.4.3(eslint@9.11.1(jiti@2.3.3)):
     dependencies:
@@ -6078,5 +6135,9 @@ snapshots:
   yoctocolors@2.1.1: {}
 
   zhead@2.2.4: {}
+
+  zrender@5.6.0:
+    dependencies:
+      tslib: 2.3.0
 
   zwitch@2.0.4: {}

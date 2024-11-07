@@ -21,5 +21,6 @@ RedmineApp::Application.routes.draw do
   get "nht/time-tracking/activities", to: "issue_time_tracking_starts#get_activities"
   # Sprints
   resources :sprints, only: [:index, :show, :new, :create, :edit, :update, :destroy]
-  put "issues/:id/sprints", to: "issue_sprints#update"
+  # put "issues/:id/sprints", to: "issue_sprints#update"
+  get "sprints/:id/burndown", to: "sprints#show_burndown"
 end

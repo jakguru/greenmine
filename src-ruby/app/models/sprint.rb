@@ -19,7 +19,7 @@ class Sprint < ActiveRecord::Base
   end
 
   def can_edit
-    user.allowed_to?(:manage_sprints, nil, global: true) || user.admin?
+    User.current.allowed_to?(:manage_sprints, nil, global: true) || User.current.admin?
   end
 
   # Check sprint overlap
@@ -78,6 +78,11 @@ class Sprint < ActiveRecord::Base
     estimated_hours_by_status = Hash.new(0.0)
     worked_hours_by_status = Hash.new(0.0)
 
+    estimated_hours_by_status["open"] = 0
+    estimated_hours_by_status["closed"] = 0
+    worked_hours_by_status["open"] = 0
+    worked_hours_by_status["closed"] = 0
+
     issues.each do |issue|
       hours_within_sprint = restrict_hours_within_sprint(issue)
       is_closed = issue.status.is_closed ? "closed" : "open"
@@ -105,40 +110,65 @@ class Sprint < ActiveRecord::Base
     Sprint.where("end_date <= ?", start_date.to_date).order(end_date: :desc).first&.id || 0
   end
 
-  def get_workload_allocation_by_role
-    non_working_week_days = Setting.send(:non_working_week_days).map(&:to_i)
-    assignable_hours_per_user = {}
+  # https://chatgpt.com/c/672d29fa-43a4-800d-9461-ed0581ee65ef?model=gpt-4o
+  def get_workload
+    assignable_hours_per_user = []
 
-    User.joins(memberships: :project).joins("LEFT JOIN groups_users ON groups_users.user_id = #{User.table_name}.id").joins("LEFT JOIN issues ON issues.assigned_to_id = groups_users.group_id")
-      .where("#{User.table_name}.status = ?", User::STATUS_ACTIVE)
-      .distinct
-      .each do |user|
-      assignable_hours = 0
+    # Get all active users
+    eligible_users = User.where(status: User::STATUS_ACTIVE).distinct
+
+    eligible_users.each do |user|
+      total_workable_hours = 0
+      total_assigned_estimate = 0
+      daily_breakdown = {}
+
+      # Loop through each day in the sprint
       (start_date.to_date..end_date.to_date).each do |date|
-        next if non_working_week_days.include?(date.wday)
-        assignable_hours += 7 # assuming 7 working hours per working day
+        workable_hours = default_capacity(date, user)
+        assigned_estimated_hours = 0
+
+        # Calculate assigned estimated hours, considering both direct and group assignments
+        issues.each do |issue|
+          # Check if the issue is directly assigned to the user
+          if issue.assigned_to == user
+            assigned_estimated_hours += estimated_hours_per_day(issue, date)
+          # Check if the issue is assigned to a group and the user is a group member
+          elsif issue.assigned_to.is_a?(Group) && issue.assigned_to.users.include?(user)
+            assigned_estimated_hours += estimated_hours_per_day(issue, date)
+          end
+        end
+
+        remaining_capacity = workable_hours - assigned_estimated_hours
+        total_workable_hours += workable_hours
+        total_assigned_estimate += assigned_estimated_hours
+
+        # Record the daily breakdown for this date
+        daily_breakdown[date] = {
+          assigned_estimated_hours: assigned_estimated_hours,
+          workable_hours: workable_hours,
+          remaining_capacity: remaining_capacity
+        }
       end
-      assignable_hours_per_user[user.id] = assignable_hours
-    end
 
-    # Calculate total hours logged by each user for the issues in the sprint
-    hours_logged_per_user = issues.each_with_object(Hash.new(0)) do |issue, result|
-      restrict_time_entries_within_sprint(issue).each do |time_entry|
-        result[time_entry.user_id] += time_entry.hours.to_f || 0.0
-      end
-    end
+      # Calculate overall metrics
+      total_days = (end_date.to_date - start_date.to_date).to_i + 1
+      average_assigned_estimate_daily = total_assigned_estimate.to_f / total_days
+      average_workable_hours_daily = total_workable_hours.to_f / total_days
+      remaining_capacity_total = total_workable_hours - total_assigned_estimate
 
-    # Merge the data to get workload allocation by user
-    assignable_hours_per_user.map do |user_id, assignable_hours|
-      user = User.select(:id, :firstname, :lastname).find(user_id)
-      hours_logged = hours_logged_per_user[user_id] || 0
-
-      {
+      # Add user's workload summary to the array
+      assignable_hours_per_user << {
         user: {id: user.id, firstname: user.firstname, lastname: user.lastname},
-        assignable_hours: assignable_hours,
-        hours_logged: hours_logged
+        total_assigned_estimate: total_assigned_estimate,
+        average_assigned_estimate_daily: average_assigned_estimate_daily,
+        total_workable_hours: total_workable_hours,
+        average_workable_hours_daily: average_workable_hours_daily,
+        remaining_capacity_total: remaining_capacity_total,
+        daily_breakdown: daily_breakdown
       }
     end
+
+    assignable_hours_per_user
   end
 
   def get_breakdown_by_calculated_priority
@@ -230,6 +260,57 @@ class Sprint < ActiveRecord::Base
     ).distinct.collect(&:fixed_version)
   end
 
+  def get_burndown
+    non_working_week_days = Setting.send(:non_working_week_days).map(&:to_i)
+
+    # Limit the burndown to a maximum span of 3 months
+    today = Date.today
+    max_span_end = [end_date.to_date, (today + 1.month).to_date].min.to_date
+    max_span_start = [start_date.to_date, (max_span_end - 3.months).to_date].max.to_date
+    if max_span_end - today < 1.month
+      max_span_start = [start_date.to_date, (today - (3.months - (max_span_end - today))).to_date].max.to_date
+    end
+
+    # Precompute the total estimated and logged work
+    total_estimated_hours = total_estimated_work
+    daily_logged_hours = {}
+    cumulative_ideal_hours = total_estimated_hours
+
+    # Aggregate logged hours for each date
+    issues.includes(:time_entries).each do |issue|
+      restrict_time_entries_within_sprint(issue).each do |time_entry|
+        date = time_entry.spent_on.to_date
+        daily_logged_hours[date] ||= 0.0
+        daily_logged_hours[date] += time_entry.hours.to_f
+      end
+    end
+
+    # Precompute cumulative logged hours for each date in the limited range
+    total_logged_hours = 0.0
+    max_span_start.upto(max_span_end).each do |date|
+      next if non_working_week_days.include?(date.wday)
+
+      total_logged_hours += daily_logged_hours[date] || 0.0
+    end
+
+    # Generate the burndown data for each day in the limited range
+    max_span_start.upto(max_span_end).each_with_object({}) do |date, data|
+      next if non_working_week_days.include?(date.wday)
+
+      remaining_ideal_hours = cumulative_ideal_hours
+      cumulative_ideal_hours -= (total_estimated_hours / (max_span_end - max_span_start + 1))
+
+      remaining_actual_hours = total_estimated_hours - total_logged_hours
+
+      data[date] = {
+        ideal_remaining_work: [remaining_ideal_hours, 0].max,
+        actual_remaining_work: [remaining_actual_hours, 0].max,
+        estimated_work: get_estimated_work_on_date(date),
+        logged_work: daily_logged_hours[date] || 0.0
+      }
+    end
+  end
+
   def push_realtime_update
     FridayPlugin::SprintsChannel.broadcast_to(self, self)
   end
@@ -272,8 +353,37 @@ class Sprint < ActiveRecord::Base
     issue.time_entries.where("#{TimeEntry.table_name}.spent_on >= ? AND #{TimeEntry.table_name}.spent_on <= ?", issue_start_date, issue_due_date)
   end
 
-  # # Trigger the sprint webhook after save
-  # def trigger_sprint_webhook
-  #   Redmine::Hook.call_hook(:sprint_after_save, {sprint: self})
-  # end
+  def get_estimated_work_on_date(date)
+    issues.sum do |issue|
+      estimated_hours_per_day(issue, date)
+    end
+  end
+
+  def get_logged_work_on_date(date)
+    issues.sum do |issue|
+      restrict_time_entries_within_sprint(issue).where(spent_on: date).sum(:hours).to_f
+    end
+  end
+
+  def estimated_hours_per_day(issue, date)
+    issue_start_date = issue.start_date.nil? ? start_date.to_date : [issue.start_date.to_date, start_date].max
+    issue_due_date = issue.due_date.nil? ? end_date.to_date : [issue.due_date.to_date, end_date].min
+
+    return 0 if date < issue_start_date || date > issue_due_date
+    return 0 if non_working_week_days.include?(date.wday)
+
+    estimated_hours = issue.estimated_hours.to_f || 0.0
+    total_days = (issue_due_date - issue_start_date).to_i.nonzero? || 1
+    estimated_hours / total_days
+  end
+
+  def non_working_week_days
+    @non_working_week_days ||= Setting.send(:non_working_week_days).map(&:to_i)
+  end
+
+  def default_capacity(date, user)
+    # Placeholder logic: Currently 7 hours on working days, 0 on non-working days
+    # Future customization: different capacity based on user roles, preferences, etc.
+    non_working_week_days.include?(date.wday) ? 0 : 7
+  end
 end

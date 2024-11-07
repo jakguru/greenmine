@@ -643,3 +643,14 @@ export interface SprintNavigation {
 export interface SprintPermissions {
   edit: boolean;
 }
+
+export interface SprintBurndown {
+  [date: string]: DailyBurndownData;
+}
+
+export interface DailyBurndownData {
+  ideal_remaining_work: number;
+  actual_remaining_work: number;
+  estimated_work: number;
+  logged_work: number;
+}

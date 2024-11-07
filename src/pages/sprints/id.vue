@@ -15,11 +15,21 @@
         </v-toolbar-title>
         <v-toolbar-items class="ms-auto">
           <v-btn
-            :to="{ name: 'sprints-id', params: { id: navigation.previous } }"
+            :to="{
+              name: 'sprints-id',
+              params: { id: navigation.previous },
+              query: $route.query,
+            }"
           >
             <v-icon>mdi-chevron-left</v-icon>
           </v-btn>
-          <v-btn :to="{ name: 'sprints-id', params: { id: navigation.next } }">
+          <v-btn
+            :to="{
+              name: 'sprints-id',
+              params: { id: navigation.next },
+              query: $route.query,
+            }"
+          >
             <v-icon>mdi-chevron-right</v-icon>
           </v-btn>
         </v-toolbar-items>
@@ -29,46 +39,81 @@
       <v-divider />
       <v-tabs v-bind="vTabBindings" />
       <v-divider />
-      <FridayForm
-        v-bind="fridayFormBindings"
-        @success="onSuccess"
-        @error="onError"
-      >
-        <template #afterRows="{ isLoading, submit, reset }">
+      <template v-if="tab === 'summary'">
+        <v-container fluid>
           <v-row>
             <v-col cols="12">
-              <div class="d-flex w-100 justify-end">
-                <v-btn
-                  variant="elevated"
-                  :color="accentColor"
-                  size="x-small"
-                  class="ma-2"
-                  type="button"
-                  height="24px"
-                  :loading="isLoading"
-                  @click="reset"
-                >
-                  <v-icon class="me-2">mdi-restore</v-icon>
-                  {{ $t("labels.reset") }}
-                </v-btn>
-                <v-btn
-                  variant="elevated"
-                  :color="accentColor"
-                  size="x-small"
-                  class="ma-2 me-0"
-                  type="button"
-                  height="24px"
-                  :loading="isLoading"
-                  @click="submit"
-                >
-                  <v-icon class="me-2">mdi-check</v-icon>
-                  {{ $t("labels.save") }}
-                </v-btn>
-              </div>
+              <v-progress-linear
+                :model-value="rate"
+                :color="accentColor"
+                height="30"
+              >
+                <span>{{ parseInt(rate.toString()) }}%</span>
+              </v-progress-linear>
             </v-col>
           </v-row>
-        </template>
-      </FridayForm>
+          <v-row>
+            <v-col cols="12">
+              <SprintBurndown :sprint="sprint" />
+            </v-col>
+          </v-row>
+        </v-container>
+      </template>
+      <template v-else-if="tab === 'issues'">
+        I am a pretty issues section
+      </template>
+      <template
+        v-else-if="tab === 'edit' && permissions.edit === true && sprint.id"
+      >
+        <FridayForm
+          v-bind="fridayFormBindings"
+          @success="onSuccess"
+          @error="onError"
+        >
+          <template #afterRows="{ isLoading, submit, reset }">
+            <v-row>
+              <v-col cols="12">
+                <div class="d-flex w-100 justify-end">
+                  <v-btn
+                    variant="elevated"
+                    :color="accentColor"
+                    size="x-small"
+                    class="ma-2"
+                    type="button"
+                    height="24px"
+                    :loading="isLoading"
+                    @click="reset"
+                  >
+                    <v-icon class="me-2">mdi-restore</v-icon>
+                    {{ $t("labels.reset") }}
+                  </v-btn>
+                  <v-btn
+                    variant="elevated"
+                    :color="accentColor"
+                    size="x-small"
+                    class="ma-2 me-0"
+                    type="button"
+                    height="24px"
+                    :loading="isLoading"
+                    @click="submit"
+                  >
+                    <v-icon class="me-2">mdi-check</v-icon>
+                    {{ $t("labels.save") }}
+                  </v-btn>
+                </div>
+              </v-col>
+            </v-row>
+          </template>
+        </FridayForm>
+      </template>
+      <template
+        v-else-if="tab === 'edit' && permissions.edit === false && sprint.id"
+      >
+        I am a pretty no permissions screen
+      </template>
+      <template v-else>
+        I am a pretty section for a tab which doesn't exist
+      </template>
     </v-card>
   </v-container>
 </template>
@@ -77,14 +122,16 @@
 import { defineComponent, computed, inject, onMounted } from "vue";
 import { useHead } from "@unhead/vue";
 import { useI18n } from "vue-i18n";
-import { VTextField } from "vuetify/components/VTextField";
 import { useRoute, useRouter } from "vue-router";
 import { useSystemAccentColor } from "@/utils/app";
+import { VTextField } from "vuetify/components/VTextField";
+import { SprintBurndown } from "@/components/charts/sprint";
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
+import { toISODate } from "@/utils/formatting";
 
 import type { PropType } from "vue";
-import type { FridayFormStructure } from "@/components/forms";
 import type { SwalService, ToastService } from "@jakguru/vueprint";
+import type { FridayFormStructure } from "@/components/forms";
 import type {
   Sprint,
   Issue,
@@ -102,7 +149,7 @@ import type {
 
 export default defineComponent({
   name: "SprintsID",
-  components: { FridayForm },
+  components: { FridayForm, SprintBurndown },
   props: {
     formAuthenticityToken: {
       type: String as PropType<string>,
@@ -114,6 +161,10 @@ export default defineComponent({
     },
     issues: {
       type: Object as PropType<QueryResponse<Issue>>,
+      required: true,
+    },
+    rate: {
+      type: Number as PropType<number>,
       required: true,
     },
     progress: {
@@ -159,7 +210,6 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
     const accentColor = useSystemAccentColor();
-    const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const sprint = computed(() => props.sprint);
     const permissions = computed(() => props.permissions);
     const { t } = useI18n({ useScope: "global" });
@@ -178,7 +228,7 @@ export default defineComponent({
       [
         { text: t("pages.sprints-id.content.tabs.summary"), value: "summary" },
         { text: t("pages.sprints-id.content.tabs.issues"), value: "issues" },
-        permissions.value.edit
+        permissions.value.edit && sprint.value.id
           ? { text: t("pages.sprints-id.content.tabs.edit"), value: "edit" }
           : undefined,
       ].filter((v) => "undefined" !== typeof v),
@@ -202,14 +252,7 @@ export default defineComponent({
         }
       },
     }));
-    const modifyPayload = (payload: Record<string, unknown>) => {
-      return {
-        authenticity_token: formAuthenticityToken.value,
-        sprint: payload,
-      };
-    };
-    const onSuccess = (_status: number, data: any) => {
-      router.push({ name: "sprints-id", params: { id: data.id } });
+    const onSuccess = (_status: number, _data: any) => {
       if (!toast) {
         alert(t("pages.sprints-id.onSave.success"));
         return;
@@ -236,6 +279,23 @@ export default defineComponent({
         return;
       }
     };
+    onMounted(() => {
+      useHead({
+        title: t("pages.sprints-id.specificTitle", {
+          id: sprint.value.id ? sprint.value.id : 0,
+          name: sprint.value.name,
+        }),
+      });
+    });
+
+    const formAuthenticityToken = computed(() => props.formAuthenticityToken);
+    const modifyPayload = (payload: Record<string, unknown>) => {
+      return {
+        authenticity_token: formAuthenticityToken.value,
+        _method: "patch",
+        sprint: payload,
+      };
+    };
     const formStructure = computed<FridayFormStructure>(() => {
       return [
         [
@@ -245,15 +305,15 @@ export default defineComponent({
             fieldComponent: VTextField,
             formKey: "name",
             valueKey: "name",
-            label: t("pages.sprints-id.fields.name"),
+            label: t("pages.sprints-new.fields.name"),
             validator: getFormFieldValidator(
               t,
               Joi.string().required(),
-              t("pages.sprints-id.fields.name"),
+              t("pages.sprints-new.fields.name"),
             ),
             bindings: {
               type: "text",
-              label: t("pages.sprints-id.fields.name"),
+              label: t("pages.sprints-new.fields.name"),
             },
           },
         ],
@@ -264,15 +324,15 @@ export default defineComponent({
             fieldComponent: VTextField,
             formKey: "start_date",
             valueKey: "start_date",
-            label: t("pages.sprints-id.fields.start_date"),
+            label: t("pages.sprints-new.fields.start_date"),
             validator: getFormFieldValidator(
               t,
               Joi.date().required(),
-              t("pages.sprints-id.fields.name"),
+              t("pages.sprints-new.fields.name"),
             ),
             bindings: {
               type: "date",
-              label: t("pages.sprints-id.fields.start_date"),
+              label: t("pages.sprints-new.fields.start_date"),
             },
           },
         ],
@@ -283,48 +343,43 @@ export default defineComponent({
             fieldComponent: VTextField,
             formKey: "end_date",
             valueKey: "end_date",
-            label: t("pages.sprints-id.fields.end_date"),
+            label: t("pages.sprints-new.fields.end_date"),
             validator: getFormFieldValidator(
               t,
               Joi.date().required(),
-              t("pages.sprints-id.fields.name"),
+              t("pages.sprints-new.fields.name"),
             ),
             bindings: {
               type: "date",
-              label: t("pages.sprints-id.fields.end_date"),
+              label: t("pages.sprints-new.fields.end_date"),
             },
           },
         ],
       ];
     });
     const fridayFormBindings = computed(() => ({
-      action: router.resolve({ name: "sprints" }).href,
-      method: "post",
+      action: router.resolve({
+        name: "sprints-id",
+        params: { id: sprint.value.id },
+      }).href,
+      method: "put",
       structure: formStructure.value,
       values: {
-        name: "",
-        start_date: null,
-        end_date: null,
+        name: sprint.value.name,
+        start_date: toISODate(sprint.value.start_date),
+        end_date: toISODate(sprint.value.end_date),
       },
       modifyPayload,
       validHttpStatus: 201,
     }));
-    onMounted(() => {
-      useHead({
-        title: t("pages.sprints-id.specificTitle", {
-          id: sprint.value.id ? sprint.value.id : 0,
-          name: sprint.value.name,
-        }),
-      });
-    });
     return {
       breadcrumbsBindings,
       vTabBindings,
       tab,
-      fridayFormBindings,
       accentColor,
       onSuccess,
       onError,
+      fridayFormBindings,
     };
   },
 });
