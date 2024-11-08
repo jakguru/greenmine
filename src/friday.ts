@@ -593,10 +593,24 @@ export interface Progress {
   total_points?: number;
 }
 
+export interface DailyBreakdown {
+  assigned_estimated_hours: number;
+  workable_hours: number;
+  remaining_capacity: number;
+}
+
 export interface WorkloadAllocation {
-  user: User;
-  assignable_hours: number;
-  hours_logged: number;
+  user: {
+    id: number;
+    firstname: string;
+    lastname: string;
+  };
+  total_assigned_estimate: number;
+  average_assigned_estimate_daily: number;
+  total_workable_hours: number;
+  average_workable_hours_daily: number;
+  remaining_capacity_total: number;
+  daily_breakdown: { [date: string]: DailyBreakdown };
 }
 
 export interface User {

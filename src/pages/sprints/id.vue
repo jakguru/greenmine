@@ -56,6 +56,9 @@
             <v-col cols="12">
               <SprintBurndown :sprint="sprint" />
             </v-col>
+            <v-col cols="12">
+              <SprintCapacity :sprint="sprint" :workload="workload" />
+            </v-col>
           </v-row>
         </v-container>
       </template>
@@ -125,7 +128,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useSystemAccentColor } from "@/utils/app";
 import { VTextField } from "vuetify/components/VTextField";
-import { SprintBurndown } from "@/components/charts/sprint";
+import { SprintBurndown, SprintCapacity } from "@/components/charts/sprint";
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 import { toISODate } from "@/utils/formatting";
 
@@ -149,7 +152,7 @@ import type {
 
 export default defineComponent({
   name: "SprintsID",
-  components: { FridayForm, SprintBurndown },
+  components: { FridayForm, SprintBurndown, SprintCapacity },
   props: {
     formAuthenticityToken: {
       type: String as PropType<string>,
