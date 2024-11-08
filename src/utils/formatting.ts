@@ -56,6 +56,15 @@ export const formatDateTimeAsUTC = (value: string | null) => {
   return [dto.toUTC().toLocaleString(DateTime.DATETIME_MED), "UTC"].join(" ");
 };
 
+export const formatShortDuration = (hours: number | null) => {
+  if (hours === null) {
+    return "";
+  }
+  const duration = Duration.fromObject({ hours });
+  duration.shiftTo("hours", "minutes");
+  return duration.toFormat("hh:mm");
+};
+
 export const formatDuration = (hours: number | null) => {
   if (hours === null) {
     return "";

@@ -1,5 +1,8 @@
 <template>
   <v-card :height="height" variant="outlined" class="position-relative">
+    <v-label class="ms-3 position-absolute" style="z-index: 3">{{
+      $t("charts.capacity.title")
+    }}</v-label>
     <VChart
       :option="option"
       :autoresize="true"
@@ -29,10 +32,15 @@
 import { defineComponent, computed } from "vue";
 import { use } from "echarts/core";
 import { HeatmapChart } from "echarts/charts";
-import { TooltipComponent, GridComponent } from "echarts/components";
-import { SVGRenderer } from "echarts/renderers";
+import {
+  TooltipComponent,
+  GridComponent,
+  VisualMapComponent,
+} from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
 import { useI18n } from "vue-i18n";
 import { useSystemAccentColor, useIsDark } from "@/utils/app";
+import { formatShortDuration } from "@/utils/formatting";
 import { DateTime } from "luxon";
 import VChart from "vue-echarts";
 
@@ -42,13 +50,23 @@ import type { HeatmapSeriesOption } from "echarts/charts";
 import type {
   TooltipComponentOption,
   GridComponentOption,
+  VisualMapComponentOption,
 } from "echarts/components";
 import type { Sprint, WorkloadAllocation } from "@/friday";
 
-use([TooltipComponent, GridComponent, HeatmapChart, SVGRenderer]);
+use([
+  TooltipComponent,
+  GridComponent,
+  VisualMapComponent,
+  HeatmapChart,
+  CanvasRenderer,
+]);
 
 type EChartsOption = ComposeOption<
-  TooltipComponentOption | GridComponentOption | HeatmapSeriesOption
+  | TooltipComponentOption
+  | GridComponentOption
+  | VisualMapComponentOption
+  | HeatmapSeriesOption
 >;
 
 export default defineComponent({
@@ -76,7 +94,7 @@ export default defineComponent({
     const systemAccentColor = useSystemAccentColor();
     const isDark = useIsDark();
     const seriesData = computed(() => {
-      const dates: string[] = [];
+      const dateValues: Set<string> = new Set();
       const keys: string[] = [];
       const data: [string, number, number | "-"][] = [];
       workload.value.forEach((uwl) => {
@@ -91,7 +109,7 @@ export default defineComponent({
         Object.keys(uwl.daily_breakdown).map((date: string) => {
           const dt = DateTime.fromISO(date);
           const dtd = dt.toUTC().toLocaleString(DateTime.DATE_MED);
-          dates.push(dtd);
+          dateValues.add(dtd);
           data.push([
             dtd,
             indexOfKey,
@@ -101,7 +119,11 @@ export default defineComponent({
           ]);
         });
       });
-      return { dates, keys, data };
+      const dates: string[] = [...dateValues];
+      const seriesData = data.map((d) => {
+        return [dates.indexOf(d[0]), d[1], d[2]];
+      });
+      return { dates, keys, data: seriesData };
     });
     const option = computed<EChartsOption>(() => ({
       useUTC: true,
@@ -109,27 +131,32 @@ export default defineComponent({
       backgroundColor: "transparent",
       tooltip: {
         position: "top",
+        valueFormatter: (value) => formatShortDuration(Number(value)),
       },
       grid: {
-        left: "15px",
+        left: "150px",
         right: "15px",
-        top: "10%",
-        bottom: "15px",
-        containLabel: true,
+        top: "30px",
+        bottom: "90px",
+        containLabel: false,
       },
       xAxis: [
         {
           type: "category",
-          values: seriesData.value.dates,
+          data: seriesData.value.dates,
           axisPointer: {
             type: "shadow",
           },
-          boundaryGap: false,
+          boundaryGap: true,
           textStyle: {
             color: isDark.value ? "#fff" : "#000",
           },
           splitArea: {
             show: true,
+          },
+          axisLabel: {
+            rotate: 90,
+            hideOverlap: true,
           },
         },
       ],
@@ -143,15 +170,46 @@ export default defineComponent({
           splitArea: {
             show: true,
           },
+          axisLabel: {
+            width: 150,
+            overflow: "truncate",
+          },
         },
       ],
+      visualMap: {
+        show: false,
+        min: 0,
+        max: 7,
+        formatter: (value) => formatShortDuration(Number(value)),
+        inRange: {
+          color: [
+            "#D9534F",
+            "#D9534F",
+            "#D9534F",
+            "#F0AD4E",
+            "#F0AD4E",
+            "#5BC0DE",
+            "#5BC0DE",
+            "#00854d",
+          ],
+        },
+        outOfRange: {
+          color: ["#D9534F"],
+        },
+      },
       series: [
         {
           name: t("charts.capacity.title"),
           type: "heatmap",
           data: seriesData.value.data,
           label: {
-            show: true,
+            show: false,
+            formatter: (params) => {
+              return Array.isArray(params.value) &&
+                "number" === typeof params.value[2]
+                ? formatShortDuration(params.value[2])
+                : "";
+            },
           },
         },
       ],
@@ -164,7 +222,7 @@ export default defineComponent({
         ? "rgba(24, 27, 52, 0.8)"
         : "rgba(255, 255, 255, 0.8)",
     }));
-    const height = computed(() => workload.value.length * 30 + 100);
+    const height = computed(() => workload.value.length * 30 + 120);
     return {
       option,
       systemAccentColor,

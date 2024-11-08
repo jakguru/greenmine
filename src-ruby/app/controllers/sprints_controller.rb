@@ -95,9 +95,24 @@ class SprintsController < ApplicationController
   def render_sprint_response(sprint)
     use_session = false
     params[:set_filter] = 1
-    params[:f] = ["sprint_ids"]
-    params[:op] = {"sprint_ids" => "="}
-    params[:v] = {"sprint_ids" => [sprint.id.to_s]}
+    params[:f] ||= []
+
+    # Ensure params[:f] always includes "sprint_ids"
+    params[:f] << "sprint_ids" unless params[:f].include?("sprint_ids")
+
+    # Add "status_id" to params[:f] if sprint.id is nil
+    if sprint.id.nil?
+      params[:f] << "status_id" unless params[:f].include?("status_id")
+      params[:op] ||= {}
+      params[:v] ||= {}
+      params[:op]["status_id"] = "o"
+      params[:v]["status_id"] = [""]
+    end
+
+    params[:op] ||= {}
+    params[:v] ||= {}
+    params[:op]["sprint_ids"] = "="
+    params[:v]["sprint_ids"] = [sprint.id.nil? ? "0" : sprint.id.to_s]
     retrieve_query(IssueQuery, use_session)
     issues = query_response(@query, @query.base_scope, IssueQuery, @project, User.current, params, per_page_option)
     render json: {

@@ -1,6 +1,8 @@
 <template>
   <v-card height="300" variant="outlined" class="position-relative">
-    <v-label class="ms-3">{{ $t("charts.burndown.title") }}</v-label>
+    <v-label class="ms-3 position-absolute" style="z-index: 3">{{
+      $t("charts.burndown.title")
+    }}</v-label>
     <VChart
       :option="option"
       :autoresize="true"
@@ -49,7 +51,7 @@ import {
   GridComponent,
   DataZoomComponent,
 } from "echarts/components";
-import { SVGRenderer } from "echarts/renderers";
+import { CanvasRenderer } from "echarts/renderers";
 import { useI18n } from "vue-i18n";
 import { useSystemAccentColor, useIsDark, AsyncAction } from "@/utils/app";
 import { DateTime } from "luxon";
@@ -78,7 +80,7 @@ use([
   DataZoomComponent,
   LineChart,
   BarChart,
-  SVGRenderer,
+  CanvasRenderer,
 ]);
 
 type EChartsOption = ComposeOption<
