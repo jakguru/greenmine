@@ -14,6 +14,7 @@ import { calculateColorForPriority } from "@/utils/colors";
 import { useI18n } from "vue-i18n";
 
 import ProjectById from "./custom-data-table-cells/project-by-id.vue";
+import TimeTrackingButton from "../../time-tracking/button.vue";
 
 import type { PropType } from "vue";
 import type { QueryData, Item, EntryHashValue } from "@/friday";
@@ -316,6 +317,10 @@ export const QueriesPartialDataTableCell = defineComponent({
                 },
                 item.value.entry.parent.value.subject,
               );
+            case "time_tracking":
+              return h(TimeTrackingButton, {
+                issueId: item.value.id,
+              });
             default:
               return toReturnByColumnKey.value;
           }

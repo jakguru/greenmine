@@ -98,7 +98,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from "vue";
+import { defineComponent, computed, ref, watch } from "vue";
 import { cloneObject, checkObjectEquality } from "@/utils/app";
 import { formatDuration, formatDurationForHumans } from "@/utils/formatting";
 import { QueriesPartialDataTableCell } from "./data-table-cell-component";
@@ -153,20 +153,56 @@ export default defineComponent({
     "reset",
   ],
   setup(props, { emit }) {
-    const modelValue = computed({
-      get: () => props.modelValue,
-      set: (value) => {
-        emit("update:modelValue", value);
-        emit("update:model-value", value);
+    const modelValue = ref(props.modelValue);
+    const payloadValue = ref(props.payloadValue);
+
+    const modelValueComputed = computed(() => props.modelValue);
+    const payloadValueComputed = computed(() => props.payloadValue);
+
+    watch(
+      () => modelValueComputed.value,
+      (is) => {
+        modelValue.value = is;
       },
-    });
-    const payloadValue = computed({
-      get: () => props.payloadValue,
-      set: (value) => {
-        emit("update:payloadValue", value);
-        emit("update:payload-value", value);
+      { deep: true, immediate: true },
+    );
+    watch(
+      () => payloadValueComputed.value,
+      (is) => {
+        payloadValue.value = is;
       },
-    });
+      { deep: true, immediate: true },
+    );
+    watch(
+      () => modelValue.value,
+      (is) => {
+        emit("update:modelValue", is);
+        emit("update:model-value", is);
+      },
+      { deep: true },
+    );
+    watch(
+      () => payloadValue.value,
+      (is) => {
+        emit("update:payloadValue", is);
+        emit("update:payload-value", is);
+      },
+      { deep: true },
+    );
+    // const modelValue = computed({
+    //   get: () => props.modelValue,
+    //   set: (value) => {
+    //     emit("update:modelValue", value);
+    //     emit("update:model-value", value);
+    //   },
+    // });
+    // const payloadValue = computed({
+    //   get: () => props.payloadValue,
+    //   set: (value) => {
+    //     emit("update:payloadValue", value);
+    //     emit("update:payload-value", value);
+    //   },
+    // });
     const query = computed(() => props.query);
     const payload = computed(() => props.payload);
     const submitting = computed(() => props.submitting);

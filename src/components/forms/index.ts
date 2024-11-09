@@ -184,6 +184,10 @@ export const FridayForm = defineComponent({
       >,
       default: undefined,
     },
+    noHttp: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: {
     loading: (payload: boolean) => {
@@ -204,6 +208,7 @@ export const FridayForm = defineComponent({
       }
       return false;
     },
+    submit: (_payload: Record<string, unknown> | undefined) => true,
   },
   setup(props, { emit, slots }) {
     const api = inject<ApiService>("api");
@@ -329,6 +334,10 @@ export const FridayForm = defineComponent({
           }
         });
         const payload = modifyPayload.value(payloadValues);
+        if (props.noHttp) {
+          emit("submit", payload);
+          return;
+        }
         try {
           const { status, data } = await api.request({
             method: method.value,

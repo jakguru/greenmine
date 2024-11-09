@@ -171,10 +171,10 @@
         </template>
       </template>
     </v-navigation-drawer>
-    <router-view v-slot="{ Component }">
+    <router-view v-slot="{ Component }" :key="routeData.key">
       <v-main v-if="loaded && !isTransitioning && !routeIsLoading">
         <transition name="fade">
-          <component :is="Component" v-bind="routeData" />
+          <component :is="Component" v-bind="routeData" :key="routeData.key" />
         </transition>
       </v-main>
     </router-view>
@@ -253,6 +253,7 @@ import {
 } from "@jakguru/vueprint";
 import type Cable from "@rails/actioncable";
 import type { PropType } from "vue";
+import { storeToRefs } from "pinia";
 import "./augmentations.d.ts";
 
 export default defineComponent({
@@ -331,8 +332,10 @@ export default defineComponent({
     const loaded = ref(false);
     const appData = useAppData();
     const routeDataStore = useRouteDataStore();
-    const routeData = computed(() => routeDataStore.data);
-    const routeIsLoading = computed(() => routeDataStore.loading);
+    const { data: routeData, loading: routeIsLoading } =
+      storeToRefs(routeDataStore);
+    // const routeData = computed(() => routeDataStore.data);
+    // const routeIsLoading = computed(() => routeDataStore.loading);
     const reloadRouteData = new AsyncAction(async () => {
       appDebug("Reloading route data");
       const data = await loadRouteData(route, api, toast);

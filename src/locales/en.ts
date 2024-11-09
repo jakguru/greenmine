@@ -1172,4 +1172,26 @@ export default {
       text: "Please wait while a connection is re-established",
     },
   },
+  timeTracking: {
+    start: "Start",
+    activitySelector: {
+      title: "What activity are you starting?",
+    },
+    fields: {
+      activity: "Activity",
+      status: "Issue Status",
+    },
+    onStop: {
+      error: "Failed to stop timer. Try again.",
+    },
+    onStart: {
+      error: "Failed to start timer",
+    },
+    onButtonClick: {
+      error: {
+        forbidden: "You are not allowed to perform this action",
+        unknownState: "An unknown error occurred",
+      },
+    },
+  },
 };

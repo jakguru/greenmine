@@ -1,6 +1,6 @@
 class IssueTimeTrackingStartsController < ApplicationController
-  before_action :find_issue, except: [:get_activities]
-  before_action :authorize_log_time, except: [:get, :get_activities]
+  before_action :find_issue, except: [:get_activities, :get_available_statuses_for_issue_for_user]
+  before_action :authorize_log_time, except: [:get, :get_activities, :get_available_statuses_for_issue_for_user]
 
   def create
     # End any existing tracking for the user on this issue by deleting it
@@ -23,6 +23,14 @@ class IssueTimeTrackingStartsController < ApplicationController
       start_time: Time.now,
       activity_id: activity.id
     )
+
+    status = IssueStatus.find_by(id: params[:status_id])
+    if status
+      @issue.status_id = status.id
+      @issue.save
+    else
+      Rails.logger.error "Invalid status ID: #{params[:status_id]}"
+    end
 
     render json: {status: "started", tracking_id: @tracking.id}
   end
@@ -64,7 +72,8 @@ class IssueTimeTrackingStartsController < ApplicationController
 
     response_data = {
       total: total_time, # Add the total time
-      can_act: User.current.allowed_to?(:log_time, @issue.project)
+      can_act: User.current.allowed_to?(:log_time, @issue.project),
+      status_id: @issue.status_id
     }
 
     if current_tracking
@@ -83,6 +92,12 @@ class IssueTimeTrackingStartsController < ApplicationController
   def get_activities
     activities = Enumeration.where(type: "TimeEntryActivity", active: true)
     render json: activities.to_json
+  end
+
+  def get_available_statuses_for_issue_for_user
+    @issue = Issue.find(params[:id])
+    available = @issue.new_statuses_allowed_to(User.current)
+    render json: available.to_json
   end
 
   private

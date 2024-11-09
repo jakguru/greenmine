@@ -175,6 +175,7 @@ import {
   QueriesPartialOptions,
   QueriesPartialDataTable,
 } from "./partials";
+import { useRouteDataStore } from "@/stores/routeData";
 import type { PropType } from "vue";
 import type {
   ApiService,
@@ -303,6 +304,7 @@ export default defineComponent({
           submitting.value = false;
         });
     };
+    const routeDataStore = useRouteDataStore();
     const onRefresh = async (e?: Event) => {
       if (e) {
         e.preventDefault();
@@ -313,7 +315,11 @@ export default defineComponent({
       }
       submitting.value = true;
       try {
-        await loadRouteData(route, api, toast);
+        const d = await loadRouteData(route, api, toast);
+        value.value = d.query;
+        payloadValue.value = d.payload;
+        routeDataStore.set(d);
+        routeDataStore.store(d);
       } catch {
         // noop
       }
