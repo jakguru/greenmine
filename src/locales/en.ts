@@ -665,6 +665,7 @@ export default {
         closed: "Closed",
       },
     },
+    actions: "Actions",
   },
   theme: {
     base: {

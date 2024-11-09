@@ -1,5 +1,9 @@
 <template>
-  <v-data-table-server v-bind="tableBindings" @update:options="onUpdateOptions">
+  <v-data-table-server
+    v-bind="tableBindings"
+    v-model:model-value="selectedItems"
+    @update:options="onUpdateOptions"
+  >
     <template #group-header="{ item, columns, toggleGroup, isGroupOpen }">
       <tr>
         <td :colspan="columns.length">
@@ -61,6 +65,7 @@
         :toggle-select="toggleSelect"
         :value="value"
         :column="column"
+        :menu-generator="handleInTableContextMenuEvent"
       />
     </template>
     <template #expanded-row="{ columns, item }">
@@ -75,24 +80,65 @@
         </td>
       </tr>
     </template>
-    <template v-if="hasGlobalTotals" #top>
-      <div class="d-flex justify-end px-4 pb-2">
-        <v-slide-group show-arrows>
-          <v-slide-group-item
-            v-for="t in payload.totals"
-            :key="t.key"
-            class="px-2"
+    <template #top>
+      <v-row no-gutters>
+        <v-col cols="12" sm="6" class="d-flex justify-center justify-sm-start">
+          <v-menu
+            v-model:model-value="actionMenuOpened"
+            v-bind="actionMenuBindings"
           >
-            <v-chip>
-              <strong class="me-2">{{ t.title }}</strong>
-              <abbr :title="formatDurationForHumans(Number(t.total))">{{
-                formatDuration(Number(t.total))
-              }}</abbr>
-            </v-chip>
-          </v-slide-group-item>
-        </v-slide-group>
-      </div>
-      <v-divider />
+            <template #activator="{ props }">
+              <v-btn-group
+                divided
+                base-color="accent"
+                :class="xs ? 'ma-2 mb-4' : 'ma-2'"
+                style="height: 32px"
+              >
+                <v-btn
+                  height="32"
+                  v-bind="{
+                    ...props,
+                    disabled: selectedItems.length === 0,
+                  }"
+                >
+                  {{ $t("labels.actions") }}
+                </v-btn>
+                <v-btn
+                  v-bind="{ ...props, disabled: selectedItems.length === 0 }"
+                  icon="mdi-menu-down"
+                  density="comfortable"
+                  height="32"
+                />
+              </v-btn-group>
+            </template>
+            <v-card color="surface" width="200" min-height="50">
+              This is an action menu
+            </v-card>
+          </v-menu>
+        </v-col>
+        <v-col
+          v-if="hasGlobalTotals"
+          cols="12"
+          sm="6"
+          class="d-flex justify-end"
+        >
+          <v-slide-group show-arrows>
+            <v-slide-group-item
+              v-for="t in payload.totals"
+              :key="t.key"
+              class="px-2"
+            >
+              <v-chip>
+                <strong class="me-2">{{ t.title }}</strong>
+                <abbr :title="formatDurationForHumans(Number(t.total))">{{
+                  formatDuration(Number(t.total))
+                }}</abbr>
+              </v-chip>
+            </v-slide-group-item>
+          </v-slide-group>
+        </v-col>
+      </v-row>
+      <v-divider class="mt-3" />
     </template>
   </v-data-table-server>
 </template>
@@ -102,6 +148,7 @@ import { defineComponent, computed, ref, watch } from "vue";
 import { cloneObject, checkObjectEquality } from "@/utils/app";
 import { formatDuration, formatDurationForHumans } from "@/utils/formatting";
 import { QueriesPartialDataTableCell } from "./data-table-cell-component";
+import { useDisplay } from "vuetify";
 
 import type { PropType } from "vue";
 import type {
@@ -155,7 +202,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const modelValue = ref(props.modelValue);
     const payloadValue = ref(props.payloadValue);
-
+    const display = useDisplay();
     const modelValueComputed = computed(() => props.modelValue);
     const payloadValueComputed = computed(() => props.payloadValue);
 
@@ -217,6 +264,23 @@ export default defineComponent({
     );
     const headers = computed(() => {
       const ret: Column[] = [];
+      if (query.value.columns.current.inline.length > 0) {
+        ret.push({
+          key: "__menu",
+          value: "",
+          title: "",
+          nowrap: true,
+          sortable: false,
+          meta: {
+            default_order: null,
+            frozen: null,
+            groupable: false,
+            inline: true,
+            sort_key: "",
+            totalable: false,
+          },
+        });
+      }
       // if (grouping.value) {
       //   ret.push({
       //     key: "group_name",
@@ -239,6 +303,51 @@ export default defineComponent({
       });
       return ret;
     });
+    const selectedItems = ref<Array<number>>([]);
+    const actionMenuOpened = ref(false);
+    const actionMenuOffsetX = ref<number | undefined>(undefined);
+    const actionMenuOffsetY = ref<number | undefined>(undefined);
+    const actionMenuAbsolutePositioningOffset = computed(() => {
+      const ret: Record<string, string> = {};
+      if ("number" === typeof actionMenuOffsetX.value) {
+        ret.left = `${actionMenuOffsetX.value}px`;
+      }
+      if ("number" === typeof actionMenuOffsetY.value) {
+        ret.top = `${actionMenuOffsetY.value}px`;
+      }
+      return ret;
+    });
+    const actionMenuBindings = computed(() => ({
+      absolute: true,
+      attach: true,
+      contentProps: {
+        style: {
+          ...actionMenuAbsolutePositioningOffset.value,
+        },
+      },
+    }));
+    watch(
+      () => selectedItems.value,
+      (value) => {
+        if (value.length === 0) {
+          actionMenuOpened.value = false;
+        }
+      },
+    );
+    const handleInTableContextMenuEvent = (
+      item: Item,
+      column: any,
+      e: MouseEvent,
+      only: boolean = false,
+    ) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (!selectedItems.value.includes(item.id) || only) {
+        selectedItems.value = [item.id];
+      }
+      console.log("Context Menu", item, column);
+    };
     const tableBindings = computed(() => ({
       headers: headers.value,
       hover: true,
@@ -248,7 +357,7 @@ export default defineComponent({
       itemsPerPageOptions: [25, 50, 100],
       page: payload.value.page,
       returnObejects: true,
-      selectStrategy: "page" as "page" | "all" | "single" | undefined,
+      selectStrategy: "page" as const,
       showCurrentPage: true,
       showSelect: true,
       showExpand: hasBlocks.value,
@@ -262,8 +371,13 @@ export default defineComponent({
         : undefined,
       groupBy: grouping.value ? [{ key: "group_name" }] : undefined,
       loading: submitting.value,
+      cellProps({ item, column }: { item: Item; column: any }) {
+        return {
+          onContextmenu: handleInTableContextMenuEvent.bind(null, item, column),
+        };
+      },
+      class: ["query-data-table"],
     }));
-    const selectedItems = ref<Array<Item>>([]);
     let firstTimeUpdated = false;
     const onUpdateOptions = (options: any) => {
       if (!firstTimeUpdated) {
@@ -340,6 +454,10 @@ export default defineComponent({
       formatDuration,
       formatDurationForHumans,
       totalsByGroup,
+      handleInTableContextMenuEvent,
+      actionMenuOpened,
+      actionMenuBindings,
+      xs: display.xs,
     };
   },
 });
@@ -347,7 +465,18 @@ export default defineComponent({
 
 <style lang="scss">
 .query-data-table {
-  overflow-y: auto;
-  overflow-x: hidden;
+  .v-table {
+    > .v-table__wrapper {
+      > table {
+        > tbody {
+          > tr {
+            > td {
+              cursor: context-menu;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 </style>

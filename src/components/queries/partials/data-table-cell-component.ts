@@ -1,6 +1,8 @@
 import { defineComponent, computed, h } from "vue";
 import { RouterLink } from "vue-router";
 import { VChip } from "vuetify/components/VChip";
+import { VBtn } from "vuetify/components/VBtn";
+import { VIcon } from "vuetify/components/VIcon";
 import { VProgressLinear } from "vuetify/components/VProgressLinear";
 import {
   formatDateTime,
@@ -17,7 +19,7 @@ import ProjectById from "./custom-data-table-cells/project-by-id.vue";
 import TimeTrackingButton from "../../time-tracking/button.vue";
 
 import type { PropType } from "vue";
-import type { QueryData, Item, EntryHashValue } from "@/friday";
+import type { QueryData, Item, Column, EntryHashValue } from "@/friday";
 
 interface InternalItem<T = any> {
   value: any;
@@ -196,6 +198,12 @@ export const QueriesPartialDataTableCell = defineComponent({
       type: Object as PropType<InternalDataTableHeader>,
       required: true,
     },
+    menuGenerator: {
+      type: Function as PropType<
+        (item: Item, column: Column, event: MouseEvent, only: boolean) => void
+      >,
+      required: true,
+    },
   },
   setup(props) {
     const { t } = useI18n({ useScope: "global" });
@@ -222,12 +230,30 @@ export const QueriesPartialDataTableCell = defineComponent({
     const column = computed(() => props.column);
     const value = computed(() => props.value);
     const item = computed(() => props.item);
+    const menuGenerator = computed(() => props.menuGenerator);
     const attrs = computed(() => ({
       "friday-type": value.value ? value.value.type : "unknown",
       "friday-column": column.value.key,
     }));
     const toReturnByColumnKey = computed(() => {
       switch (column.value.key) {
+        case "__menu":
+          return h(
+            VBtn,
+            {
+              icon: true,
+              variant: "flat",
+              density: "comfortable",
+              onClick: (event: MouseEvent) =>
+                menuGenerator.value(
+                  item.value,
+                  column.value as Column,
+                  event,
+                  true,
+                ),
+            },
+            [h(VIcon, "mdi-dots-vertical")],
+          );
         case "identifier":
           return h("code", attrs.value, value.value.display);
         case "estimated_hours":
