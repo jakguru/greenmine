@@ -148,6 +148,7 @@
           :payload="payload"
           :submitting="submitting"
           :dirty="dirty"
+          :get-action-items="getActionItems"
           @submit="onSubmit"
         />
       </v-sheet>
@@ -192,6 +193,8 @@ import type {
   Createable,
 } from "@/friday";
 import type { RealtimeModelEventPayload } from "@/utils/realtime";
+import type { GetActionItemsMethod } from "./partials/action-menu";
+
 export default defineComponent({
   name: "QueriesPage",
   components: {
@@ -234,6 +237,10 @@ export default defineComponent({
     },
     modelRealtimeUpdateKey: {
       type: String as PropType<keyof BusEventCallbackSignatures | undefined>,
+      default: undefined,
+    },
+    getActionItems: {
+      type: Function as PropType<GetActionItemsMethod | undefined>,
       default: undefined,
     },
   },

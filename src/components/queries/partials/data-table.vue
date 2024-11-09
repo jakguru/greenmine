@@ -81,6 +81,7 @@
       </tr>
     </template>
     <template #top>
+      <slot name="before-top" />
       <v-row no-gutters>
         <v-col cols="12" sm="6" class="d-flex justify-center justify-sm-start">
           <v-menu
@@ -111,9 +112,10 @@
                 />
               </v-btn-group>
             </template>
-            <v-card color="surface" width="200" min-height="50">
-              This is an action menu
-            </v-card>
+            <ActionMenu
+              :items="actionMenuItems"
+              :loading="actionMenuIsLoading"
+            />
           </v-menu>
         </v-col>
         <v-col
@@ -139,6 +141,7 @@
         </v-col>
       </v-row>
       <v-divider class="mt-3" />
+      <slot name="after-top" />
     </template>
   </v-data-table-server>
 </template>
@@ -149,6 +152,7 @@ import { cloneObject, checkObjectEquality } from "@/utils/app";
 import { formatDuration, formatDurationForHumans } from "@/utils/formatting";
 import { QueriesPartialDataTableCell } from "./data-table-cell-component";
 import { useDisplay } from "vuetify";
+import { ActionMenu } from "./action-menu";
 
 import type { PropType } from "vue";
 import type {
@@ -158,11 +162,13 @@ import type {
   Item,
   ColumnSort,
 } from "@/friday";
+import type { ActionMenuItem, GetActionItemsMethod } from "./action-menu";
 
 export default defineComponent({
   name: "QueriesPartialDataTable",
   components: {
     QueriesPartialDataTableCell,
+    ActionMenu,
   },
   props: {
     modelValue: {
@@ -189,6 +195,10 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    getActionItems: {
+      type: Function as PropType<GetActionItemsMethod | undefined>,
+      default: undefined,
+    },
   },
   emits: [
     "update:modelValue",
@@ -205,7 +215,7 @@ export default defineComponent({
     const display = useDisplay();
     const modelValueComputed = computed(() => props.modelValue);
     const payloadValueComputed = computed(() => props.payloadValue);
-
+    const getActionItems = computed(() => props.getActionItems);
     watch(
       () => modelValueComputed.value,
       (is) => {
@@ -236,20 +246,6 @@ export default defineComponent({
       },
       { deep: true },
     );
-    // const modelValue = computed({
-    //   get: () => props.modelValue,
-    //   set: (value) => {
-    //     emit("update:modelValue", value);
-    //     emit("update:model-value", value);
-    //   },
-    // });
-    // const payloadValue = computed({
-    //   get: () => props.payloadValue,
-    //   set: (value) => {
-    //     emit("update:payloadValue", value);
-    //     emit("update:payload-value", value);
-    //   },
-    // });
     const query = computed(() => props.query);
     const payload = computed(() => props.payload);
     const submitting = computed(() => props.submitting);
@@ -305,6 +301,7 @@ export default defineComponent({
     });
     const selectedItems = ref<Array<number>>([]);
     const actionMenuOpened = ref(false);
+    const actionMenuIsLoading = ref(false);
     const actionMenuOffsetX = ref<number | undefined>(undefined);
     const actionMenuOffsetY = ref<number | undefined>(undefined);
     const actionMenuAbsolutePositioningOffset = computed(() => {
@@ -334,9 +331,46 @@ export default defineComponent({
         }
       },
     );
+    const actionMenuItems = ref<ActionMenuItem[]>([]);
+    const loadActionMenuItems = async () => {
+      actionMenuIsLoading.value = true;
+      actionMenuItems.value = [];
+      if (!getActionItems.value) {
+        actionMenuIsLoading.value = false;
+        actionMenuOpened.value = false;
+        alert(
+          '"getActionItems" prop was not passed to QueriesPartialDataTable component',
+        );
+        return;
+      }
+      try {
+        actionMenuItems.value = await getActionItems.value(
+          selectedItems.value
+            .map((id) => payload.value.items.find((item) => item.id === id))
+            .filter((v) => "undefined" !== typeof v),
+        );
+        actionMenuIsLoading.value = false;
+      } catch (e) {
+        console.error(e);
+        actionMenuIsLoading.value = false;
+        actionMenuOpened.value = false;
+        return;
+      }
+    };
+    watch(
+      () => actionMenuOpened.value,
+      (is) => {
+        if (!is) {
+          actionMenuOffsetX.value = undefined;
+          actionMenuOffsetY.value = undefined;
+        } else {
+          loadActionMenuItems();
+        }
+      },
+    );
     const handleInTableContextMenuEvent = (
       item: Item,
-      column: any,
+      _column: any,
       e: MouseEvent,
       only: boolean = false,
     ) => {
@@ -346,7 +380,25 @@ export default defineComponent({
       if (!selectedItems.value.includes(item.id) || only) {
         selectedItems.value = [item.id];
       }
-      console.log("Context Menu", item, column);
+      if (document) {
+        const mainContainer = document.querySelector(
+          "main.v-main > div.v-container",
+        );
+        if (mainContainer) {
+          const mainContainerRect = mainContainer.getBoundingClientRect();
+          const mainContainerX = mainContainerRect.x;
+          const mainContainerY = mainContainerRect.y;
+          actionMenuOffsetX.value = e.clientX - mainContainerX;
+          actionMenuOffsetY.value = e.clientY - mainContainerY;
+        } else {
+          actionMenuOffsetX.value = undefined;
+          actionMenuOffsetY.value = undefined;
+        }
+      } else {
+        actionMenuOffsetX.value = undefined;
+        actionMenuOffsetY.value = undefined;
+      }
+      actionMenuOpened.value = true;
     };
     const tableBindings = computed(() => ({
       headers: headers.value,
@@ -457,6 +509,8 @@ export default defineComponent({
       handleInTableContextMenuEvent,
       actionMenuOpened,
       actionMenuBindings,
+      actionMenuIsLoading,
+      actionMenuItems,
       xs: display.xs,
     };
   },

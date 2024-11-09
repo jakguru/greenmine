@@ -7,6 +7,7 @@
     :queries="queries"
     :permissions="permissions"
     :creatable="creatable"
+    :get-action-items="getActionMenuItems"
   >
     <template #tabs>
       <v-btn
@@ -36,7 +37,11 @@ import type {
   DefinedQuery,
   Permissions,
   Createable,
+  Item,
 } from "@/friday";
+
+import type { ActionMenuItem } from "@/components/queries/partials/action-menu";
+
 export default defineComponent({
   name: "SprintsIndex",
   components: {
@@ -69,7 +74,16 @@ export default defineComponent({
     },
   },
   setup() {
-    return {};
+    const getActionMenuItems = (sprints: Item[]): ActionMenuItem[] => {
+      if (sprints.length > 1) {
+        return [];
+      } else {
+        return [];
+      }
+    };
+    return {
+      getActionMenuItems,
+    };
   },
 });
 </script>

@@ -37,6 +37,9 @@ module FridayPlugin
         add_available_column(QueryColumn.new(:impact, sortable: "#{IssueImpact.table_name}.position",
           default_order: "desc", groupable: true))
 
+        add_available_column(QueryColumn.new(:calculated_priority, sortable: "#{Issue.table_name}.calculated_priority",
+          default_order: "desc", groupable: true))
+
         add_available_column(QueryManyToManyColumn.new(
           Issue.table_name,
           "id",
