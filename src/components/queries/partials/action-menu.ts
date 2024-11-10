@@ -11,7 +11,10 @@ export interface ActionMenuItem {
 }
 
 export interface GetActionItemsMethod {
-  (items: Item[]): ActionMenuItem[] | Promise<ActionMenuItem[]>;
+  (
+    items: Item[],
+    onDone: () => void,
+  ): ActionMenuItem[] | Promise<ActionMenuItem[]>;
 }
 
 export const ActionMenu = defineComponent({
@@ -37,8 +40,8 @@ export const ActionMenu = defineComponent({
         ? h(
             VSheet,
             {
-              width: 146,
-              height: 146,
+              width: 200,
+              height: 200,
               class: "d-flex justify-center align-center",
             },
             [
@@ -55,9 +58,8 @@ export const ActionMenu = defineComponent({
       h(
         VCard,
         {
-          color: "surface",
-          width: "146",
-          minHeight: "50",
+          color: "background",
+          width: "200",
           class: "action-menu",
         },
         children.value,

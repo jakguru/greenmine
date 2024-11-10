@@ -332,6 +332,10 @@ export default defineComponent({
       },
     );
     const actionMenuItems = ref<ActionMenuItem[]>([]);
+    const onActionMenuDone = () => {
+      selectedItems.value = [];
+      emit("refresh");
+    };
     const loadActionMenuItems = async () => {
       actionMenuIsLoading.value = true;
       actionMenuItems.value = [];
@@ -348,6 +352,7 @@ export default defineComponent({
           selectedItems.value
             .map((id) => payload.value.items.find((item) => item.id === id))
             .filter((v) => "undefined" !== typeof v),
+          onActionMenuDone,
         );
         actionMenuIsLoading.value = false;
       } catch (e) {

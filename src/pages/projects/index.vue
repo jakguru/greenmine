@@ -7,12 +7,16 @@
     :queries="queries"
     :permissions="permissions"
     :creatable="creatable"
+    :get-action-items="getActionMenuItems"
   />
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, h } from "vue";
 import { QueriesPage } from "@/components/queries";
+import { VAlert } from "vuetify/components/VAlert";
+import { VListItem } from "vuetify/components/VList";
+import { useI18n } from "vue-i18n";
 
 import type { PropType } from "vue";
 import type {
@@ -22,7 +26,11 @@ import type {
   DefinedQuery,
   Permissions,
   Createable,
+  Item,
 } from "@/friday";
+
+import type { ActionMenuItem } from "@/components/queries/partials/action-menu";
+
 export default defineComponent({
   name: "ProjectsIndex",
   components: {
@@ -55,7 +63,37 @@ export default defineComponent({
     },
   },
   setup() {
-    return {};
+    const { t } = useI18n({ useScope: "global" });
+    const getActionMenuItems = (projects: Item[]): ActionMenuItem[] => {
+      if (projects.length > 1) {
+        return [
+          {
+            component: h(VAlert, {
+              color: "warning",
+              title: t("actionMenu.none.title"),
+              text: t("actionMenu.none.text"),
+              density: "compact",
+            }),
+          },
+        ];
+      }
+      return [
+        {
+          component: h(VListItem, {
+            title: t("labels.open"),
+            prependIcon: "mdi-open-in-app",
+            density: "compact",
+            to: {
+              name: "projects-id",
+              params: { id: projects[0].id },
+            },
+          }),
+        },
+      ];
+    };
+    return {
+      getActionMenuItems,
+    };
   },
 });
 </script>

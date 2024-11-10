@@ -26,8 +26,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, h } from "vue";
 import { QueriesPage } from "@/components/queries";
+import { VAlert } from "vuetify/components/VAlert";
+import { VListItem } from "vuetify/components/VList";
+import { useI18n } from "vue-i18n";
 
 import type { PropType } from "vue";
 import type {
@@ -74,12 +77,33 @@ export default defineComponent({
     },
   },
   setup() {
+    const { t } = useI18n({ useScope: "global" });
     const getActionMenuItems = (sprints: Item[]): ActionMenuItem[] => {
       if (sprints.length > 1) {
-        return [];
-      } else {
-        return [];
+        return [
+          {
+            component: h(VAlert, {
+              color: "warning",
+              title: t("actionMenu.none.title"),
+              text: t("actionMenu.none.text"),
+              density: "compact",
+            }),
+          },
+        ];
       }
+      return [
+        {
+          component: h(VListItem, {
+            title: t("labels.open"),
+            prependIcon: "mdi-open-in-app",
+            density: "compact",
+            to: {
+              name: "sprints-id",
+              params: { id: sprints[0].id },
+            },
+          }),
+        },
+      ];
     };
     return {
       getActionMenuItems,

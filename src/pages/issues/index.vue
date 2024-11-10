@@ -7,12 +7,15 @@
     :queries="queries"
     :permissions="permissions"
     :creatable="creatable"
+    :get-action-items="getActionMenuItems"
   />
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, inject } from "vue";
 import { QueriesPage } from "@/components/queries";
+import { useI18n } from "vue-i18n";
+import { useGetActionMenuItems } from "@/components/queries/utils/issues";
 
 import type { PropType } from "vue";
 import type {
@@ -23,6 +26,8 @@ import type {
   Permissions,
   Createable,
 } from "@/friday";
+import type { ApiService } from "@jakguru/vueprint";
+
 export default defineComponent({
   name: "IssuesIndex",
   components: {
@@ -55,7 +60,12 @@ export default defineComponent({
     },
   },
   setup() {
-    return {};
+    const api = inject<ApiService>("api");
+    const { t } = useI18n({ useScope: "global" });
+    const getActionMenuItems = useGetActionMenuItems(api, t);
+    return {
+      getActionMenuItems,
+    };
   },
 });
 </script>

@@ -166,7 +166,9 @@
             :payload="payload"
             :submitting="submitting"
             :dirty="dirty"
+            :get-action-items="getActionMenuItems"
             @submit="onSubmit"
+            @refresh="onRefresh"
           />
         </v-container>
       </template>
@@ -251,6 +253,7 @@ import {
   QueriesPartialDataTable,
 } from "@/components/queries/partials";
 import { useRouteDataStore } from "@/stores/routeData";
+import { useGetActionMenuItems } from "@/components/queries/utils/issues";
 
 import type { PropType } from "vue";
 import type {
@@ -277,6 +280,7 @@ import type {
   SprintNavigation,
   SprintPermissions,
 } from "@/friday";
+
 import type { RealtimeModelEventPayload } from "@/utils/realtime";
 
 export default defineComponent({
@@ -652,6 +656,7 @@ export default defineComponent({
       },
       { immediate: true },
     );
+    const getActionMenuItems = useGetActionMenuItems(api, t);
     return {
       breadcrumbsBindings,
       vTabBindings,
@@ -676,6 +681,8 @@ export default defineComponent({
       showSortingMenu,
       showGroupingsMenu,
       showAdditional,
+
+      getActionMenuItems,
     };
   },
 });

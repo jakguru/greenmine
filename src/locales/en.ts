@@ -666,6 +666,7 @@ export default {
       },
     },
     actions: "Actions",
+    open: "Open",
   },
   theme: {
     base: {
@@ -1193,6 +1194,53 @@ export default {
         forbidden: "You are not allowed to perform this action",
         unknownState: "An unknown error occurred",
       },
+    },
+  },
+  actionMenu: {
+    none: {
+      title: "No Actions",
+      text: "No actions are available",
+    },
+  },
+  issueActionMenu: {
+    edit: {
+      title: "Edit Issue",
+    },
+    view: {
+      title: "View Issue",
+    },
+    assignToSprint: {
+      title: "Sprint(s)",
+    },
+    unassignFromSprint: {
+      title: "Send to Backlog",
+    },
+    changeStatus: {
+      title: "Status",
+    },
+    assignTo: {
+      title: "Assignee",
+    },
+    changeTracker: {
+      title: "Tracker",
+    },
+    changeVersion: {
+      title: "Target Version",
+    },
+    changeUrgency: {
+      title: "Urgency",
+    },
+    changeImpact: {
+      title: "Impact",
+    },
+    doneRatio: {
+      title: "% Done",
+    },
+    copy: {
+      title: "Copy",
+    },
+    delete: {
+      title: "Delete",
     },
   },
 };

@@ -150,7 +150,14 @@
           :dirty="dirty"
           :get-action-items="getActionItems"
           @submit="onSubmit"
-        />
+        >
+          <template #before-top>
+            <slot name="before-top" />
+          </template>
+          <template #after-top>
+            <slot name="after-top" />
+          </template>
+        </QueriesPartialDataTable>
       </v-sheet>
     </v-card>
   </v-container>
