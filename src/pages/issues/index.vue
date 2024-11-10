@@ -8,6 +8,7 @@
     :permissions="permissions"
     :creatable="creatable"
     :get-action-items="getActionMenuItems"
+    filter-to-id-field="issue_id"
   />
 </template>
 

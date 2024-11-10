@@ -1242,5 +1242,8 @@ export default {
     delete: {
       title: "Delete",
     },
+    filterTo: {
+      title: "Filter",
+    },
   },
 };

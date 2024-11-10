@@ -167,6 +167,7 @@
             :submitting="submitting"
             :dirty="dirty"
             :get-action-items="getActionMenuItems"
+            filter-to-id-field="issue_id"
             @submit="onSubmit"
             @refresh="onRefresh"
           />

@@ -1,6 +1,5 @@
 import { h } from "vue";
 import qs from "qs";
-import { VAlert } from "vuetify/components/VAlert";
 import { VMenu } from "vuetify/components/VMenu";
 import { VCard } from "vuetify/components/VCard";
 import { VListItem } from "vuetify/components/VList";
@@ -143,15 +142,16 @@ const getActionMenuItems = async (
   t: I18nT,
   issues: Item[],
   onDone: () => void,
+  onFilterTo: () => void,
 ): Promise<ActionMenuItem[]> => {
   if (!api) {
     return [
       {
-        component: h(VAlert, {
-          color: "warning",
-          title: t("actionMenu.none.title"),
-          text: t("actionMenu.none.text"),
+        component: h(VListItem, {
+          title: t("issueActionMenu.filterTo.title"),
+          appendIcon: "mdi-filter",
           density: "compact",
+          onClick: () => onFilterTo(),
         }),
       },
     ];
@@ -160,11 +160,11 @@ const getActionMenuItems = async (
   if (!fromApi) {
     return [
       {
-        component: h(VAlert, {
-          color: "warning",
-          title: t("actionMenu.none.title"),
-          text: t("actionMenu.none.text"),
+        component: h(VListItem, {
+          title: t("issueActionMenu.filterTo.title"),
+          appendIcon: "mdi-filter",
           density: "compact",
+          onClick: () => onFilterTo(),
         }),
       },
     ];
@@ -318,6 +318,14 @@ const getActionMenuItems = async (
       }),
     });
   }
+  ret.push({
+    component: h(VListItem, {
+      title: t("issueActionMenu.filterTo.title"),
+      appendIcon: "mdi-filter",
+      density: "compact",
+      onClick: () => onFilterTo(),
+    }),
+  });
   if (fromApi.permissions.delete) {
     ret.push({
       component: h(VListItem, {
@@ -333,11 +341,11 @@ const getActionMenuItems = async (
   }
   if (ret.length === 0) {
     ret.push({
-      component: h(VAlert, {
-        color: "warning",
-        title: t("actionMenu.none.title"),
-        text: t("actionMenu.none.text"),
+      component: h(VListItem, {
+        title: t("issueActionMenu.filterTo.title"),
+        appendIcon: "mdi-filter",
         density: "compact",
+        onClick: () => onFilterTo(),
       }),
     });
   }

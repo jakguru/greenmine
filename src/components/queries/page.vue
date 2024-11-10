@@ -149,6 +149,7 @@
           :submitting="submitting"
           :dirty="dirty"
           :get-action-items="getActionItems"
+          :filter-to-id-field="filterToIdField"
           @submit="onSubmit"
         >
           <template #before-top>
@@ -249,6 +250,10 @@ export default defineComponent({
     getActionItems: {
       type: Function as PropType<GetActionItemsMethod | undefined>,
       default: undefined,
+    },
+    filterToIdField: {
+      type: String as PropType<string>,
+      default: "id",
     },
   },
   setup(props) {

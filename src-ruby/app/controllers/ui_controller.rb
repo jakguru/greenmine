@@ -74,8 +74,19 @@ class UiController < ApplicationController
     assignees_by_issue = {}
     trackers_by_issue = {}
     versions_by_issue = {}
+    sprints_by_issue = {}
     urgencies = IssuePriority.active.reverse.map { |priority| {id: priority.id, name: priority.name} }
     impacts = IssueImpact.active.reverse.map { |impact| {id: impact.id, name: impact.name} }
+
+    assignable_sprints = Sprint.where("end_date >= #{Date.today.to_date}").order(:start_date).map do |sprint|
+      {
+        id: sprint.id,
+        name: sprint.name,
+        starts: sprint.start_date.to_date,
+        ends: sprint.end_date.to_date
+      }
+    end
+
     @issues.each do |issue|
       permissions_by_issue[issue.id] = {
         edit: (issue.assigned_to_id == User.current.id) ? User.current.allowed_to?(:edit_own_issues, issue.project) : User.current.allowed_to?(:edit_issues, issue.project),
@@ -91,6 +102,7 @@ class UiController < ApplicationController
       assignees_by_issue[issue.id] = issue.assignable_users.map { |user| {id: user.id, name: user.name} }
       trackers_by_issue[issue.id] = Issue.allowed_target_trackers(issue.project).map { |tracker| {id: tracker.id, name: tracker.name} }
       versions_by_issue[issue.id] = issue.project.shared_versions.open.map { |version| {id: version.id, name: version.name} }
+      sprints_by_issue[issue.id] = (permissions_by_issue[issue.id][:assign_to_sprint] == true) ? assignable_sprints.reject { |sprint| issue.sprints.include?(sprint[:id]) } : []
     end
 
     permissions = permissions_by_issue.values.each_with_object(Hash.new(true)) do |issue_permissions, acc|
@@ -104,24 +116,15 @@ class UiController < ApplicationController
     assignees = assignees_by_issue.values.reduce { |acc, assignees| acc & assignees }
     trackers = trackers_by_issue.values.reduce { |acc, trackers| acc & trackers }
     versions = versions_by_issue.values.reduce { |acc, versions| acc & versions }
+    sprints = sprints_by_issue.values.reduce { |acc, sprints| acc & sprints }
 
     # Ensure the hashes only include values that exist in all of the *_by_issue lists
     statuses ||= []
     assignees ||= []
     trackers ||= []
     versions ||= []
+    sprints ||= []
 
-    sprints = []
-    if permissions[:assign_to_sprint]
-      sprints = Sprint.where("end_date >= #{Date.today.to_date}").order(:start_date).map do |sprint|
-        {
-          id: sprint.id,
-          name: sprint.name,
-          starts: sprint.start_date.to_date,
-          ends: sprint.end_date.to_date
-        }
-      end
-    end
     render json: {
       permissions: permissions,
       values: {

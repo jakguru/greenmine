@@ -14,7 +14,6 @@
 <script lang="ts">
 import { defineComponent, h } from "vue";
 import { QueriesPage } from "@/components/queries";
-import { VAlert } from "vuetify/components/VAlert";
 import { VListItem } from "vuetify/components/VList";
 import { useI18n } from "vue-i18n";
 
@@ -64,15 +63,19 @@ export default defineComponent({
   },
   setup() {
     const { t } = useI18n({ useScope: "global" });
-    const getActionMenuItems = (projects: Item[]): ActionMenuItem[] => {
+    const getActionMenuItems = (
+      projects: Item[],
+      _onDone: () => void,
+      onFilterTo: () => void,
+    ): ActionMenuItem[] => {
       if (projects.length > 1) {
         return [
           {
-            component: h(VAlert, {
-              color: "warning",
-              title: t("actionMenu.none.title"),
-              text: t("actionMenu.none.text"),
+            component: h(VListItem, {
+              title: t("issueActionMenu.filterTo.title"),
+              appendIcon: "mdi-filter",
               density: "compact",
+              onClick: () => onFilterTo(),
             }),
           },
         ];
@@ -87,6 +90,14 @@ export default defineComponent({
               name: "projects-id",
               params: { id: projects[0].id },
             },
+          }),
+        },
+        {
+          component: h(VListItem, {
+            title: t("issueActionMenu.filterTo.title"),
+            appendIcon: "mdi-filter",
+            density: "compact",
+            onClick: () => onFilterTo(),
           }),
         },
       ];

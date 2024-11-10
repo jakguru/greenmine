@@ -18,6 +18,10 @@ class SprintsQuery < Query
   end
 
   def initialize_available_filters
+    add_available_filter "id",
+      type: :list,
+      name: l(:field_sprints),
+      values: lambda { sprint_values }
     add_available_filter "name", type: :text
     add_available_filter "start_date", type: :date
     add_available_filter "end_date", type: :date
@@ -62,5 +66,9 @@ class SprintsQuery < Query
 
   def issue_values
     Issue.visible.map { |s| ["#{s.tracker.name} ##{s.id}: #{s.subject}", s.id.to_s] }
+  end
+
+  def sprint_values
+    Sprint.all.collect { |s| [s.name, s.id.to_s] }
   end
 end

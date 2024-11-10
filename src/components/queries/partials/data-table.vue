@@ -199,6 +199,10 @@ export default defineComponent({
       type: Function as PropType<GetActionItemsMethod | undefined>,
       default: undefined,
     },
+    filterToIdField: {
+      type: String as PropType<string>,
+      default: "id",
+    },
   },
   emits: [
     "update:modelValue",
@@ -310,16 +314,17 @@ export default defineComponent({
         ret.left = `${actionMenuOffsetX.value}px`;
       }
       if ("number" === typeof actionMenuOffsetY.value) {
-        ret.top = `${actionMenuOffsetY.value}px`;
+        ret.top = `${actionMenuOffsetY.value + 44}px`;
       }
       return ret;
     });
     const actionMenuBindings = computed(() => ({
       absolute: true,
-      attach: true,
+      attach: "main.v-main > div.v-container",
       contentProps: {
         style: {
           ...actionMenuAbsolutePositioningOffset.value,
+          zIndex: 20,
         },
       },
     }));
@@ -335,6 +340,15 @@ export default defineComponent({
     const onActionMenuDone = () => {
       selectedItems.value = [];
       emit("refresh");
+    };
+    const filterToIdField = computed(() => props.filterToIdField);
+    const onFilterTo = () => {
+      modelValue.value.filters.current[filterToIdField.value] = {
+        operator: "=",
+        values: [selectedItems.value.map((i) => i.toString()).join(",")],
+      };
+      emit("submit");
+      selectedItems.value = [];
     };
     const loadActionMenuItems = async () => {
       actionMenuIsLoading.value = true;
@@ -353,6 +367,7 @@ export default defineComponent({
             .map((id) => payload.value.items.find((item) => item.id === id))
             .filter((v) => "undefined" !== typeof v),
           onActionMenuDone,
+          onFilterTo,
         );
         actionMenuIsLoading.value = false;
       } catch (e) {

@@ -28,7 +28,6 @@
 <script lang="ts">
 import { defineComponent, h } from "vue";
 import { QueriesPage } from "@/components/queries";
-import { VAlert } from "vuetify/components/VAlert";
 import { VListItem } from "vuetify/components/VList";
 import { useI18n } from "vue-i18n";
 
@@ -78,15 +77,19 @@ export default defineComponent({
   },
   setup() {
     const { t } = useI18n({ useScope: "global" });
-    const getActionMenuItems = (sprints: Item[]): ActionMenuItem[] => {
+    const getActionMenuItems = (
+      sprints: Item[],
+      _onDone: () => void,
+      onFilterTo: () => void,
+    ): ActionMenuItem[] => {
       if (sprints.length > 1) {
         return [
           {
-            component: h(VAlert, {
-              color: "warning",
-              title: t("actionMenu.none.title"),
-              text: t("actionMenu.none.text"),
+            component: h(VListItem, {
+              title: t("issueActionMenu.filterTo.title"),
+              appendIcon: "mdi-filter",
               density: "compact",
+              onClick: () => onFilterTo(),
             }),
           },
         ];
@@ -101,6 +104,14 @@ export default defineComponent({
               name: "sprints-id",
               params: { id: sprints[0].id },
             },
+          }),
+        },
+        {
+          component: h(VListItem, {
+            title: t("issueActionMenu.filterTo.title"),
+            appendIcon: "mdi-filter",
+            density: "compact",
+            onClick: () => onFilterTo(),
           }),
         },
       ];

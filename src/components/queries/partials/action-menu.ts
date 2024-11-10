@@ -14,6 +14,7 @@ export interface GetActionItemsMethod {
   (
     items: Item[],
     onDone: () => void,
+    onFilterTo: () => void,
   ): ActionMenuItem[] | Promise<ActionMenuItem[]>;
 }
 
