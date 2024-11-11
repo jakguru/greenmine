@@ -27,7 +27,7 @@ import type {
   Permissions,
   Createable,
 } from "@/friday";
-import type { ApiService } from "@jakguru/vueprint";
+import type { ApiService, ToastService } from "@jakguru/vueprint";
 
 export default defineComponent({
   name: "IssuesIndex",
@@ -62,8 +62,9 @@ export default defineComponent({
   },
   setup() {
     const api = inject<ApiService>("api");
+    const toast = inject<ToastService>("toast");
     const { t } = useI18n({ useScope: "global" });
-    const getActionMenuItems = useGetActionMenuItems(api, t);
+    const getActionMenuItems = useGetActionMenuItems(api, toast, t);
     return {
       getActionMenuItems,
     };

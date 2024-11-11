@@ -657,7 +657,7 @@ export default defineComponent({
       },
       { immediate: true },
     );
-    const getActionMenuItems = useGetActionMenuItems(api, t);
+    const getActionMenuItems = useGetActionMenuItems(api, toast, t);
     return {
       breadcrumbsBindings,
       vTabBindings,

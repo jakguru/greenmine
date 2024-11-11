@@ -151,6 +151,7 @@
           :get-action-items="getActionItems"
           :filter-to-id-field="filterToIdField"
           @submit="onSubmit"
+          @refresh="onRefresh"
         >
           <template #before-top>
             <slot name="before-top" />

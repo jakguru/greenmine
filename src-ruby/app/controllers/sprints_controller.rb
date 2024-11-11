@@ -60,6 +60,41 @@ class SprintsController < ApplicationController
     end
   end
 
+  def assign_to_sprint
+    issue = Issue.find(params[:issue_id])
+    can_assign = User.current.admin || User.current.allowed_to?(:assign_to_sprint, issue.project)
+    Rails.logger.info("Can assign: #{can_assign} to issue: #{issue}")
+    unless can_assign
+      render json: {success: false}, status: 401
+    end
+    if params[:id] == "backlog"
+      can_unassign = User.current.admin || User.current.allowed_to?(:unassign_from_sprint, issue.project)
+      unless can_unassign
+        render json: {success: false}, status: 401
+      end
+      issue.sprints = []
+      issue.save
+      render json: {success: true}, status: 201
+      return
+    end
+    sprint = Sprint.find(params[:id])
+    sprint.issues << issue
+    sprint.save
+    render json: {success: true}, status: 201
+  end
+
+  def assign_to_backlog
+    issue = Issue.find(params[:issue_id])
+    can_unassign = User.current.admin || User.current.allowed_to?(:unassign_from_sprint, issue.project)
+    Rails.logger.info("Can unassign: #{can_unassign} to issue: #{issue}")
+    unless can_unassign
+      render json: {success: false}, status: 401
+    end
+    issue.sprints = []
+    issue.save
+    render json: {success: true}, status: 201
+  end
+
   private
 
   def find_sprint

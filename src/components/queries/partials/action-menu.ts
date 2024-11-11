@@ -29,10 +29,15 @@ export const ActionMenu = defineComponent({
       type: Boolean,
       default: false,
     },
+    maxHeight: {
+      type: Number as PropType<number | undefined>,
+      default: undefined,
+    },
   },
   setup(props) {
     const items = computed(() => props.items);
     const loading = computed(() => props.loading);
+    const maxHeight = computed(() => props.maxHeight);
     const actionMenuItemToHyperscript = (item: ActionMenuItem) => {
       return item.component;
     };
@@ -62,6 +67,7 @@ export const ActionMenu = defineComponent({
           color: "background",
           width: "200",
           class: "action-menu",
+          maxHeight: maxHeight.value,
         },
         children.value,
       );

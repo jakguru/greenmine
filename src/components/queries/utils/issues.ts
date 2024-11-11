@@ -4,10 +4,10 @@ import { VMenu } from "vuetify/components/VMenu";
 import { VCard } from "vuetify/components/VCard";
 import { VListItem } from "vuetify/components/VList";
 
-import type { ApiService } from "@jakguru/vueprint";
+import type { useI18n } from "vue-i18n";
+import type { ApiService, ToastService } from "@jakguru/vueprint";
 import type { Item } from "@/friday";
 import type { ActionMenuItem } from "@/components/queries/partials/action-menu";
-import type { useI18n } from "vue-i18n";
 type I18nT = ReturnType<typeof useI18n>["t"];
 
 export interface IssueActionPermissions {
@@ -69,6 +69,7 @@ export interface IssueActionValues {
 }
 
 export interface IssueActionResponseData {
+  formAuthenticityToken: string;
   permissions: IssueActionPermissions;
   values: IssueActionValues;
 }
@@ -88,6 +89,56 @@ export const getContextMenuActionsAndOptions = async (
     return false;
   }
   return data;
+};
+
+const doUpdateForIssue = async (
+  what: Record<string, unknown>,
+  issue: Item,
+  api: ApiService | undefined | null,
+  toast: ToastService | undefined | null,
+  t: I18nT,
+  formAuthenticityToken: string,
+) => {
+  if (!toast || !api || !formAuthenticityToken) {
+    console.warn("Missing toast, api, or formAuthenticityToken");
+    return false;
+  }
+  try {
+    const { status } = await api.put(`/issues/${issue.id}`, {
+      issue: what,
+      authenticity_token: formAuthenticityToken,
+      _method: "patch",
+    });
+    if (status < 200 || status >= 300) {
+      toast.fire({
+        title: t("issueActionMenu.updateFailed", { issue: issue.id }),
+        icon: "error",
+      });
+      return false;
+    } else {
+      return true;
+    }
+  } catch (e) {
+    // noop
+    console.error(e);
+    return false;
+  }
+};
+
+const doUpdateForIssues = async (
+  what: Record<string, unknown>,
+  issues: Item[],
+  api: ApiService | undefined | null,
+  toast: ToastService | undefined | null,
+  t: I18nT,
+  formAuthenticityToken: string,
+) => {
+  const results = await Promise.all(
+    issues.map((issue) =>
+      doUpdateForIssue(what, issue, api, toast, t, formAuthenticityToken),
+    ),
+  );
+  return results.some((r) => true === r);
 };
 
 const makeActionMenuSubmenu = (
@@ -139,6 +190,7 @@ const makeActionMenuSubmenu = (
 
 const getActionMenuItems = async (
   api: ApiService | undefined | null,
+  toast: ToastService | undefined | null,
   t: I18nT,
   issues: Item[],
   onDone: () => void,
@@ -191,9 +243,25 @@ const getActionMenuItems = async (
         t("issueActionMenu.assignToSprint.title"),
         fromApi.values.sprints,
         issues,
-        () => {
-          console.log("assign to sprint");
-          onDone();
+        (issues: Item[], value: { id: number; name: string }) => {
+          Promise.all(
+            issues.map(async (issue) => {
+              const { status } = await api.post(`/sprints/${value.id}/assign`, {
+                issue_id: issue.id,
+                authenticity_token: fromApi.formAuthenticityToken,
+              });
+              if (status < 200 || status >= 300) {
+                toast?.fire({
+                  title: t("issueActionMenu.assignToSprint.failed", {
+                    issue: issue.id,
+                  }),
+                  icon: "error",
+                });
+              }
+            }),
+          ).then(() => {
+            onDone();
+          });
         },
       ),
     );
@@ -205,8 +273,24 @@ const getActionMenuItems = async (
         appendIcon: "mdi-close-octagon",
         density: "compact",
         onClick: () => {
-          console.log("unassign from sprint");
-          onDone();
+          Promise.all(
+            issues.map(async (issue) => {
+              const { status } = await api.post(`/sprints/backlog/assign`, {
+                issue_id: issue.id,
+                authenticity_token: fromApi.formAuthenticityToken,
+              });
+              if (status < 200 || status >= 300) {
+                toast?.fire({
+                  title: t("issueActionMenu.unassignFromSprint.failed", {
+                    issue: issue.id,
+                  }),
+                  icon: "error",
+                });
+              }
+            }),
+          ).then(() => {
+            onDone();
+          });
         },
       }),
     });
@@ -218,9 +302,17 @@ const getActionMenuItems = async (
           t("issueActionMenu.changeStatus.title"),
           fromApi.values.statuses,
           issues,
-          () => {
-            console.log("change status");
-            onDone();
+          (issues: Item[], value: { id: number; name: string }) => {
+            doUpdateForIssues(
+              { status_id: value.id },
+              issues,
+              api,
+              toast,
+              t,
+              fromApi.formAuthenticityToken,
+            ).then(() => {
+              onDone();
+            });
           },
         ),
       );
@@ -231,9 +323,17 @@ const getActionMenuItems = async (
           t("issueActionMenu.assignTo.title"),
           fromApi.values.assignees,
           issues,
-          () => {
-            console.log("assign to");
-            onDone();
+          (issues: Item[], value: { id: number; name: string }) => {
+            doUpdateForIssues(
+              { assigned_to_id: value.id },
+              issues,
+              api,
+              toast,
+              t,
+              fromApi.formAuthenticityToken,
+            ).then(() => {
+              onDone();
+            });
           },
         ),
       );
@@ -246,9 +346,19 @@ const getActionMenuItems = async (
           name: `${v}%`,
         })),
         issues,
-        () => {
-          console.log("set done ratio");
-          onDone();
+        (issues: Item[], value: { id: number; name: string }) => {
+          doUpdateForIssues(
+            { done_ratio: value.id },
+            issues,
+            api,
+            toast,
+            t,
+            fromApi.formAuthenticityToken,
+          ).then((did) => {
+            if (did) {
+              onDone();
+            }
+          });
         },
       ),
     );
@@ -258,9 +368,17 @@ const getActionMenuItems = async (
           t("issueActionMenu.changeTracker.title"),
           fromApi.values.trackers,
           issues,
-          () => {
-            console.log("change tracker");
-            onDone();
+          (issues: Item[], value: { id: number; name: string }) => {
+            doUpdateForIssues(
+              { tracker_id: value.id },
+              issues,
+              api,
+              toast,
+              t,
+              fromApi.formAuthenticityToken,
+            ).then(() => {
+              onDone();
+            });
           },
         ),
       );
@@ -271,9 +389,17 @@ const getActionMenuItems = async (
           t("issueActionMenu.changeVersion.title"),
           fromApi.values.versions,
           issues,
-          () => {
-            console.log("change version");
-            onDone();
+          (issues: Item[], value: { id: number; name: string }) => {
+            doUpdateForIssues(
+              { fixed_version_id: value.id },
+              issues,
+              api,
+              toast,
+              t,
+              fromApi.formAuthenticityToken,
+            ).then(() => {
+              onDone();
+            });
           },
         ),
       );
@@ -284,9 +410,17 @@ const getActionMenuItems = async (
           t("issueActionMenu.changeUrgency.title"),
           fromApi.values.urgencies,
           issues,
-          () => {
-            console.log("change urgency");
-            onDone();
+          (issues: Item[], value: { id: number; name: string }) => {
+            doUpdateForIssues(
+              { priority_id: value.id },
+              issues,
+              api,
+              toast,
+              t,
+              fromApi.formAuthenticityToken,
+            ).then(() => {
+              onDone();
+            });
           },
         ),
       );
@@ -297,9 +431,17 @@ const getActionMenuItems = async (
           t("issueActionMenu.changeImpact.title"),
           fromApi.values.impacts,
           issues,
-          () => {
-            console.log("change impact");
-            onDone();
+          (issues: Item[], value: { id: number; name: string }) => {
+            doUpdateForIssues(
+              { impact_id: value.id },
+              issues,
+              api,
+              toast,
+              t,
+              fromApi.formAuthenticityToken,
+            ).then(() => {
+              onDone();
+            });
           },
         ),
       );
@@ -354,7 +496,8 @@ const getActionMenuItems = async (
 
 export const useGetActionMenuItems = (
   api: ApiService | undefined | null,
+  toast: ToastService | undefined | null,
   t: I18nT,
 ) => {
-  return getActionMenuItems.bind(null, api, t);
+  return getActionMenuItems.bind(null, api, toast, t);
 };

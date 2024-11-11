@@ -126,6 +126,7 @@ class UiController < ApplicationController
     sprints ||= []
 
     render json: {
+      formAuthenticityToken: form_authenticity_token,
       permissions: permissions,
       values: {
         statuses: statuses,

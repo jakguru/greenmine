@@ -115,6 +115,7 @@
             <ActionMenu
               :items="actionMenuItems"
               :loading="actionMenuIsLoading"
+              :max-height="actionMenuBindings.contentProps.maxHeight"
             />
           </v-menu>
         </v-col>
@@ -326,6 +327,10 @@ export default defineComponent({
           ...actionMenuAbsolutePositioningOffset.value,
           zIndex: 20,
         },
+        maxHeight:
+          "number" === typeof actionMenuOffsetY.value
+            ? display.height.value - actionMenuOffsetY.value - 44
+            : undefined,
       },
     }));
     watch(

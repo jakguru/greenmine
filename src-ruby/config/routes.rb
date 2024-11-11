@@ -31,6 +31,12 @@ RedmineApp::Application.routes.draw do
 
   # Sprints
   resources :sprints, only: [:index, :show, :new, :create, :edit, :update, :destroy]
+  resources :sprints do
+    member do
+      post "assign", to: "sprints#assign_to_sprint"
+    end
+  end
   # put "issues/:id/sprints", to: "issue_sprints#update"
   get "sprints/:id/burndown", to: "sprints#show_burndown"
+  post "sprints/backlog/assign/", to: "sprints#assign_to_backlog"
 end
