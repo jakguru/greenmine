@@ -298,8 +298,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/custom_fields",
     name: "custom-fields",
-    // "component": () => import("@/pages/custom_fields.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/custom_fields/index.vue"),
     meta: {
       title: "pages.custom-fields.title",
     },

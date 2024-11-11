@@ -227,6 +227,13 @@ module FridayHelper
           url: new_time_entry_path
         }
       end
+    elsif klass == CustomFieldQuery
+      if user.admin
+        ret << {
+          title: l(:label_custom_field_new),
+          url: new_custom_field_path
+        }
+      end
     end
 
     ret

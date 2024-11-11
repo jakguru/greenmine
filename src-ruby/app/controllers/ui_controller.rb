@@ -42,6 +42,9 @@ class UiController < ApplicationController
         },
         SprintsQuery: {
           operators: SprintsQuery.operators_by_filter_type
+        },
+        CustomFieldQuery: {
+          operators: CustomFieldQuery.operators_by_filter_type
         }
       },
       settings: {

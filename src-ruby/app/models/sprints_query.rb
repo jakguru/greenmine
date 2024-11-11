@@ -47,7 +47,7 @@ class SprintsQuery < Query
   end
 
   def base_scope
-    Sprint.all
+    Sprint.where(statement)
   end
 
   def results_scope(options = {})
