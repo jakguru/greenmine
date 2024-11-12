@@ -76,11 +76,16 @@ module FridayPlugin
       public
 
       def sprint_values
-        Sprint.all.collect { |s| [s.name, s.id.to_s] } << [l(:label_backlog), "0"]
+        Sprint.all.collect { |s| [s.name, s.id.to_s] } << [l(:label_backlog), "0"] << [l(:label_previous), "prev"] << [l(:label_current), "curr"] << [l(:label_next), "next"]
       end
 
       # Add this method to handle the SQL generation for the sprint_ids filter
       def sql_for_sprint_ids_field(field, operator, value)
+        current_sprint = nil
+        if value.include?("curr") || value.include?("prev") || value.include?("next")
+          current_sprint = Sprint.where("start_date <= ? AND end_date >= ?", Date.current, Date.current).first
+        end
+
         case operator
         when "="
           conditions = []
@@ -90,6 +95,26 @@ module FridayPlugin
             value -= ["0"]
             # Condition for backlog issues
             conditions << "#{Issue.table_name}.id NOT IN (SELECT issue_id FROM issue_sprints)"
+          end
+
+          # Handle current sprint
+          if value.include?("curr") && current_sprint
+            value -= ["curr"]
+            conditions << "#{Issue.table_name}.id IN (SELECT issue_id FROM issue_sprints WHERE sprint_id = #{current_sprint.id})"
+          end
+
+          # Handle previous sprint (directly before current sprint)
+          if value.include?("prev") && current_sprint
+            value -= ["prev"]
+            previous_sprint = Sprint.where("end_date < ?", current_sprint.start_date).order("end_date DESC").first
+            conditions << "#{Issue.table_name}.id IN (SELECT issue_id FROM issue_sprints WHERE sprint_id = #{previous_sprint.id})" if previous_sprint
+          end
+
+          # Handle next sprint (directly after current sprint)
+          if value.include?("next") && current_sprint
+            value -= ["next"]
+            next_sprint = Sprint.where("start_date > ?", current_sprint.end_date).order("start_date ASC").first
+            conditions << "#{Issue.table_name}.id IN (SELECT issue_id FROM issue_sprints WHERE sprint_id = #{next_sprint.id})" if next_sprint
           end
 
           unless value.empty?
@@ -112,7 +137,27 @@ module FridayPlugin
             # Remove "0" from the values
             value -= ["0"]
             # Condition for issues with any sprint
-            conditions << "#{Issue.table_name}.id IN (SELECT issue_id FROM issue_sprints)"
+            conditions << "#{Issue.table_name}.id NOT IN (SELECT issue_id FROM issue_sprints)"
+          end
+
+          # Handle current sprint
+          if value.include?("curr") && current_sprint
+            value -= ["curr"]
+            conditions << "#{Issue.table_name}.id NOT IN (SELECT issue_id FROM issue_sprints WHERE sprint_id = #{current_sprint.id})"
+          end
+
+          # Handle previous sprint (directly before current sprint)
+          if value.include?("prev") && current_sprint
+            value -= ["prev"]
+            previous_sprint = Sprint.where("end_date < ?", current_sprint.start_date).order("end_date DESC").first
+            conditions << "#{Issue.table_name}.id NOT IN (SELECT issue_id FROM issue_sprints WHERE sprint_id = #{previous_sprint.id})" if previous_sprint
+          end
+
+          # Handle next sprint (directly after current sprint)
+          if value.include?("next") && current_sprint
+            value -= ["next"]
+            next_sprint = Sprint.where("start_date > ?", current_sprint.end_date).order("start_date ASC").first
+            conditions << "#{Issue.table_name}.id NOT IN (SELECT issue_id FROM issue_sprints WHERE sprint_id = #{next_sprint.id})" if next_sprint
           end
 
           unless value.empty?

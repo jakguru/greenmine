@@ -231,7 +231,51 @@ module FridayHelper
       if user.admin
         ret << {
           title: l(:label_custom_field_new),
-          url: new_custom_field_path
+          url: new_custom_field_path({tab: ""})
+        }
+        ret << {
+          title: l(:cf_type_document_category_custom_field_new),
+          url: new_custom_field_path({type: DocumentCategoryCustomField})
+        }
+        ret << {
+          title: l(:cf_type_document_custom_field_new),
+          url: new_custom_field_path({type: DocumentCustomField})
+        }
+        ret << {
+          title: l(:cf_type_group_custom_field_new),
+          url: new_custom_field_path({type: GroupCustomField})
+        }
+        ret << {
+          title: l(:cf_type_issue_custom_field_new),
+          url: new_custom_field_path({type: IssueCustomField})
+        }
+        ret << {
+          title: l(:cf_type_issue_priority_custom_field_new),
+          url: new_custom_field_path({type: IssuePriorityCustomField})
+        }
+        ret << {
+          title: l(:cf_type_issue_impact_custom_field_new),
+          url: new_custom_field_path({type: IssueImpactCustomField})
+        }
+        ret << {
+          title: l(:cf_type_project_custom_field_new),
+          url: new_custom_field_path({type: ProjectCustomField})
+        }
+        ret << {
+          title: l(:cf_type_time_entry_activity_custom_field_new),
+          url: new_custom_field_path({type: TimeEntryActivityCustomField})
+        }
+        ret << {
+          title: l(:cf_type_time_entry_custom_field_new),
+          url: new_custom_field_path({type: TimeEntryCustomField})
+        }
+        ret << {
+          title: l(:cf_type_user_custom_field_new),
+          url: new_custom_field_path({type: UserCustomField})
+        }
+        ret << {
+          title: l(:cf_type_version_custom_field_new),
+          url: new_custom_field_path({type: VersionCustomField})
         }
       end
     end

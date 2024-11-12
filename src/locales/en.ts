@@ -68,10 +68,13 @@ export default {
     "boards-board-id-topics-id-edit": { title: "" },
     "boards-board-id-topics-new": { title: "" },
     "boards-board-id-topics-quote-id": { title: "" },
-    "custom-fields": { title: "", admin: { title: "Custom Field Management" } },
+    "custom-fields": {
+      title: "Custom Fields",
+      admin: { title: "Custom Field Management" },
+    },
     "custom-fields-custom-field-id-enumerations": { title: "" },
-    "custom-fields-id-edit": { title: "" },
-    "custom-fields-new": { title: "" },
+    "custom-fields-id-edit": { title: "Edit Custom Field" },
+    "custom-fields-new": { title: "New Custom Field" },
     "documents-id": { title: "" },
     "documents-id-edit": { title: "" },
     enumerations: {

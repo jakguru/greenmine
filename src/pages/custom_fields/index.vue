@@ -1,6 +1,6 @@
 <template>
   <QueriesPage
-    :title="$t('pages.custom_fields.title')"
+    :title="$t('pages.custom-fields.title')"
     :params="params"
     :payload="payload"
     :query="query"

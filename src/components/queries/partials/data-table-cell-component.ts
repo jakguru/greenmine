@@ -14,6 +14,7 @@ import {
 import { useAppData } from "@/utils/app";
 import { calculateColorForPriority } from "@/utils/colors";
 import { useI18n } from "vue-i18n";
+import { ordinal } from "@/utils/formatting";
 
 import ProjectById from "./custom-data-table-cells/project-by-id.vue";
 import TimeTrackingButton from "../../time-tracking/button.vue";
@@ -437,6 +438,37 @@ export const QueriesPartialDataTableCell = defineComponent({
           }
         case "UserQuery":
           switch (column.value.key) {
+            default:
+              return toReturnByColumnKey.value;
+          }
+        case "CustomFieldQuery":
+          switch (column.value.key) {
+            case "id":
+            case "name":
+              return h(
+                RouterLink,
+                {
+                  to: {
+                    name: "custom-fields-id-edit",
+                    params: { id: item.value.id },
+                  },
+                  ...attrs.value,
+                },
+                value.value.display,
+              );
+            case "type":
+              return (
+                appData.value.customFieldTypes[value.value.value] ||
+                value.value.display
+              );
+            case "field_format":
+              return (
+                appData.value.allFieldFormats[value.value.value] ||
+                value.value.display
+              );
+            case "position":
+              return ordinal(Number(value.value.value));
+
             default:
               return toReturnByColumnKey.value;
           }

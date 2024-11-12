@@ -2,6 +2,7 @@
 
 class UiController < ApplicationController
   unloadable
+  include FridayCustomFieldHelper
 
   def get_app_data
     projects = projects_for_jump_box(User.current)
@@ -21,6 +22,9 @@ class UiController < ApplicationController
     end
     priorities = IssuePriority.active
     impacts = IssueImpact.active
+    field_formats = custom_field_types.keys.each_with_object({}) do |type, acc|
+      acc[type] = Redmine::FieldFormat.as_select(type)
+    end
     render json: {
       name: Setting.send(:app_title),
       i18n: ::I18n.locale,
@@ -57,7 +61,21 @@ class UiController < ApplicationController
       fetchedAt: Time.now,
       friday: {
         sidekiq: ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")
-      }
+      },
+      customFieldTypes: custom_field_types,
+      fieldFormats: field_formats,
+      allFieldFormats: Redmine::FieldFormat.all.values.select.each_with_object({}) do |format, acc|
+        acc[format.name] = ::I18n.t(format.label)
+      end,
+      fieldFormatSupportsMultiple: Redmine::FieldFormat.all.values.select.each_with_object({}) do |format, acc|
+        acc[format.name] = format.multiple_supported?
+      end,
+      fieldFormatSupportsFilter: Redmine::FieldFormat.all.values.select.each_with_object({}) do |format, acc|
+        acc[format.name] = format.is_filter_supported?
+      end,
+      fieldFormatSupportsSearch: Redmine::FieldFormat.all.values.select.each_with_object({}) do |format, acc|
+        acc[format.name] = format.searchable_supported?
+      end
     }
   end
 

@@ -315,8 +315,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/custom_fields/:id/edit",
     name: "custom-fields-id-edit",
-    // "component": () => import("@/pages/custom_fields/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/custom_fields/edit.vue"),
     meta: {
       title: "pages.custom-fields-id-edit.title",
     },
@@ -324,8 +323,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/custom_fields/new",
     name: "custom-fields-new",
-    // "component": () => import("@/pages/custom_fields/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/custom_fields/edit.vue"),
     meta: {
       title: "pages.custom-fields-new.title",
     },

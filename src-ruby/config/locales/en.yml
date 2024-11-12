@@ -26,3 +26,25 @@ en:
   sprint_state_future: Future
   sprint_state_closed: Closed
   sprint_state_current: Current
+  cf_type_document_category_custom_field: Document Category
+  cf_type_document_custom_field: Document
+  cf_type_group_custom_field: Group
+  cf_type_issue_custom_field: Issue
+  cf_type_issue_priority_custom_field: Issue Urgency
+  cf_type_issue_impact_custom_field: Issue Impact
+  cf_type_project_custom_field: Project
+  cf_type_time_entry_activity_custom_field: Time Entry Activity
+  cf_type_time_entry_custom_field: Time Entry
+  cf_type_user_custom_field: User
+  cf_type_version_custom_field: Version
+  cf_type_document_category_custom_field_new: New Document Category Custom Field
+  cf_type_document_custom_field_new: New Document Custom Field
+  cf_type_group_custom_field_new: New Group Custom Field
+  cf_type_issue_custom_field_new: New Issue Custom Field
+  cf_type_issue_priority_custom_field_new: New Issue Urgency Custom Field
+  cf_type_issue_impact_custom_field_new: New Issue Impact Custom Field
+  cf_type_project_custom_field_new: New Project Custom Field
+  cf_type_time_entry_activity_custom_field_new: New Time Entry Activity Custom Field
+  cf_type_time_entry_custom_field_new: New Time Entry Custom Field
+  cf_type_user_custom_field_new: New User Custom Field
+  cf_type_version_custom_field_new: New Version Custom Field

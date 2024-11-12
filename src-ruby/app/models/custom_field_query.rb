@@ -1,4 +1,6 @@
 class CustomFieldQuery < Query
+  include CustomFieldsHelper
+  include FridayCustomFieldHelper
   self.queried_class = CustomField
 
   self.available_columns = [
@@ -66,18 +68,6 @@ class CustomFieldQuery < Query
   end
 
   def type_values
-    [
-      ["Document Category", "DocumentCategoryCustomField"],
-      ["Document", "DocumentCustomField"],
-      ["Group", "GroupCustomField"],
-      ["Issue", "IssueCustomField"],
-      ["Issue Urgency", "IssuePriorityCustomField"],
-      ["Issue Impact", "IssueImpactCustomField"],
-      ["Project", "ProjectCustomField"],
-      ["Time Entry Activity", "TimeEntryActivityCustomField"],
-      ["Time Entry", "TimeEntryCustomField"],
-      ["User", "UserCustomField"],
-      ["Version", "VersionCustomField"]
-    ]
+    custom_field_types.collect { |type, name| [name, type.to_s] }
   end
 end
