@@ -29,11 +29,14 @@ export const VCSVField = defineComponent({
     watch(
       () => sourceValue.value,
       (v: string) => {
-        modelValue.value = v
-          .trim()
-          .split(",")
-          .map((v: string) => v.trim())
-          .filter((v: string) => v.length > 0);
+        modelValue.value =
+          "string" === typeof v
+            ? v
+                .trim()
+                .split(",")
+                .map((v: string) => v.trim())
+                .filter((v: string) => v.length > 0)
+            : [];
       },
       { immediate: true },
     );

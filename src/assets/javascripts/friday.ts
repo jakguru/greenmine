@@ -142,6 +142,11 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
           variant: "outlined",
           hideDetails: "auto",
         },
+        VTextarea: {
+          variant: "outlined",
+          hideDetails: "auto",
+          resize: "none",
+        },
         VDateInput: {
           variant: "outlined",
           hideDetails: "auto",

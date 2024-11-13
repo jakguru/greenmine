@@ -491,12 +491,19 @@ export const FridayForm = defineComponent({
                 props.onBlur = () => {
                   focusedRef.value[field.formKey] = false;
                 };
-                props.disabled = isSubmitting.value;
-                props.clearable = !isLoading.value;
+                const originalDisabled = props.disabled;
+                props.disabled = isSubmitting.value || originalDisabled;
+                const originalClearable = props.clearable;
+                props.clearable = !isLoading.value && originalClearable;
                 props.autocapitalize = "off";
                 props.spellcheck = false;
+                const originalOnUpdateModelValue = props["onUpdate:modelValue"];
                 props["onUpdate:modelValue"] = (v: unknown) => {
                   modelValue.value = v;
+                  if (originalOnUpdateModelValue) {
+                    // @ts-ignore
+                    originalOnUpdateModelValue(v);
+                  }
                 };
                 return props;
               },

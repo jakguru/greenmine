@@ -23,7 +23,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(DocumentCategoryCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(DocumentCategory).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -44,7 +44,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(DocumentCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(Document).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -65,7 +65,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(GroupCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(Group).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -86,7 +86,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(IssueCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(Issue).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -109,6 +109,11 @@ module FridayCustomFieldHelper
             multiple: true
           },
           value: custom_field.respond_to?(:role_ids) ? custom_field.role_ids : nil
+        },
+        visible: {
+          type: "checkbox",
+          props: {},
+          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
         },
         tracker_ids: {
           type: "select",
@@ -136,7 +141,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(IssuePriorityCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(IssuePriority).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -157,7 +162,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(IssueImpactCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(IssueImpact).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -178,7 +183,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(ProjectCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(Project).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -201,13 +206,18 @@ module FridayCustomFieldHelper
             multiple: true
           },
           value: custom_field.respond_to?(:role_ids) ? custom_field.role_ids : nil
+        },
+        visible: {
+          type: "checkbox",
+          props: {},
+          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
         }
       },
       TimeEntryActivityCustomField: {
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(TimeEntryActivityCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(TimeEntryActivity).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -228,7 +238,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(TimeEntryCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(TimeEntry).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -251,13 +261,18 @@ module FridayCustomFieldHelper
             multiple: true
           },
           value: custom_field.respond_to?(:role_ids) ? custom_field.role_ids : nil
+        },
+        visible: {
+          type: "checkbox",
+          props: {},
+          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
         }
       },
       UserCustomField: {
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(UserCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(User).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -288,7 +303,7 @@ module FridayCustomFieldHelper
         field_format: {
           type: "select",
           props: {
-            items: Redmine::FieldFormat.as_select(VersionCustomField).map { |k, v| {value: k, label: v} },
+            items: Redmine::FieldFormat.formats_for_custom_field_class(Version).map { |format| {label: ::I18n.t(format.label), value: format.name} },
             disabled: !custom_field.new_record?
           },
           value: custom_field.respond_to?(:field_format) ? custom_field.field_format : nil
@@ -311,6 +326,11 @@ module FridayCustomFieldHelper
             multiple: true
           },
           value: custom_field.respond_to?(:role_ids) ? custom_field.role_ids : nil
+        },
+        visible: {
+          type: "checkbox",
+          props: {},
+          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
         }
       }
     }
@@ -336,7 +356,11 @@ module FridayCustomFieldHelper
         default_value: {
           type: "select",
           props: {
-            items: custom_field.possible_values.map { |v| {value: v, label: v} }
+            items: [
+              {value: "", label: ""},
+              {value: "0", label: l(:general_text_no)},
+              {value: "1", label: l(:general_text_yes)}
+            ]
           },
           value: custom_field.respond_to?(:default_value) ? custom_field.default_value : nil
         },
@@ -493,6 +517,11 @@ module FridayCustomFieldHelper
           props: {},
           value: custom_field.respond_to?(:regexp) ? custom_field.regexp : nil
         },
+        url_pattern: {
+          type: "text",
+          props: {},
+          value: custom_field.respond_to?(:url_pattern) ? custom_field.url_pattern : nil
+        },
         default_value: {
           type: "text",
           props: {
@@ -588,7 +617,7 @@ module FridayCustomFieldHelper
           value: custom_field.respond_to?(:regexp) ? custom_field.regexp : nil
         },
         default_value: {
-          type: "text",
+          type: "textarea",
           props: {},
           value: custom_field.respond_to?(:default_value) ? custom_field.default_value : nil
         }
@@ -627,7 +656,7 @@ module FridayCustomFieldHelper
         version_status: {
           type: "select",
           props: {
-            items: Version::VERSION_STATUSES.map { |k, v| {value: k, label: v} },
+            items: Version::VERSION_STATUSES.map { |k, v| {value: k, label: l("version_status_#{k}")} },
             multiple: true
           },
           value: custom_field.respond_to?(:version_status) ? custom_field.version_status : nil

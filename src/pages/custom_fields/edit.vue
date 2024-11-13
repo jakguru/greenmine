@@ -61,6 +61,7 @@
 import { defineComponent, computed, inject, ref, watch, h } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
+import { VTextarea } from "vuetify/components/VTextarea";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
 import { VSwitch } from "vuetify/components/VSwitch";
 import { useRoute } from "vue-router";
@@ -68,6 +69,7 @@ import {
   useSystemAccentColor,
   useReloadRouteData,
   useReloadAppData,
+  cloneObject,
 } from "@/utils/app";
 import {
   Joi,
@@ -201,6 +203,7 @@ export default defineComponent({
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const id = computed(() => props.id);
     const type = computed(() => props.type);
+    const types = computed(() => props.types);
     const formsByType = computed(() => props.formsByType);
     const formsByFormat = computed(() => props.formsByFormat);
     const formByTypeAndFormat = computed(() => props.formByTypeAndFormat);
@@ -256,12 +259,13 @@ export default defineComponent({
       }
     };
     const reportedFieldFormat = ref<string>("");
-    const reportedType = ref<string | null | undefined>(type.value);
+    const reportedType = ref<string | null | undefined>(undefined);
     watch(
       () => type.value,
       (is) => {
         reportedType.value = is;
       },
+      { immediate: true },
     );
     const knownFields = computed(() => {
       const ret: Record<string, FieldDefinition | undefined> = {};
@@ -320,7 +324,7 @@ export default defineComponent({
           lg: options.lg,
           xl: options.xl,
           xxl: options.xxl,
-          fieldComponent: h("span"),
+          fieldComponent: h("span", `Unknown field: ${key}`),
           formKey: key,
           valueKey: key,
           label: t(`${i18nPrefix.value}.content.fields.${key}`),
@@ -485,6 +489,25 @@ export default defineComponent({
               })),
             },
           };
+        case "textarea":
+          return {
+            cols: options.cols,
+            xs: options.xs,
+            sm: options.sm,
+            md: options.md,
+            lg: options.lg,
+            xl: options.xl,
+            xxl: options.xxl,
+            fieldComponent: VTextarea,
+            formKey: key,
+            valueKey: key,
+            label: t(`${i18nPrefix.value}.content.fields.${key}`),
+            bindings: {
+              ...options.bindings,
+              ...settingsFieldInfo.props,
+              label: t(`${i18nPrefix.value}.content.fields.${key}`),
+            },
+          };
         case "text":
         default:
           return {
@@ -507,6 +530,9 @@ export default defineComponent({
             validator: getFormFieldValidator(
               t,
               (() => {
+                if (!settingsFieldInfo.props) {
+                  return Joi.string().required();
+                }
                 switch (settingsFieldInfo.props.type) {
                   case "email":
                     return settingsFieldInfo.props.optional
@@ -566,28 +592,511 @@ export default defineComponent({
           };
       }
     };
-    const formStructure = computed<FridayFormStructure>(() => {
-      switch (reportedType.value) {
+    const formatSpecificOptionsStructure = computed<FridayFormStructure>(() => {
+      if (!reportedType.value || !reportedFieldFormat.value) {
+        return [];
+      }
+      switch (reportedFieldFormat.value) {
+        case "attachment":
+          return [[makeFridayFormFieldFor("extensions_allowed", { cols: 12 })]];
+        case "bool":
+          return [
+            [
+              makeFridayFormFieldFor("default_value", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 6 }),
+            ],
+          ];
+        case "date":
+          return [
+            [
+              makeFridayFormFieldFor("default_value", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 6 }),
+            ],
+          ];
+        case "enumeration":
+          return [
+            [
+              makeFridayFormFieldFor("default_value", { cols: 12, sm: 4 }),
+              makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 4 }),
+              makeFridayFormFieldFor("multiple", { cols: 12, sm: 4 }),
+            ],
+          ];
+        case "float":
+          return [
+            [
+              makeFridayFormFieldFor("min_length", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("max_length", { cols: 12, sm: 6 }),
+            ],
+            [
+              makeFridayFormFieldFor("default_value", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("regexp", { cols: 12, sm: 6 }),
+            ],
+          ];
+        case "int":
+          return [
+            [
+              makeFridayFormFieldFor("min_length", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("max_length", { cols: 12, sm: 6 }),
+            ],
+            [
+              makeFridayFormFieldFor("default_value", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("regexp", { cols: 12, sm: 6 }),
+            ],
+          ];
+        case "link":
+          return [
+            [
+              makeFridayFormFieldFor("min_length", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("max_length", { cols: 12, sm: 6 }),
+            ],
+            [
+              makeFridayFormFieldFor("default_value", { cols: 12, sm: 4 }),
+              makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 4 }),
+              makeFridayFormFieldFor("regexp", { cols: 12, sm: 4 }),
+            ],
+          ];
+        case "list":
+          return [
+            [
+              makeFridayFormFieldFor("possible_values", { cols: 12, sm: 9 }),
+              makeFridayFormFieldFor("multiple", { cols: 12, sm: 3 }),
+            ],
+            [
+              makeFridayFormFieldFor("default_value", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 6 }),
+            ],
+          ];
+        case "string":
+          return [
+            [
+              makeFridayFormFieldFor("min_length", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("max_length", { cols: 12, sm: 6 }),
+            ],
+            [
+              makeFridayFormFieldFor("default_value", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 6 }),
+            ],
+          ];
+        case "text":
+          return [
+            [
+              makeFridayFormFieldFor("min_length", { cols: 12, sm: 6 }),
+              makeFridayFormFieldFor("max_length", { cols: 12, sm: 6 }),
+            ],
+            [makeFridayFormFieldFor("default_value", { cols: 12 })],
+          ];
+        case "user":
+          return [
+            [
+              makeFridayFormFieldFor("user_role", { cols: 12, sm: 9 }),
+              makeFridayFormFieldFor("multiple", { cols: 12, sm: 3 }),
+            ],
+          ];
+        case "version":
+          return [
+            [
+              makeFridayFormFieldFor("version_status", { cols: 12, sm: 9 }),
+              makeFridayFormFieldFor("multiple", { cols: 12, sm: 3 }),
+            ],
+          ];
         default:
-          return [];
+          return [] as FridayFormStructure;
+      }
+    });
+    const formStructure = computed<FridayFormStructure>(() => {
+      const modelTypeRow = [
+        {
+          cols: 12,
+          fieldComponent: VAutocomplete,
+          formKey: "type",
+          valueKey: "type",
+          label: t(`${i18nPrefix.value}.content.fields.type`),
+          validator: getFormFieldValidator(
+            t,
+            Joi.string()
+              .required()
+              .allow(...types.value.map((t) => t.value)),
+            t(`${i18nPrefix.value}.content.fields.type`),
+          ),
+          bindings: {
+            items: types.value.map((t) => ({
+              label: t.label,
+              value: t.value,
+            })),
+            itemTitle: "label",
+            itemValue: "value",
+            label: t(`${i18nPrefix.value}.content.fields.type`),
+            "onUpdate:modelValue": (v: string) => {
+              if (v) {
+                reportedType.value = v;
+              }
+            },
+            disabled: "number" === typeof id.value && id.value > 0,
+            readonly: "number" === typeof id.value && id.value > 0,
+          },
+        } as FridayFormStructureField,
+      ] as [FridayFormStructureField];
+      const has = {
+        is_required: "undefined" !== typeof knownFields.value.is_required,
+        visible: "undefined" !== typeof knownFields.value.visible,
+        editable: "undefined" !== typeof knownFields.value.editable,
+        is_filter: "undefined" !== typeof knownFields.value.is_filter,
+        searchable: "undefined" !== typeof knownFields.value.searchable,
+      };
+      const countOfHas = Object.keys(has).filter(
+        (k) => has[k as keyof typeof has],
+      ).length;
+      let mdCols = 12;
+      switch (countOfHas) {
+        case 1:
+          mdCols = 12;
+          break;
+        case 2:
+          mdCols = 6;
+          break;
+        case 3:
+          mdCols = 4;
+          break;
+        case 4:
+        case 5:
+        default:
+          mdCols = 3;
+          break;
+      }
+      const checkBoxesRow:
+        | []
+        | [FridayFormStructureField]
+        | [FridayFormStructureField, FridayFormStructureField]
+        | [
+            FridayFormStructureField,
+            FridayFormStructureField,
+            FridayFormStructureField,
+          ]
+        | [
+            FridayFormStructureField,
+            FridayFormStructureField,
+            FridayFormStructureField,
+            FridayFormStructureField,
+          ]
+        | [
+            FridayFormStructureField,
+            FridayFormStructureField,
+            FridayFormStructureField,
+            FridayFormStructureField,
+            FridayFormStructureField,
+          ] = Object.keys(has)
+        .map((k) => {
+          if (!has[k as keyof typeof has]) {
+            return undefined;
+          } else {
+            return makeFridayFormFieldFor(k, {
+              cols: 12,
+              md: mdCols,
+            });
+          }
+        })
+        .filter((v) => v !== undefined) as any;
+      switch (reportedType.value) {
+        case "DocumentCategoryCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+          ];
+        case "DocumentCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+          ];
+        case "GroupCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+          ];
+        case "IssueCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+            [
+              makeFridayFormFieldFor("tracker_ids", { cols: 12, md: 3 }),
+              makeFridayFormFieldFor("project_ids", { cols: 12, md: 3 }),
+              makeFridayFormFieldFor("role_ids", { cols: 12, md: 3 }),
+              makeFridayFormFieldFor("is_for_all", { cols: 12, md: 3 }),
+            ],
+          ];
+        case "IssuePriorityCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+          ];
+        case "IssueImpactCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+          ];
+        case "ProjectCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+            [makeFridayFormFieldFor("role_ids", { cols: 12 })],
+          ];
+        case "TimeEntryActivityCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+          ];
+        case "TimeEntryCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+            [makeFridayFormFieldFor("role_ids", { cols: 12 })],
+          ];
+        case "UserCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+          ];
+        case "VersionCustomField":
+          return [
+            modelTypeRow,
+            [
+              makeFridayFormFieldFor("field_format", {
+                cols: 12,
+                md: 3,
+                bindings: {
+                  disabled: id.value !== null && id.value !== 0,
+                  readonly: id.value !== null && id.value !== 0,
+                  clearable: id.value === null && id.value === 0,
+                  "onUpdate:modelValue": (v: string) => {
+                    if (v) {
+                      reportedFieldFormat.value = v;
+                    }
+                  },
+                },
+              }),
+              makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
+            ],
+            [makeFridayFormFieldFor("description", { cols: 12 })],
+            checkBoxesRow,
+            ...formatSpecificOptionsStructure.value,
+            [makeFridayFormFieldFor("role_ids", { cols: 12 })],
+          ];
+        default:
+          return [modelTypeRow];
       }
     });
     const formValues = computed<Record<string, unknown>>(() =>
-      Object.assign(
-        {},
-        ...Object.keys(knownFields.value).map((k) => ({
-          [k]:
-            "undefined" !==
-            typeof knownFields.value[k as keyof typeof knownFields.value]
-              ? knownFields.value[k as keyof typeof knownFields.value]!.value
-              : null,
-        })),
+      cloneObject(
+        Object.assign(
+          {},
+          {
+            type: reportedType.value,
+          },
+          ...Object.keys(knownFields.value).map((k) => ({
+            [k]:
+              "undefined" !==
+              typeof knownFields.value[k as keyof typeof knownFields.value]
+                ? knownFields.value[k as keyof typeof knownFields.value]!.value
+                : null,
+          })),
+        ),
       ),
     );
     const fridayFormBindings = computed(() => ({
       action: route.fullPath,
       method: "post",
-      structure: formStructure.value,
+      structure: formStructure.value.filter(
+        (r) => Array.isArray(r) && r.length > 0,
+      ),
       values: formValues.value,
       modifyPayload,
       validHttpStatus: 201,
