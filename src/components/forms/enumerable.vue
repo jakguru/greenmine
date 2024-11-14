@@ -12,7 +12,7 @@
           <th style="min-width: 200px">
             {{ $t(`pages.enumerations.form.cells.name`) }}
           </th>
-          <th width="70">
+          <th v-if="showIsDefault" width="70">
             {{ $t(`pages.enumerations.form.cells.isDefault`) }}
           </th>
           <th width="70">
@@ -42,7 +42,7 @@
                 @update:model-value="doUpdateFor(element.id, 'name', $event)"
               />
             </td>
-            <td>
+            <td v-if="showIsDefault">
               <v-switch
                 v-model="element.is_default"
                 @update:model-value="
@@ -108,7 +108,7 @@
               :placeholder="$t(`pages.enumerations.form.cells.name`)"
             />
           </th>
-          <th>
+          <th v-if="showIsDefault">
             <v-switch v-model="toAdd.is_default" />
           </th>
           <th>
@@ -140,6 +140,7 @@ import {
   useReloadRouteData,
   useSystemAccentColor,
   checkObjectEquality,
+  cloneObject,
 } from "@/utils/app";
 import { ordinal } from "@/utils/formatting";
 import { calculateColorForPriority } from "@/utils/colors";
@@ -176,12 +177,31 @@ export default defineComponent({
       type: String,
       default: "#F44336",
     },
+    endpoint: {
+      type: String,
+      default: "/enumerations",
+    },
+    showIsDefault: {
+      type: Boolean,
+      default: true,
+    },
+    modelPropertyKey: {
+      type: String,
+      default: "enumeration",
+    },
+    variant: {
+      type: String as PropType<
+        "flat" | "text" | "elevated" | "tonal" | "outlined" | "plain"
+      >,
+      default: "outlined",
+    },
   },
   emits: ["loading"],
   setup(props, { emit }) {
     const route = useRoute();
     const name = computed(() => props.name);
     const values = computed(() => props.values);
+    const variant = computed(() => props.variant);
     const api = inject<ApiService>("api");
     const toast = inject<ToastService>("toast");
     const swal = inject<SwalService>("swal");
@@ -191,7 +211,7 @@ export default defineComponent({
     );
     const wrapperBindings = computed(() => ({
       class: "enumerable-form",
-      variant: "outlined" as const,
+      variant: variant.value,
     }));
     const vTextFieldBindings = computed(() => ({
       density: "compact" as const,
@@ -220,13 +240,15 @@ export default defineComponent({
       }
       loading.value = true;
       try {
-        const { status } = await api.post("/enumerations", {
+        const { status } = await api.post(props.endpoint, {
           authenticity_token: props.formAuthenticityToken,
-          enumeration: {
+          [props.modelPropertyKey]: {
             type: name.value,
             name: toAdd.value.name,
             active: toAdd.value.active,
-            is_default: toAdd.value.is_default,
+            is_default: props.showIsDefault
+              ? toAdd.value.is_default
+              : undefined,
           },
         });
         if (status >= 200 && status < 300) {
@@ -257,7 +279,7 @@ export default defineComponent({
       }
       try {
         const { status } = await api.post(
-          `/enumerations/${id}`,
+          `${props.endpoint}/${id}`,
           {
             _method: "delete",
             authenticity_token: props.formAuthenticityToken,
@@ -284,10 +306,13 @@ export default defineComponent({
       if (!api) {
         return;
       }
+      if (!props.showIsDefault) {
+        delete updates.is_default;
+      }
       loading.value = true;
       try {
-        const { status } = await api.put(`/enumerations/${id}`, {
-          enumeration: updates,
+        const { status } = await api.put(`${props.endpoint}/${id}`, {
+          [props.modelPropertyKey]: updates,
         });
         if (status >= 200 && status < 400) {
           routeDataReloader.call();
@@ -297,11 +322,13 @@ export default defineComponent({
       }
       loading.value = false;
     };
-    const existingEnumerations = ref<EnumerableValue[]>(values.value);
+    const existingEnumerations = ref<EnumerableValue[]>(
+      cloneObject(values.value),
+    );
     watch(
       () => values.value,
       (newValue) => {
-        existingEnumerations.value = newValue;
+        existingEnumerations.value = cloneObject(newValue);
       },
       { deep: true },
     );
@@ -312,7 +339,10 @@ export default defineComponent({
           checkObjectEquality(is, was) ||
           checkObjectEquality(is, values.value)
         ) {
-          return;
+          const positionsAreInOrder = is.every((v, i) => v.position === i + 1);
+          if (positionsAreInOrder) {
+            return;
+          }
         }
         // if the difference is sorting, we should find the item which was moved by determining which "position" is out of order
         const movedItem = is.find(

@@ -96,7 +96,18 @@ export default {
           user_role: "Filter to Role",
           version_status: "Version Status",
           visible: "Visible to any users",
+          is_required: "Required",
+          is_filter: "Filterable",
+          searchable: "Searchable",
+          enumerations: "Possible values",
         },
+        enumerations: {
+          title: "Possible Values",
+        },
+      },
+      onSave: {
+        success: "Custom field updated successfully",
+        error: "An error occurred while updating the custom field",
       },
     },
     "custom-fields-new": {
@@ -122,7 +133,15 @@ export default {
           user_role: "Filter to Role",
           version_status: "Version Status",
           visible: "Visible to any users",
+          is_required: "Required",
+          is_filter: "Filterable",
+          searchable: "Searchable",
+          enumerations: "Possible values",
         },
+      },
+      onSave: {
+        success: "Custom field created successfully",
+        error: "An error occurred while creating the custom field",
       },
     },
     "documents-id": { title: "" },
@@ -148,6 +167,15 @@ export default {
           isDefault: "Default",
           isActive: "Active",
           order: "Order",
+        },
+        pages: {
+          "custom-fields-id-edit": {
+            content: {
+              enumerations: {
+                title: "Possible Values",
+              },
+            },
+          },
         },
       },
     },
@@ -1297,6 +1325,15 @@ export default {
     },
     filterTo: {
       title: "Filter",
+    },
+  },
+  customFieldActionMenu: {
+    filterTo: {
+      title: "Filter",
+    },
+    delete: {
+      title: "Delete",
+      confirm: "Are you sure you want to delete this custom field?",
     },
   },
 };

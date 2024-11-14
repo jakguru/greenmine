@@ -285,3 +285,17 @@ export const useReloadAppData = (
     appDebug("App data reloaded");
   });
 };
+
+export const getCsrfObject = () => {
+  const csrfTokenMeta = document.querySelector("meta[name=csrf-token]");
+  const csrfParamMeta = document.querySelector("meta[name=csrf-param]");
+  if (!csrfParamMeta || !csrfTokenMeta) {
+    return {};
+  }
+  const token = csrfTokenMeta.getAttribute("content") || "";
+  const param = csrfParamMeta.getAttribute("content") || "";
+  if (!token || !param) {
+    return {};
+  }
+  return { [param]: token };
+};

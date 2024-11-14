@@ -39,4 +39,13 @@ RedmineApp::Application.routes.draw do
   # put "issues/:id/sprints", to: "issue_sprints#update"
   get "sprints/:id/burndown", to: "sprints#show_burndown"
   post "sprints/backlog/assign/", to: "sprints#assign_to_backlog"
+
+  # Custom Fields
+  resources :custom_fields do
+    member do
+      post "manage-enumerations", to: "custom_fields#create_enumeration"
+      put "manage-enumerations/:enumeration_id", to: "custom_fields#update_enumeration"
+      delete "manage-enumerations/:enumeration_id", to: "custom_fields#destroy_enumeration"
+    end
+  end
 end

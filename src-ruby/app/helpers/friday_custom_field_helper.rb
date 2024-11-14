@@ -100,6 +100,9 @@ module FridayCustomFieldHelper
         },
         description: {
           type: "textarea",
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:description) ? custom_field.description : nil
         },
         role_ids: {
@@ -113,7 +116,7 @@ module FridayCustomFieldHelper
         visible: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
+          value: custom_field.respond_to?(:visible) ? boolean_to_i(custom_field.visible) : nil
         },
         tracker_ids: {
           type: "select",
@@ -126,7 +129,7 @@ module FridayCustomFieldHelper
         is_for_all: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_for_all) ? custom_field.is_for_all : nil
+          value: custom_field.respond_to?(:is_for_all) ? boolean_to_i(custom_field.is_for_all) : nil
         },
         project_ids: {
           type: "select",
@@ -210,7 +213,7 @@ module FridayCustomFieldHelper
         visible: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
+          value: custom_field.respond_to?(:visible) ? boolean_to_i(custom_field.visible) : nil
         }
       },
       TimeEntryActivityCustomField: {
@@ -265,7 +268,7 @@ module FridayCustomFieldHelper
         visible: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
+          value: custom_field.respond_to?(:visible) ? boolean_to_i(custom_field.visible) : nil
         }
       },
       UserCustomField: {
@@ -291,12 +294,12 @@ module FridayCustomFieldHelper
         visible: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
+          value: custom_field.respond_to?(:visible) ? boolean_to_i(custom_field.visible) : nil
         },
         editable: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:editable) ? custom_field.editable : nil
+          value: custom_field.respond_to?(:editable) ? boolean_to_i(custom_field.editable) : nil
         }
       },
       VersionCustomField: {
@@ -330,7 +333,7 @@ module FridayCustomFieldHelper
         visible: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:visible) ? custom_field.visible : nil
+          value: custom_field.respond_to?(:visible) ? boolean_to_i(custom_field.visible) : nil
         }
       }
     }
@@ -349,7 +352,7 @@ module FridayCustomFieldHelper
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         }
       },
       bool: {
@@ -366,31 +369,36 @@ module FridayCustomFieldHelper
         },
         url_pattern: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:url_pattern) ? custom_field.url_pattern : nil
         },
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         }
       },
       date: {
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         default_value: {
           type: "text",
           props: {
-            type: "date"
+            type: "date",
+            optional: true
           },
           value: custom_field.respond_to?(:default_value) ? custom_field.default_value : nil
         },
         url_pattern: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:url_pattern) ? custom_field.url_pattern : nil
         }
       },
@@ -398,23 +406,25 @@ module FridayCustomFieldHelper
         multiple: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:multiple) ? custom_field.multiple : nil
+          value: custom_field.respond_to?(:multiple) ? boolean_to_i(custom_field.multiple) : nil
         },
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         default_value: {
           type: "select",
           props: {
-            items: custom_field.enumerations.active.map { |v| {value: v.id.to_s, label: v.name} }
+            items: [{value: "", label: ""}] + custom_field.enumerations.active.map { |v| {value: v.id.to_s, label: v.name} }
           },
           value: custom_field.respond_to?(:default_value) ? custom_field.default_value : nil
         },
         url_pattern: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:url_pattern) ? custom_field.url_pattern : nil
         }
       },
@@ -422,13 +432,14 @@ module FridayCustomFieldHelper
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         min_length: {
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:min_length) ? custom_field.min_length : nil
         },
@@ -436,13 +447,16 @@ module FridayCustomFieldHelper
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:max_length) ? custom_field.max_length : nil
         },
         regexp: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:regexp) ? custom_field.regexp : nil
         },
         default_value: {
@@ -458,13 +472,14 @@ module FridayCustomFieldHelper
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         min_length: {
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:min_length) ? custom_field.min_length : nil
         },
@@ -472,13 +487,16 @@ module FridayCustomFieldHelper
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:max_length) ? custom_field.max_length : nil
         },
         regexp: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:regexp) ? custom_field.regexp : nil
         },
         default_value: {
@@ -494,13 +512,14 @@ module FridayCustomFieldHelper
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         min_length: {
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:min_length) ? custom_field.min_length : nil
         },
@@ -508,18 +527,23 @@ module FridayCustomFieldHelper
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:max_length) ? custom_field.max_length : nil
         },
         regexp: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:regexp) ? custom_field.regexp : nil
         },
         url_pattern: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:url_pattern) ? custom_field.url_pattern : nil
         },
         default_value: {
@@ -534,12 +558,12 @@ module FridayCustomFieldHelper
         multiple: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:multiple) ? custom_field.multiple : nil
+          value: custom_field.respond_to?(:multiple) ? boolean_to_i(custom_field.multiple) : nil
         },
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         possible_values: {
           type: "lbsv",
@@ -552,7 +576,9 @@ module FridayCustomFieldHelper
         },
         url_pattern: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:url_pattern) ? custom_field.url_pattern : nil
         }
       },
@@ -560,13 +586,14 @@ module FridayCustomFieldHelper
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         min_length: {
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:min_length) ? custom_field.min_length : nil
         },
@@ -574,18 +601,30 @@ module FridayCustomFieldHelper
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:max_length) ? custom_field.max_length : nil
         },
         regexp: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:regexp) ? custom_field.regexp : nil
+        },
+        url_pattern: {
+          type: "text",
+          props: {
+            optional: true
+          },
+          value: custom_field.respond_to?(:url_pattern) ? custom_field.url_pattern : nil
         },
         default_value: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:default_value) ? custom_field.default_value : nil
         }
       },
@@ -593,13 +632,14 @@ module FridayCustomFieldHelper
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         min_length: {
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:min_length) ? custom_field.min_length : nil
         },
@@ -607,13 +647,16 @@ module FridayCustomFieldHelper
           type: "text",
           props: {
             type: "number",
-            min: 0
+            min: 0,
+            optional: true
           },
           value: custom_field.respond_to?(:max_length) ? custom_field.max_length : nil
         },
         regexp: {
           type: "text",
-          props: {},
+          props: {
+            optional: true
+          },
           value: custom_field.respond_to?(:regexp) ? custom_field.regexp : nil
         },
         default_value: {
@@ -626,12 +669,12 @@ module FridayCustomFieldHelper
         multiple: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:multiple) ? custom_field.multiple : nil
+          value: custom_field.respond_to?(:multiple) ? boolean_to_i(custom_field.multiple) : nil
         },
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         user_role: {
           type: "select",
@@ -646,12 +689,12 @@ module FridayCustomFieldHelper
         multiple: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:multiple) ? custom_field.multiple : nil
+          value: custom_field.respond_to?(:multiple) ? boolean_to_i(custom_field.multiple) : nil
         },
         is_required: {
           type: "checkbox",
           props: {},
-          value: custom_field.respond_to?(:is_required) ? custom_field.is_required : nil
+          value: custom_field.respond_to?(:is_required) ? boolean_to_i(custom_field.is_required) : nil
         },
         version_status: {
           type: "select",
@@ -674,92 +717,92 @@ module FridayCustomFieldHelper
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           },
           searchable: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:searchable) ? custom_field.searchable : nil
+            value: custom_field.respond_to?(:searchable) ? boolean_to_i(custom_field.searchable) : nil
           }
         },
         text: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           },
           searchable: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:searchable) ? custom_field.searchable : nil
+            value: custom_field.respond_to?(:searchable) ? boolean_to_i(custom_field.searchable) : nil
           }
         },
         link: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         int: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         float: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         date: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         list: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           },
           searchable: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:searchable) ? custom_field.searchable : nil
+            value: custom_field.respond_to?(:searchable) ? boolean_to_i(custom_field.searchable) : nil
           }
         },
         bool: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         enumeration: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         user: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         version: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         attachment: {}
@@ -769,77 +812,77 @@ module FridayCustomFieldHelper
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         text: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         link: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         int: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         float: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         date: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         list: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         bool: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         enumeration: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         user: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         version: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         attachment: {}
@@ -849,92 +892,92 @@ module FridayCustomFieldHelper
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           },
           searchable: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:searchable) ? custom_field.searchable : nil
+            value: custom_field.respond_to?(:searchable) ? boolean_to_i(custom_field.searchable) : nil
           }
         },
         text: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           },
           searchable: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:searchable) ? custom_field.searchable : nil
+            value: custom_field.respond_to?(:searchable) ? boolean_to_i(custom_field.searchable) : nil
           }
         },
         link: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         int: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         float: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         date: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         list: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           },
           searchable: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:searchable) ? custom_field.searchable : nil
+            value: custom_field.respond_to?(:searchable) ? boolean_to_i(custom_field.searchable) : nil
           }
         },
         bool: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         enumeration: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         user: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         version: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         attachment: {}
@@ -944,77 +987,77 @@ module FridayCustomFieldHelper
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         text: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         link: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         int: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         float: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         date: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         list: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         bool: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         enumeration: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         user: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         version: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         attachment: {}
@@ -1024,77 +1067,77 @@ module FridayCustomFieldHelper
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         text: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         link: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         int: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         float: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         date: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         list: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         bool: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         enumeration: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         user: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         version: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         attachment: {}
@@ -1104,77 +1147,77 @@ module FridayCustomFieldHelper
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         text: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         link: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         int: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         float: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         date: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         list: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         bool: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         enumeration: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         user: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         version: {
           is_filter: {
             type: "checkbox",
             props: {},
-            value: custom_field.respond_to?(:is_filter) ? custom_field.is_filter : nil
+            value: custom_field.respond_to?(:is_filter) ? boolean_to_i(custom_field.is_filter) : nil
           }
         },
         attachment: {}
@@ -1204,5 +1247,11 @@ module FridayCustomFieldHelper
       end
     end
     result
+  end
+
+  private
+
+  def boolean_to_i(value)
+    value ? "1" : "0"
   end
 end

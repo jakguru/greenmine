@@ -188,6 +188,16 @@ export const FridayForm = defineComponent({
       type: Boolean,
       default: false,
     },
+    getFieldOverrides: {
+      type: Function as PropType<
+        (
+          formKey: string,
+          value: unknown,
+          values: Record<string, unknown>,
+        ) => Record<string, unknown> | undefined
+      >,
+      default: undefined,
+    },
   },
   emits: {
     loading: (payload: boolean) => {
@@ -209,6 +219,12 @@ export const FridayForm = defineComponent({
       return false;
     },
     submit: (_payload: Record<string, unknown> | undefined) => true,
+    "update:values": (payload: Record<string, unknown>) => {
+      if ("object" === typeof payload) {
+        return true;
+      }
+      return false;
+    },
   },
   setup(props, { emit, slots }) {
     const api = inject<ApiService>("api");
@@ -407,6 +423,20 @@ export const FridayForm = defineComponent({
         emit("loading", value);
       },
     );
+    watch(
+      () => formContext.value,
+      (ctx) => {
+        emit("update:values", cloneObject(ctx.values));
+      },
+      { deep: true, immediate: true },
+    );
+    watch(
+      () => formContext.value.values,
+      (is) => {
+        emit("update:values", cloneObject(is));
+      },
+      { deep: true },
+    );
     const focusedRef = ref<Record<string, boolean>>({});
     const focused = computed(() => {
       const ret: Record<string, boolean> = {};
@@ -464,19 +494,37 @@ export const FridayForm = defineComponent({
             field.formKey,
             {
               props: (state) => {
-                const props: Record<string, unknown> = {};
+                const fieldProps: Record<string, unknown> = {};
+                if ("function" === typeof props.getFieldOverrides) {
+                  const overrides = props.getFieldOverrides(
+                    field.formKey,
+                    "object" === typeof modelValue.value &&
+                      null !== modelValue.value
+                      ? cloneObject(modelValue.value)
+                      : modelValue.value,
+                    "object" === typeof formContext.value.values &&
+                      null !== formContext.value.values
+                      ? cloneObject(formContext.value.values)
+                      : formContext.value.values,
+                  );
+                  if (overrides) {
+                    Object.keys(overrides).forEach((key) => {
+                      fieldProps[key] = overrides[key];
+                    });
+                  }
+                }
                 if (field.bindings) {
                   Object.keys(field.bindings).forEach((key) => {
-                    props[key] = field.bindings![key];
+                    fieldProps[key] = field.bindings![key];
                   });
                 }
-                props.errorMessages = state.touched
+                fieldProps.errorMessages = state.touched
                   ? state.errors.filter(
                       (v: unknown) =>
                         typeof v === "string" && v.trim().length > 0,
                     )
                   : [];
-                props.hideDetails =
+                fieldProps.hideDetails =
                   !state.touched ||
                   focused.value[field.formKey] ||
                   state.errors.filter(
@@ -485,27 +533,37 @@ export const FridayForm = defineComponent({
                   ).length === 0
                     ? true
                     : "auto";
-                props.onFocus = () => {
+                fieldProps.onFocus = () => {
                   focusedRef.value[field.formKey] = true;
                 };
-                props.onBlur = () => {
+                fieldProps.onBlur = () => {
                   focusedRef.value[field.formKey] = false;
                 };
-                const originalDisabled = props.disabled;
-                props.disabled = isSubmitting.value || originalDisabled;
-                const originalClearable = props.clearable;
-                props.clearable = !isLoading.value && originalClearable;
-                props.autocapitalize = "off";
-                props.spellcheck = false;
-                const originalOnUpdateModelValue = props["onUpdate:modelValue"];
-                props["onUpdate:modelValue"] = (v: unknown) => {
-                  modelValue.value = v;
+                const originalDisabled = fieldProps.disabled;
+                fieldProps.disabled = isSubmitting.value || originalDisabled;
+                const originalClearable = fieldProps.clearable;
+                fieldProps.clearable = !isLoading.value && originalClearable;
+                fieldProps.autocapitalize = "off";
+                fieldProps.spellcheck = false;
+                const originalOnUpdateModelValue =
+                  fieldProps["onUpdate:modelValue"];
+                fieldProps["onUpdate:modelValue"] = (v: unknown) => {
                   if (originalOnUpdateModelValue) {
                     // @ts-ignore
                     originalOnUpdateModelValue(v);
                   }
+                  modelValue.value = v;
                 };
-                return props;
+                const originalOnUpdateModelDashValue =
+                  fieldProps["onUpdate:model-value"];
+                fieldProps["onUpdate:model-value"] = (v: unknown) => {
+                  if (originalOnUpdateModelDashValue) {
+                    // @ts-ignore
+                    originalOnUpdateModelDashValue(v);
+                  }
+                  modelValue.value = v;
+                };
+                return fieldProps;
               },
               label: field.label,
               validateOnBlur:

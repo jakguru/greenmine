@@ -53,23 +53,42 @@
           </v-row>
         </template>
       </FridayForm>
+      <v-divider v-if="id && 'enumeration' === reportedFieldFormat" />
+      <v-sheet
+        v-if="id && 'enumeration' === reportedFieldFormat"
+        color="transparent"
+        class="py-3"
+      >
+        <EnumerableForm
+          :form-authenticity-token="formAuthenticityToken"
+          name="pages.custom-fields-id-edit.content.enumerations"
+          :values="enumerations"
+          :endpoint="`/custom_fields/${id}/manage-enumerations`"
+          model-property-key="custom_field_enumeration"
+          low-color="#607D8B"
+          high-color="#607D8B"
+          variant="plain"
+          :show-is-default="false"
+        />
+      </v-sheet>
     </v-card>
   </v-container>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, ref, watch, h } from "vue";
+import { defineComponent, computed, inject, ref, h, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VTextarea } from "vuetify/components/VTextarea";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
 import { VSwitch } from "vuetify/components/VSwitch";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import {
   useSystemAccentColor,
   useReloadRouteData,
   useReloadAppData,
   cloneObject,
+  checkObjectEquality,
 } from "@/utils/app";
 import {
   Joi,
@@ -84,6 +103,7 @@ import {
   VCSVField,
   VLBSVField,
 } from "@/components/fields";
+import EnumerableForm from "@/components/forms/enumerable.vue";
 
 import type { PropType } from "vue";
 import type {
@@ -96,6 +116,7 @@ import type {
   LocalStorageService,
   ApiService,
 } from "@jakguru/vueprint";
+import type { EnumerableValue } from "@/friday";
 
 interface SelectItem {
   value: string | number;
@@ -160,6 +181,7 @@ export default defineComponent({
   name: "CustomFieldsEdit",
   components: {
     FridayForm,
+    EnumerableForm,
   },
   props: {
     formAuthenticityToken: {
@@ -190,6 +212,10 @@ export default defineComponent({
       type: Object as PropType<FormByTypeAndFormat>,
       required: true,
     },
+    enumerations: {
+      type: Array as PropType<EnumerableValue[]>,
+      required: true,
+    },
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
@@ -197,6 +223,7 @@ export default defineComponent({
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
     const route = useRoute();
+    const router = useRouter();
     const reloadRouteDataAction = useReloadRouteData(route, api, toast);
     const reloadAppDataAction = useReloadAppData(ls, api);
     const accentColor = useSystemAccentColor();
@@ -226,16 +253,33 @@ export default defineComponent({
     const modifyPayload = (payload: Record<string, unknown>) => {
       return {
         authenticity_token: formAuthenticityToken.value,
-        custom_field: payload,
+        type: payload.type,
+        custom_field: {
+          ...payload,
+          type: undefined,
+        },
       };
     };
-    const onSuccess = () => {
+    const onSuccess = (_status: number, payload: unknown) => {
       reloadRouteDataAction.call();
       reloadAppDataAction.call();
       if (!toast) {
         alert(t(`${i18nPrefix.value}.onSave.success`));
         return;
       } else {
+        if (
+          "object" === typeof payload &&
+          null !== payload &&
+          "id" in payload &&
+          payload.id !== id.value
+        ) {
+          router.push({
+            name: "custom-fields-id-edit",
+            params: {
+              id: (payload.id as number).toString(),
+            },
+          });
+        }
         toast.fire({
           title: t(`${i18nPrefix.value}.onSave.success`),
           icon: "success",
@@ -258,45 +302,72 @@ export default defineComponent({
         return;
       }
     };
-    const reportedFieldFormat = ref<string>("");
-    const reportedType = ref<string | null | undefined>(undefined);
+    const currentFieldValues = ref<Record<string, unknown>>({});
+    const reportedType = computed(() => currentFieldValues.value.type || null);
+    const reportedFieldFormat = computed(
+      () => currentFieldValues.value.field_format || "",
+    );
     watch(
       () => type.value,
-      (is) => {
-        reportedType.value = is;
+      (is, was) => {
+        if (is && is !== was) {
+          currentFieldValues.value.type = is;
+        }
       },
       { immediate: true },
     );
     const knownFields = computed(() => {
       const ret: Record<string, FieldDefinition | undefined> = {};
-      if (reportedType.value && formsByType.value[reportedType.value]) {
-        Object.keys(formsByType.value[reportedType.value]).forEach((key) => {
+      if (
+        reportedType.value &&
+        formsByType.value[reportedType.value as keyof typeof formsByType.value]
+      ) {
+        Object.keys(
+          formsByType.value[
+            reportedType.value as keyof typeof formsByType.value
+          ],
+        ).forEach((key) => {
           // @ts-ignore
-          ret[key] = formsByType.value[reportedType.value][key];
+          ret[key] = formsByType.value[reportedType.value][key] || null;
         });
       }
-      if (formsByFormat.value[reportedFieldFormat.value]) {
-        Object.keys(formsByFormat.value[reportedFieldFormat.value]).forEach(
-          (key) => {
-            ret[key] = formsByFormat.value[reportedFieldFormat.value][key];
-          },
-        );
+      if (
+        formsByFormat.value[
+          reportedFieldFormat.value as keyof typeof formsByFormat.value
+        ]
+      ) {
+        Object.keys(
+          formsByFormat.value[
+            reportedFieldFormat.value as keyof typeof formsByFormat.value
+          ],
+        ).forEach((key) => {
+          ret[key] =
+            formsByFormat.value[
+              reportedFieldFormat.value as keyof typeof formsByFormat.value
+            ][key] || null;
+        });
       }
       if (
         reportedType.value &&
-        formByTypeAndFormat.value[reportedType.value] &&
-        formByTypeAndFormat.value[reportedType.value][reportedFieldFormat.value]
+        formByTypeAndFormat.value[
+          reportedType.value as keyof typeof formByTypeAndFormat.value
+        ] &&
+        formByTypeAndFormat.value[
+          reportedType.value as keyof typeof formByTypeAndFormat.value
+          // @ts-ignore
+        ][reportedFieldFormat.value]
       ) {
         Object.keys(
-          formByTypeAndFormat.value[reportedType.value][
-            reportedFieldFormat.value
-          ],
+          formByTypeAndFormat.value[
+            reportedType.value as keyof typeof formByTypeAndFormat.value
+            // @ts-ignore
+          ][reportedFieldFormat.value],
         ).forEach((key) => {
           ret[key] =
             // @ts-ignore
             formByTypeAndFormat.value[reportedType.value][
               reportedFieldFormat.value
-            ][key];
+            ][key] || null;
         });
       }
       return ret;
@@ -540,6 +611,7 @@ export default defineComponent({
                           .email({ tlds: { allow: tlds } })
                           .optional()
                           .allow("")
+                          .allow(null)
                       : Joi.string()
                           .email({ tlds: { allow: tlds } })
                           .required();
@@ -553,7 +625,7 @@ export default defineComponent({
                             .min(settingsFieldInfo.props.min)
                             .max(settingsFieldInfo.props.max)
                             .optional()
-                            .allow("")
+                            .allow("", null)
                         : Joi.number()
                             .min(settingsFieldInfo.props.min)
                             .max(settingsFieldInfo.props.max)
@@ -563,7 +635,7 @@ export default defineComponent({
                         ? Joi.number()
                             .min(settingsFieldInfo.props.min)
                             .optional()
-                            .allow("")
+                            .allow("", null)
                         : Joi.number()
                             .min(settingsFieldInfo.props.min)
                             .required();
@@ -572,18 +644,18 @@ export default defineComponent({
                         ? Joi.number()
                             .max(settingsFieldInfo.props.max)
                             .optional()
-                            .allow("")
+                            .allow("", null)
                         : Joi.number()
                             .max(settingsFieldInfo.props.max)
                             .required();
                     } else {
                       return settingsFieldInfo.props.optional
-                        ? Joi.number().optional().allow("")
+                        ? Joi.number().optional().allow("").allow(null)
                         : Joi.number().required();
                     }
                   default:
                     return settingsFieldInfo.props.optional
-                      ? Joi.string().optional().allow("")
+                      ? Joi.string().optional().allow("").allow(null)
                       : Joi.string().required();
                 }
               })(),
@@ -615,11 +687,16 @@ export default defineComponent({
           ];
         case "enumeration":
           return [
-            [
-              makeFridayFormFieldFor("default_value", { cols: 12, sm: 4 }),
-              makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 4 }),
-              makeFridayFormFieldFor("multiple", { cols: 12, sm: 4 }),
-            ],
+            id.value === null || id.value === 0
+              ? [
+                  makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 6 }),
+                  makeFridayFormFieldFor("multiple", { cols: 12, sm: 6 }),
+                ]
+              : [
+                  makeFridayFormFieldFor("default_value", { cols: 12, sm: 4 }),
+                  makeFridayFormFieldFor("url_pattern", { cols: 12, sm: 4 }),
+                  makeFridayFormFieldFor("multiple", { cols: 12, sm: 4 }),
+                ],
           ];
         case "float":
           return [
@@ -726,11 +803,6 @@ export default defineComponent({
             itemTitle: "label",
             itemValue: "value",
             label: t(`${i18nPrefix.value}.content.fields.type`),
-            "onUpdate:modelValue": (v: string) => {
-              if (v) {
-                reportedType.value = v;
-              }
-            },
             disabled: "number" === typeof id.value && id.value > 0,
             readonly: "number" === typeof id.value && id.value > 0,
           },
@@ -808,11 +880,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -832,11 +899,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -856,11 +918,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -880,11 +937,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -893,9 +945,9 @@ export default defineComponent({
             checkBoxesRow,
             ...formatSpecificOptionsStructure.value,
             [
+              makeFridayFormFieldFor("role_ids", { cols: 12, md: 3 }),
               makeFridayFormFieldFor("tracker_ids", { cols: 12, md: 3 }),
               makeFridayFormFieldFor("project_ids", { cols: 12, md: 3 }),
-              makeFridayFormFieldFor("role_ids", { cols: 12, md: 3 }),
               makeFridayFormFieldFor("is_for_all", { cols: 12, md: 3 }),
             ],
           ];
@@ -910,11 +962,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -934,11 +981,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -958,11 +1000,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -983,11 +1020,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -1007,11 +1039,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -1032,11 +1059,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -1056,11 +1078,6 @@ export default defineComponent({
                   disabled: id.value !== null && id.value !== 0,
                   readonly: id.value !== null && id.value !== 0,
                   clearable: id.value === null && id.value === 0,
-                  "onUpdate:modelValue": (v: string) => {
-                    if (v) {
-                      reportedFieldFormat.value = v;
-                    }
-                  },
                 },
               }),
               makeFridayFormFieldFor("name", { cols: 12, md: 9 }),
@@ -1080,6 +1097,10 @@ export default defineComponent({
           {},
           {
             type: reportedType.value,
+            field_format:
+              reportedFieldFormat.value ||
+              knownFields.value.field_format?.value ||
+              "",
           },
           ...Object.keys(knownFields.value).map((k) => ({
             [k]:
@@ -1088,18 +1109,48 @@ export default defineComponent({
                 ? knownFields.value[k as keyof typeof knownFields.value]!.value
                 : null,
           })),
+          {
+            field_format:
+              reportedFieldFormat.value ||
+              knownFields.value.field_format?.value ||
+              "",
+          },
         ),
       ),
     );
     const fridayFormBindings = computed(() => ({
-      action: route.fullPath,
-      method: "post",
+      action: `/custom_fields${id.value ? `/${id.value}` : ""}`,
+      method: id.value ? "put" : "post",
       structure: formStructure.value.filter(
         (r) => Array.isArray(r) && r.length > 0,
       ),
       values: formValues.value,
+      getFieldOverrides: (
+        formKey: string,
+        _value: unknown,
+        values: Record<string, unknown>,
+      ) => {
+        switch (formKey) {
+          case "role_ids":
+            if (values.visible === "1") {
+              return { disabled: true, readonly: true };
+            }
+            break;
+          case "project_ids":
+            if (values.is_for_all === "1") {
+              return { disabled: true, readonly: true };
+            }
+            break;
+        }
+        return {};
+      },
       modifyPayload,
       validHttpStatus: 201,
+      "onUpdate:values": (values: Record<string, unknown>) => {
+        if (!checkObjectEquality(values, currentFieldValues.value)) {
+          currentFieldValues.value = values;
+        }
+      },
     }));
     return {
       breadcrumbsBindings,
@@ -1107,6 +1158,8 @@ export default defineComponent({
       accentColor,
       onSuccess,
       onError,
+      currentFieldValues,
+      reportedFieldFormat,
     };
   },
 });

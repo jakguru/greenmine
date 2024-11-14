@@ -12,10 +12,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, h } from "vue";
+import { defineComponent, h, inject } from "vue";
 import { QueriesPage } from "@/components/queries";
 import { VListItem } from "vuetify/components/VList";
 import { useI18n } from "vue-i18n";
+import { getCsrfObject } from "@/utils/app";
+import qs from "qs";
 
 import type { PropType } from "vue";
 import type {
@@ -27,8 +29,8 @@ import type {
   Createable,
   Item,
 } from "@/friday";
-
 import type { ActionMenuItem } from "@/components/queries/partials/action-menu";
+import type { ApiService, SwalService } from "@jakguru/vueprint";
 
 export default defineComponent({
   name: "CustomFieldIndex",
@@ -63,9 +65,11 @@ export default defineComponent({
   },
   setup() {
     const { t } = useI18n({ useScope: "global" });
+    const api = inject<ApiService>("api");
+    const swal = inject<SwalService>("swal");
     const getActionMenuItems = (
       customFields: Item[],
-      _onDone: () => void,
+      onDone: () => void,
       onFilterTo: () => void,
     ): ActionMenuItem[] => {
       if (customFields.length > 1) {
@@ -105,8 +109,21 @@ export default defineComponent({
             title: t("customFieldActionMenu.delete.title"),
             appendIcon: "mdi-delete",
             density: "compact",
-            onClick: () => {
-              alert(`deleting custom field ${customFields[0].id}`);
+            onClick: async () => {
+              if (!api || !swal) return;
+              const { isConfirmed } = await swal.fire({
+                title: t("customFieldActionMenu.delete.confirm"),
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: t("labels.yes"),
+                cancelButtonText: t("labels.no"),
+              });
+              if (!isConfirmed) return;
+              const { status } = await api.delete(
+                `/custom_fields/${customFields[0].id}?${qs.stringify(getCsrfObject())}`,
+              );
+              console.log(status);
+              onDone();
             },
           }),
         },
