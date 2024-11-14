@@ -1,4 +1,4 @@
-class AddMondayColumnsToUsers < ActiveRecord::Migration[4.2]
+class AddStyleColumnsToIssueStatuses < ActiveRecord::Migration[4.2]
   def self.up
     add_column :issue_statuses, :icon, :string, null: true
     add_column :issue_statuses, :text_color, :string, null: true
