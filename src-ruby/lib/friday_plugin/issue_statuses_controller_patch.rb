@@ -30,27 +30,48 @@ module FridayPlugin
           end
         end
 
+        def create
+          @issue_status = IssueStatus.new
+          @issue_status.safe_attributes = params[:issue_status]
+          if request.post? && @issue_status.save
+            enqueue_realtime_updates
+            render json: {
+              id: @issue_status.id
+            }, status: 201
+          else
+            render action: "new"
+          end
+        end
+
         def update
           if friday_request?
-            render json: {}, status: 201
+            @issue_status = IssueStatus.find(params[:id])
+            @issue_status.safe_attributes = params[:issue_status]
+            if @issue_status.save
+              enqueue_realtime_updates
+              render json: {
+                id: @issue_status.id
+              }, status: 201
+            else
+              render json: {errors: @issue_status.errors.full_messages}, status: :unprocessable_entity
+            end
           else
             redmine_base_update
           end
         end
 
-        def create
-          render json: {}, status: 201
-        end
-
         def destroy
-          render json: {}, status: 201
+          IssueStatus.find(params[:id]).destroy
+          render json: {}, status: 200
+        rescue => e
+          render json: {errors: ERB::Util.h(e.message)}, status: :unprocessable_entity
         end
 
         private
 
         def enqueue_realtime_updates
           ActionCable.server.broadcast("rtu_application", {updated: true})
-          ActionCable.server.broadcast("rtu_enumerations", {updated: true})
+          ActionCable.server.broadcast("rtu_issue_statuses", {updated: true})
         end
       end
     end

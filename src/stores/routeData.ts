@@ -9,6 +9,7 @@ export const useRouteDataStore = defineStore("routeData", {
   state: () => ({
     data: {} as RouteData,
     loading: false,
+    processing: false,
     cache: {} as RouteData,
   }),
   actions: {
@@ -20,6 +21,9 @@ export const useRouteDataStore = defineStore("routeData", {
     },
     isLoading(is: boolean) {
       this.loading = is;
+    },
+    isProcessing(is: boolean) {
+      this.processing = is;
     },
     clear() {
       this.data = {

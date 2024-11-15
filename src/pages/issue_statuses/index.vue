@@ -50,7 +50,9 @@ export default defineComponent({
     const route = useRoute();
     const routeDataReloader = useReloadRouteData(route, api, toast);
     const onRtuIssueStatuses = () => {
-      routeDataReloader.call();
+      if (!routeDataReloader.loading.value) {
+        routeDataReloader.call();
+      }
     };
     onMounted(() => {
       if (bus) {

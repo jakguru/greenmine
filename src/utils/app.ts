@@ -268,9 +268,15 @@ export const useReloadRouteData = (
 ) => {
   const routeDataStore = useRouteDataStore();
   return new AsyncAction(async () => {
+    if (routeDataStore.processing) {
+      appDebug("Route data is already loading");
+      return;
+    }
     appDebug("Reloading route data");
+    routeDataStore.isProcessing(true);
     const data = await loadRouteData(route, api, toast);
     routeDataStore.set(data);
+    routeDataStore.isProcessing(false);
     appDebug("Route data reloaded");
   });
 };

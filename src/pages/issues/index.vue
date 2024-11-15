@@ -8,15 +8,17 @@
     :permissions="permissions"
     :creatable="creatable"
     :get-action-items="getActionMenuItems"
+    :parent-bus="childBus"
     filter-to-id-field="issue_id"
   />
 </template>
 
 <script lang="ts">
-import { defineComponent, inject } from "vue";
+import { defineComponent, inject, onMounted, onBeforeUnmount } from "vue";
 import { QueriesPage } from "@/components/queries";
 import { useI18n } from "vue-i18n";
 import { useGetActionMenuItems } from "@/components/queries/utils/issues";
+import { TinyEmitter } from "tiny-emitter";
 
 import type { PropType } from "vue";
 import type {
@@ -27,7 +29,7 @@ import type {
   Permissions,
   Createable,
 } from "@/friday";
-import type { ApiService, ToastService } from "@jakguru/vueprint";
+import type { ApiService, ToastService, BusService } from "@jakguru/vueprint";
 
 export default defineComponent({
   name: "IssuesIndex",
@@ -63,10 +65,28 @@ export default defineComponent({
   setup() {
     const api = inject<ApiService>("api");
     const toast = inject<ToastService>("toast");
+    const bus = inject<BusService>("bus");
+    const childBus = new TinyEmitter();
     const { t } = useI18n({ useScope: "global" });
     const getActionMenuItems = useGetActionMenuItems(api, toast, t);
+    const doRefresh = () => {
+      childBus.emit("refresh");
+    };
+    onMounted(() => {
+      if (bus) {
+        bus.on("rtu:enumerations", doRefresh, { local: true });
+        bus.on("rtu:issue-statuses", doRefresh, { local: true });
+      }
+    });
+    onBeforeUnmount(() => {
+      if (bus) {
+        bus.off("rtu:enumerations", doRefresh);
+        bus.off("rtu:issue-statuses", doRefresh);
+      }
+    });
     return {
       getActionMenuItems,
+      childBus,
     };
   },
 });

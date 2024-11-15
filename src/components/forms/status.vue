@@ -372,6 +372,10 @@ export default defineComponent({
             name: toAdd.value.name,
             description: toAdd.value.description,
             is_closed: toAdd.value.is_closed,
+            default_done_ratio: toAdd.value.default_done_ratio,
+            icon: toAdd.value.icon,
+            text_color: toAdd.value.text_color,
+            background_color: toAdd.value.background_color,
           },
         });
         if (status >= 200 && status < 300) {

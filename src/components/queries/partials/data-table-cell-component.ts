@@ -523,12 +523,6 @@ export const QueriesPartialDataTableCell = defineComponent({
             id: value.value.value.id,
             name: value.value.value.name,
             isClosed: value.value.value.is_closed,
-            position: value.value.value.position,
-            description: value.value.value.description,
-            defaultDoneRatio: value.value.value.default_done_ratio,
-            icon: value.value.value.icon,
-            textColor: value.value.value.text_color,
-            backgroundColor: value.value.value.background_color,
           });
         case "IssuePriority":
           return h(

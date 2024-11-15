@@ -166,7 +166,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref, watch, inject } from "vue";
+import {
+  defineComponent,
+  computed,
+  ref,
+  watch,
+  inject,
+  onMounted,
+  onBeforeUnmount,
+} from "vue";
 import {
   useSystemSurfaceColor,
   useSystemAccentColor,
@@ -186,13 +194,9 @@ import {
   QueriesPartialDataTable,
 } from "./partials";
 import { useRouteDataStore } from "@/stores/routeData";
+import { TinyEmitter } from "tiny-emitter";
 import type { PropType } from "vue";
-import type {
-  ApiService,
-  ToastService,
-  BusService,
-  BusEventCallbackSignatures,
-} from "@jakguru/vueprint";
+import type { ApiService, ToastService } from "@jakguru/vueprint";
 import type {
   QueryResponseParams,
   QueryResponsePayload,
@@ -201,7 +205,6 @@ import type {
   Permissions,
   Createable,
 } from "@/friday";
-import type { RealtimeModelEventPayload } from "@/utils/realtime";
 import type { GetActionItemsMethod } from "./partials/action-menu";
 
 export default defineComponent({
@@ -244,10 +247,6 @@ export default defineComponent({
       type: Array as PropType<Array<Createable>>,
       required: true,
     },
-    modelRealtimeUpdateKey: {
-      type: String as PropType<keyof BusEventCallbackSignatures | undefined>,
-      default: undefined,
-    },
     getActionItems: {
       type: Function as PropType<GetActionItemsMethod | undefined>,
       default: undefined,
@@ -256,15 +255,17 @@ export default defineComponent({
       type: String as PropType<string>,
       default: "id",
     },
+    parentBus: {
+      type: Object as PropType<TinyEmitter | undefined>,
+      default: undefined,
+    },
   },
   setup(props) {
     const router = useRouter();
     const route = useRoute();
     const api = inject<ApiService>("api");
     const toast = inject<ToastService>("toast");
-    const bus = inject<BusService>("bus");
     const query = computed(() => props.query);
-    const modelRealtimeUpdateKey = computed(() => props.modelRealtimeUpdateKey);
     const value = ref<QueryData>(cloneObject(query.value));
     const payload = computed(() => props.payload);
     const payloadValue = ref<QueryResponsePayload>(cloneObject(payload.value));
@@ -396,29 +397,20 @@ export default defineComponent({
     router.afterEach(() => {
       submitting.value = false;
     });
-    const onModelRealtimeUpdate = (incoming: RealtimeModelEventPayload) => {
-      const currentEntityIds = [...payload.value.items].map((i) => i.id);
-      const hasMatch = incoming.updated.some((u) =>
-        currentEntityIds.includes(u),
-      );
-      if (hasMatch) {
-        onRefresh();
+    let parentBus: TinyEmitter | undefined;
+    onMounted(() => {
+      parentBus = props.parentBus;
+      if (!parentBus) {
+        parentBus = new TinyEmitter();
       }
-    };
-    watch(
-      () => modelRealtimeUpdateKey.value,
-      (is, was) => {
-        if (bus) {
-          if (was) {
-            bus.off(was, onModelRealtimeUpdate, { local: true });
-          }
-          if (is) {
-            bus.on(is, onModelRealtimeUpdate, { local: true });
-          }
-        }
-      },
-      { immediate: true },
-    );
+      parentBus.on("submit", onSubmit);
+      parentBus.on("refresh", onRefresh);
+    });
+    onBeforeUnmount(() => {
+      if (parentBus) {
+        parentBus.off("*");
+      }
+    });
     return {
       onSubmit,
       onRefresh,

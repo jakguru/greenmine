@@ -41,6 +41,7 @@ export default defineComponent({
     const defaults = useDefaults(passedProps.value, "VTextField");
     // @ts-ignore
     const modelValue = ref(props.modelValue);
+    const showColorPicker = ref(false);
     const updatedEmitters = computed(() => {
       const ret: any = {};
       Object.keys({ ...VTextField.emits }).forEach((evnt) => {
@@ -56,12 +57,17 @@ export default defineComponent({
           emit("update:modelValue", modelValue.value);
         }
       };
+      ret["onFocus"] = (e: FocusEvent) => {
+        emit("focus", e);
+        showColorPicker.value = true;
+      };
       return ret;
     });
     const textFieldProps = computed(() => ({
       ...defaults,
       ...updatedEmitters.value,
       class: "v-savable-text-field",
+      readonly: true,
     }));
     const colorPickerProps = computed(() => ({
       modelValue: modelValue.value,
@@ -75,7 +81,6 @@ export default defineComponent({
       // @ts-ignore
       disabled: props.disabled,
     }));
-    const showColorPicker = ref(false);
     const openColorPicker = (e?: MouseEvent) => {
       if (e) {
         e.preventDefault();

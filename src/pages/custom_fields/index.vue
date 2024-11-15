@@ -30,7 +30,7 @@ import type {
   Item,
 } from "@/friday";
 import type { ActionMenuItem } from "@/components/queries/partials/action-menu";
-import type { ApiService, SwalService } from "@jakguru/vueprint";
+import type { ApiService, SwalService, ToastService } from "@jakguru/vueprint";
 
 export default defineComponent({
   name: "CustomFieldIndex",
@@ -67,6 +67,7 @@ export default defineComponent({
     const { t } = useI18n({ useScope: "global" });
     const api = inject<ApiService>("api");
     const swal = inject<SwalService>("swal");
+    const toast = inject<ToastService>("toast");
     const getActionMenuItems = (
       customFields: Item[],
       onDone: () => void,
@@ -110,7 +111,7 @@ export default defineComponent({
             appendIcon: "mdi-delete",
             density: "compact",
             onClick: async () => {
-              if (!api || !swal) return;
+              if (!api || !swal || !toast) return;
               const { isConfirmed } = await swal.fire({
                 title: t("customFieldActionMenu.delete.confirm"),
                 icon: "warning",
@@ -122,7 +123,12 @@ export default defineComponent({
               const { status } = await api.delete(
                 `/custom_fields/${customFields[0].id}?${qs.stringify(getCsrfObject())}`,
               );
-              console.log(status);
+              if (status < 200 || status >= 300) {
+                toast.fire({
+                  title: t("customFieldActionMenu.delete.error"),
+                  icon: "error",
+                });
+              }
               onDone();
             },
           }),
