@@ -668,3 +668,15 @@ export interface DailyBurndownData {
   estimated_work: number;
   logged_work: number;
 }
+
+export interface IssueStatus {
+  id: number;
+  name: string;
+  is_closed: boolean;
+  position: number;
+  description: string | null;
+  default_done_ratio: number | null;
+  icon: string | null;
+  text_color: string | null;
+  background_color: string | null;
+}

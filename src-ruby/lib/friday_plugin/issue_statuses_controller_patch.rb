@@ -10,7 +10,17 @@ module FridayPlugin
           if friday_request?
             hashed = {
               formAuthenticityToken: form_authenticity_token,
-              statuses: IssueStatus.sorted.each.collect { |v| {id: v.id, name: v.name, is_closed: v.is_closed, position: v.position, description: v.description, default_done_ratio: v.default_done_ratio} }
+              statuses: IssueStatus.sorted.each.collect { |v| {
+                id: v.id,
+                name: v.name,
+                is_closed: v.is_closed,
+                position: v.position,
+                description: v.description,
+                default_done_ratio: v.default_done_ratio,
+                icon: v.icon,
+                text_color: v.text_color,
+                background_color: v.background_color
+              } }
             }
             render json: hashed
           else
@@ -20,18 +30,18 @@ module FridayPlugin
 
         def update
           if friday_request?
-            render json: {}
+            render json: {}, status: 201
           else
             redmine_base_update
           end
         end
 
         def create
-          render json: {}
+          render json: {}, status: 201
         end
 
         def destroy
-          render json: {}
+          render json: {}, status: 201
         end
 
         private

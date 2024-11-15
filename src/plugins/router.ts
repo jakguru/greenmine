@@ -525,8 +525,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/issue_statuses",
     name: "issue-statuses",
-    // "component": () => import("@/pages/issue_statuses.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/issue_statuses/index.vue"),
     meta: {
       title: "pages.issue-statuses.title",
     },
@@ -534,19 +533,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/issue_statuses/:id/edit",
     name: "issue-statuses-id-edit",
-    // "component": () => import("@/pages/issue_statuses/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/issue_statuses/index.vue"),
     meta: {
-      title: "pages.issue-statuses-id-edit.title",
+      title: "pages.issue-statuses.title",
     },
   },
   {
     path: "/issue_statuses/new",
     name: "issue-statuses-new",
-    // "component": () => import("@/pages/issue_statuses/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/issue_statuses/index.vue"),
     meta: {
-      title: "pages.issue-statuses-new.title",
+      title: "pages.issue-statuses.title",
     },
   },
   {
