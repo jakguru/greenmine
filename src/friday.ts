@@ -676,7 +676,7 @@ export interface IssueStatus {
   position: number;
   description: string | null;
   default_done_ratio: number | null;
-  icon: string | null;
-  text_color: string | null;
-  background_color: string | null;
+  icon: `mdi-${string}` | null;
+  text_color: `#${string}` | "on-working" | "on-mud" | null;
+  background_color: `#${string}` | "working" | "mud" | null;
 }

@@ -15,6 +15,7 @@ import { useAppData } from "@/utils/app";
 import { calculateColorForPriority } from "@/utils/colors";
 import { useI18n } from "vue-i18n";
 import { ordinal } from "@/utils/formatting";
+import { IssueStatusChip } from "@/components/issues";
 
 import ProjectById from "./custom-data-table-cells/project-by-id.vue";
 import TimeTrackingButton from "../../time-tracking/button.vue";
@@ -518,17 +519,17 @@ export const QueriesPartialDataTableCell = defineComponent({
             value.value.display,
           );
         case "IssueStatus":
-          return h(
-            VChip,
-            {
-              color: value.value.value.is_closed ? "mud" : "working",
-              variant: "flat",
-              size: "small",
-              class: ["font-weight-bold"],
-              ...attrs.value,
-            },
-            value.value.display,
-          );
+          return h(IssueStatusChip, {
+            id: value.value.value.id,
+            name: value.value.value.name,
+            isClosed: value.value.value.is_closed,
+            position: value.value.value.position,
+            description: value.value.value.description,
+            defaultDoneRatio: value.value.value.default_done_ratio,
+            icon: value.value.value.icon,
+            textColor: value.value.value.text_color,
+            backgroundColor: value.value.value.background_color,
+          });
         case "IssuePriority":
           return h(
             VChip,

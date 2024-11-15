@@ -30,3 +30,10 @@ body {
     overflow-x: auto;
   }
 }
+
+.v-chip--issue-status {
+  .v-chip__content {
+    justify-content: center;
+    flex-grow: 1;
+  }
+}

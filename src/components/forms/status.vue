@@ -3,6 +3,7 @@
     <v-table>
       <thead>
         <tr>
+          <th>&nbsp;</th>
           <th style="min-width: 200px">
             {{ $t(`pages.issue-statuses.form.cells.name`) }}
           </th>
@@ -28,7 +29,7 @@
             {{ $t(`pages.issue-statuses.form.cells.order`) }}
           </th>
           <th width="100">&nbsp;</th>
-          <th width="140">&nbsp;</th>
+          <th width="40">&nbsp;</th>
         </tr>
       </thead>
       <draggable
@@ -41,6 +42,19 @@
       >
         <template #item="{ element, index }">
           <tr>
+            <td>
+              <IssueStatusChip
+                :id="element.id"
+                :name="element.name"
+                :is-closed="element.is_closed"
+                :position="element.position"
+                :description="element.description"
+                :default-done-ratio="element.default_done_ratio"
+                :icon="element.icon"
+                :text-color="element.text_color"
+                :background-color="element.background_color"
+              />
+            </td>
             <td>
               <VSaveableTextField
                 v-bind="vTextFieldBindings"
@@ -137,19 +151,31 @@
             </td>
             <td>
               <v-btn
-                block
+                icon="mdi-delete"
                 color="error"
                 :loading="loading"
+                size="small"
                 @click="doRemove(element.id)"
-              >
-                {{ $t("labels.remove") }}
-              </v-btn>
+              />
             </td>
           </tr>
         </template>
       </draggable>
       <tfoot>
         <tr>
+          <th>
+            <IssueStatusChip
+              v-if="toAdd.name"
+              :name="toAdd.name"
+              :is-closed="toAdd.is_closed"
+              :position="toAdd.position"
+              :description="toAdd.description"
+              :default-done-ratio="toAdd.default_done_ratio"
+              :icon="toAdd.icon"
+              :text-color="toAdd.text_color"
+              :background-color="toAdd.background_color"
+            />
+          </th>
           <th>
             <v-text-field
               v-bind="vTextFieldBindings"
@@ -167,7 +193,7 @@
               :placeholder="$t(`pages.issue-statuses.form.cells.description`)"
             />
           </th>
-          <td>
+          <th>
             <v-autocomplete
               v-bind="vOptionalTextFieldBindings"
               v-model="toAdd.default_done_ratio"
@@ -176,8 +202,8 @@
                 $t(`pages.issue-statuses.form.cells.defaultDoneRatio`)
               "
             />
-          </td>
-          <td>
+          </th>
+          <th>
             <VSaveableIconField
               v-bind="vOptionalTextFieldBindings"
               v-model="toAdd.icon"
@@ -188,15 +214,15 @@
                 <v-list-item v-bind="props" :prepend-icon="item.raw.value" />
               </template>
             </VSaveableIconField>
-          </td>
-          <td>
+          </th>
+          <th>
             <VColorField
               v-bind="vOptionalTextFieldBindings"
               v-model="toAdd.text_color"
               :placeholder="$t(`pages.issue-statuses.form.cells.textColor`)"
             />
-          </td>
-          <td>
+          </th>
+          <th>
             <VColorField
               v-bind="vOptionalTextFieldBindings"
               v-model="toAdd.background_color"
@@ -204,18 +230,17 @@
                 $t(`pages.issue-statuses.form.cells.backgroundColor`)
               "
             />
-          </td>
+          </th>
           <th>&nbsp;</th>
           <th>&nbsp;</th>
           <th>
             <v-btn
-              block
+              icon="mdi-plus"
               :color="systemAccentColor"
               :loading="loading"
+              size="small"
               @click="doAdd"
-            >
-              {{ $t("labels.add") }}
-            </v-btn>
+            />
           </th>
         </tr>
       </tfoot>
@@ -236,6 +261,7 @@ import {
 import { ordinal } from "@/utils/formatting";
 import { calculateColorForPriority } from "@/utils/colors";
 import { VSaveableTextField, VColorField } from "@/components/fields";
+import { IssueStatusChip } from "@/components/issues";
 import Draggable from "vuedraggable";
 import type { PropType } from "vue";
 import type { IssueStatus } from "@/friday";
@@ -247,6 +273,7 @@ export default defineComponent({
     Draggable,
     VSaveableTextField,
     VColorField,
+    IssueStatusChip,
   },
   props: {
     formAuthenticityToken: {
