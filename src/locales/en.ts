@@ -199,8 +199,23 @@ export default {
     "issue-categories-id": { title: "" },
     "issue-categories-id-edit": { title: "" },
     "issue-statuses": {
-      title: "",
+      title: "Issue Status Management",
       admin: { title: "Issue Status Management" },
+      form: {
+        values: {
+          title: "Issue Statuses",
+        },
+        cells: {
+          name: "Status",
+          isClosed: "Closed",
+          description: "Description",
+          order: "Order",
+          icon: "Icon",
+          defaultDoneRatio: "Default %",
+          textColor: "Text Color",
+          backgroundColor: "BG Color",
+        },
+      },
     },
     "issue-statuses-id-edit": { title: "" },
     "issue-statuses-new": { title: "" },

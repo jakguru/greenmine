@@ -10,19 +10,11 @@
         </v-toolbar-title>
       </v-toolbar>
       <v-divider />
-      <v-container fluid>
-        <v-row>
-          <v-col cols="12">
-            <IssueStatusForm
-              :form-authenticity-token="formAuthenticityToken"
-              name="values"
-              :values="statuses"
-              low-color="#607D8B"
-              high-color="#607D8B"
-            />
-          </v-col>
-        </v-row>
-      </v-container>
+      <IssueStatusForm
+        :form-authenticity-token="formAuthenticityToken"
+        name="values"
+        :values="statuses"
+      />
     </v-card>
   </v-container>
 </template>

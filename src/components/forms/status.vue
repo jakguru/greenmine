@@ -1,11 +1,5 @@
 <template>
   <v-card v-bind="wrapperBindings">
-    <v-toolbar color="transparent" density="compact">
-      <v-toolbar-title>
-        {{ title }}
-      </v-toolbar-title>
-    </v-toolbar>
-    <v-divider />
     <v-table>
       <thead>
         <tr>
@@ -17,6 +11,18 @@
           </th>
           <th style="min-width: 200px">
             {{ $t(`pages.issue-statuses.form.cells.description`) }}
+          </th>
+          <th width="175" class="text-center">
+            {{ $t(`pages.issue-statuses.form.cells.defaultDoneRatio`) }}
+          </th>
+          <th width="140" class="text-center">
+            {{ $t(`pages.issue-statuses.form.cells.icon`) }}
+          </th>
+          <th width="220" class="text-center">
+            {{ $t(`pages.issue-statuses.form.cells.textColor`) }}
+          </th>
+          <th width="220" class="text-center">
+            {{ $t(`pages.issue-statuses.form.cells.backgroundColor`) }}
           </th>
           <th width="100" class="text-center">
             {{ $t(`pages.issue-statuses.form.cells.order`) }}
@@ -56,6 +62,46 @@
                 v-model="element.description"
                 @update:model-value="
                   doUpdateFor(element.id, 'description', $event)
+                "
+              />
+            </td>
+            <td>
+              <v-autocomplete
+                v-bind="vOptionalTextFieldBindings"
+                v-model="element.default_done_ratio"
+                :items="availablePercentages"
+                @update:model-value="
+                  doUpdateFor(element.id, 'default_done_ratio', $event)
+                "
+              />
+            </td>
+            <td>
+              <VSaveableIconField
+                v-bind="vOptionalTextFieldBindings"
+                v-model="element.icon"
+                :prepend-inner-icon="element.icon"
+                @update:model-value="doUpdateFor(element.id, 'icon', $event)"
+              >
+                <template #item="{ item, props }">
+                  <v-list-item v-bind="props" :prepend-icon="item.raw.value" />
+                </template>
+              </VSaveableIconField>
+            </td>
+            <td>
+              <VColorField
+                v-bind="vOptionalTextFieldBindings"
+                v-model="element.text_color"
+                @update:model-value="
+                  doUpdateFor(element.id, 'text_color', $event)
+                "
+              />
+            </td>
+            <td>
+              <VColorField
+                v-bind="vOptionalTextFieldBindings"
+                v-model="element.background_color"
+                @update:model-value="
+                  doUpdateFor(element.id, 'background_color', $event)
                 "
               />
             </td>
@@ -121,6 +167,44 @@
               :placeholder="$t(`pages.issue-statuses.form.cells.description`)"
             />
           </th>
+          <td>
+            <v-autocomplete
+              v-bind="vOptionalTextFieldBindings"
+              v-model="toAdd.default_done_ratio"
+              :items="availablePercentages"
+              :placeholder="
+                $t(`pages.issue-statuses.form.cells.defaultDoneRatio`)
+              "
+            />
+          </td>
+          <td>
+            <VSaveableIconField
+              v-bind="vOptionalTextFieldBindings"
+              v-model="toAdd.icon"
+              :prepend-inner-icon="toAdd.icon"
+              :placeholder="$t(`pages.issue-statuses.form.cells.icon`)"
+            >
+              <template #item="{ item, props }">
+                <v-list-item v-bind="props" :prepend-icon="item.raw.value" />
+              </template>
+            </VSaveableIconField>
+          </td>
+          <td>
+            <VColorField
+              v-bind="vOptionalTextFieldBindings"
+              v-model="toAdd.text_color"
+              :placeholder="$t(`pages.issue-statuses.form.cells.textColor`)"
+            />
+          </td>
+          <td>
+            <VColorField
+              v-bind="vOptionalTextFieldBindings"
+              v-model="toAdd.background_color"
+              :placeholder="
+                $t(`pages.issue-statuses.form.cells.backgroundColor`)
+              "
+            />
+          </td>
           <th>&nbsp;</th>
           <th>&nbsp;</th>
           <th>
@@ -151,7 +235,7 @@ import {
 } from "@/utils/app";
 import { ordinal } from "@/utils/formatting";
 import { calculateColorForPriority } from "@/utils/colors";
-import { VSaveableTextField } from "@/components/fields";
+import { VSaveableTextField, VColorField } from "@/components/fields";
 import Draggable from "vuedraggable";
 import type { PropType } from "vue";
 import type { IssueStatus } from "@/friday";
@@ -162,6 +246,7 @@ export default defineComponent({
   components: {
     Draggable,
     VSaveableTextField,
+    VColorField,
   },
   props: {
     formAuthenticityToken: {
@@ -182,7 +267,7 @@ export default defineComponent({
     },
     highColor: {
       type: String,
-      default: "#F44336",
+      default: "#607D8B",
     },
     endpoint: {
       type: String,
@@ -196,7 +281,7 @@ export default defineComponent({
       type: String as PropType<
         "flat" | "text" | "elevated" | "tonal" | "outlined" | "plain"
       >,
-      default: "outlined",
+      default: "flat",
     },
   },
   emits: ["loading"],
@@ -220,6 +305,12 @@ export default defineComponent({
       density: "compact" as const,
       readonly: loading.value,
       disabled: loading.value,
+    }));
+    const vOptionalTextFieldBindings = computed(() => ({
+      density: "compact" as const,
+      readonly: loading.value,
+      disabled: loading.value,
+      clearable: !loading.value,
     }));
     const routeDataReloader = useReloadRouteData(route, api, toast);
     const systemAccentColor = useSystemAccentColor();
@@ -261,6 +352,10 @@ export default defineComponent({
           toAdd.value.name = "";
           toAdd.value.is_closed = false;
           toAdd.value.description = "";
+          toAdd.value.icon = null;
+          toAdd.value.default_done_ratio = null;
+          toAdd.value.text_color = null;
+          toAdd.value.background_color = null;
         }
       } catch {
         // noop
@@ -409,10 +504,21 @@ export default defineComponent({
     ) => {
       await doUpdate(id, { [property]: value });
     };
+    const availablePercentages = computed(() => {
+      const percentages = [];
+      for (let i = 0; i <= 100; i += 5) {
+        percentages.push(i);
+      }
+      return percentages.map((p) => ({
+        title: `${p}%`,
+        value: p,
+      }));
+    });
     return {
       wrapperBindings,
       title,
       vTextFieldBindings,
+      vOptionalTextFieldBindings,
       systemAccentColor,
       ordinal,
       toAdd,
@@ -424,6 +530,7 @@ export default defineComponent({
       onMoveEnumerationDown,
       positionColors,
       doUpdateFor,
+      availablePercentages,
     };
   },
 });

@@ -10,6 +10,8 @@ import VueClientBootstrap from "@jakguru/vueprint/plugins/client";
 import * as VuetifyComponents from "vuetify/components";
 import * as VuetifyDirectives from "vuetify/directives";
 import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
+import icons from "@/constants/icons";
+import { VAutocomplete } from "vuetify/components/VAutocomplete";
 
 import { createConsumer } from "@rails/actioncable";
 import FridayApp from "@/app.vue";
@@ -137,6 +139,9 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
     },
     options: {
       ssr: false,
+      aliases: {
+        VSaveableIconField: VAutocomplete,
+      },
       defaults: {
         VTextField: {
           variant: "outlined",
@@ -177,6 +182,13 @@ const vueprintMainPluginOptions: VueMainBootstrapOptions = {
         VFileInput: {
           variant: "outlined",
           hideDetails: "auto",
+        },
+        VSaveableIconField: {
+          variant: "outlined",
+          hideDetails: "auto",
+          itemTitle: "title",
+          itemValue: "value",
+          items: icons.map((i) => ({ title: i, value: i })),
         },
       },
       components: VuetifyComponents,

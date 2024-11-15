@@ -12,7 +12,6 @@ module FridayPlugin
     end
 
     module InstanceMethods
-      
     end
   end
 end

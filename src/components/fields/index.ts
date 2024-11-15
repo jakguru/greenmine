@@ -9,6 +9,7 @@ import VSaveableTextField from "./savable-text-field.vue";
 import VMarkdownField from "./markdown.vue";
 import VQueryColumnSelectionField from "./querycolumnselection.vue";
 import VRepositoryCommitUpdateKeywordsField from "./repositorycommitupdatekeywords.vue";
+import VColorField from "./color.vue";
 import generatePasswordBrowser from "generate-password-browser";
 export { VCSVField } from "./csv";
 export { VLBSVField } from "./lbsv";
@@ -18,6 +19,7 @@ export {
   VMarkdownField,
   VQueryColumnSelectionField,
   VRepositoryCommitUpdateKeywordsField,
+  VColorField,
 };
 
 const VPasswordFieldWithGeneratorProps: Record<

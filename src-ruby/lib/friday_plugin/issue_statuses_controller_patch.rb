@@ -10,17 +10,19 @@ module FridayPlugin
           if friday_request?
             hashed = {
               formAuthenticityToken: form_authenticity_token,
-              statuses: IssueStatus.sorted.each.collect { |v| {
-                id: v.id,
-                name: v.name,
-                is_closed: v.is_closed,
-                position: v.position,
-                description: v.description,
-                default_done_ratio: v.default_done_ratio,
-                icon: v.icon,
-                text_color: v.text_color,
-                background_color: v.background_color
-              } }
+              statuses: IssueStatus.sorted.each.collect { |v|
+                {
+                  id: v.id,
+                  name: v.name,
+                  is_closed: v.is_closed,
+                  position: v.position,
+                  description: v.description,
+                  default_done_ratio: v.default_done_ratio,
+                  icon: v.icon,
+                  text_color: v.text_color,
+                  background_color: v.background_color
+                }
+              }
             }
             render json: hashed
           else

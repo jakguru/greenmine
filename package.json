@@ -16,6 +16,7 @@
   "devDependencies": {
     "@hapi/tlds": "^1.0.6",
     "@jakguru/vueprint": "^1.6.5",
+    "@mdi/font": "^7.4.47",
     "@rails/actioncable": "^7.2.200",
     "@shikijs/markdown-it": "^1.22.0",
     "@shikijs/transformers": "^1.22.0",
