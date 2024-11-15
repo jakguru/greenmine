@@ -1833,8 +1833,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/trackers",
     name: "trackers",
-    // "component": () => import("@/pages/trackers.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/trackers/index.vue"),
     meta: {
       title: "pages.trackers.title",
     },
@@ -1842,28 +1841,25 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/trackers/:id/edit",
     name: "trackers-id-edit",
-    // "component": () => import("@/pages/trackers/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/trackers/index.vue"),
     meta: {
-      title: "pages.trackers-id-edit.title",
+      title: "pages.trackers.title",
     },
   },
   {
     path: "/trackers/fields",
     name: "trackers-fields",
-    // "component": () => import("@/pages/trackers/fields.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/trackers/index.vue"),
     meta: {
-      title: "pages.trackers-fields.title",
+      title: "pages.trackers.title",
     },
   },
   {
     path: "/trackers/new",
     name: "trackers-new",
-    // "component": () => import("@/pages/trackers/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/trackers/index.vue"),
     meta: {
-      title: "pages.trackers-new.title",
+      title: "pages.trackers.title",
     },
   },
   {

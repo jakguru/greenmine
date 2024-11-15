@@ -6,6 +6,7 @@ import { VBtn } from "vuetify/components/VBtn";
 import { useI18n } from "vue-i18n";
 import VPasswordField from "./password.vue";
 import VSaveableTextField from "./savable-text-field.vue";
+import VAbbreviatedMultiSelect from "./abbreviatedMultiSelect.vue";
 import VMarkdownField from "./markdown.vue";
 import VQueryColumnSelectionField from "./querycolumnselection.vue";
 import VRepositoryCommitUpdateKeywordsField from "./repositorycommitupdatekeywords.vue";
@@ -20,6 +21,7 @@ export {
   VQueryColumnSelectionField,
   VRepositoryCommitUpdateKeywordsField,
   VColorField,
+  VAbbreviatedMultiSelect,
 };
 
 const VPasswordFieldWithGeneratorProps: Record<

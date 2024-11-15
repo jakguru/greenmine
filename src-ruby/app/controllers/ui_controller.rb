@@ -27,6 +27,7 @@ class UiController < ApplicationController
     end
     render json: {
       name: Setting.send(:app_title),
+      sudoMode: Redmine::SudoMode.active?,
       i18n: ::I18n.locale,
       identity: {
         authenticated: User.current.logged?,
@@ -58,17 +59,19 @@ class UiController < ApplicationController
       },
       priorities: priorities.map { |priority| {id: priority.id, name: priority.name, position: priority.position} },
       impacts: impacts.map { |impact| {id: impact.id, name: impact.name, position: impact.position} },
-      statuses: IssueStatus.sorted.each.collect { |v| {
-        id: v.id,
-        name: v.name,
-        is_closed: v.is_closed,
-        position: v.position,
-        description: v.description,
-        default_done_ratio: v.default_done_ratio,
-        icon: v.icon,
-        text_color: v.text_color,
-        background_color: v.background_color
-      } },
+      statuses: IssueStatus.sorted.each.collect { |v|
+        {
+          id: v.id,
+          name: v.name,
+          is_closed: v.is_closed,
+          position: v.position,
+          description: v.description,
+          default_done_ratio: v.default_done_ratio,
+          icon: v.icon,
+          text_color: v.text_color,
+          background_color: v.background_color
+        }
+      },
       fetchedAt: Time.now,
       friday: {
         sidekiq: ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")

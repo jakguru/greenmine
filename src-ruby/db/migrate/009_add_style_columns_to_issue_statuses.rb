@@ -7,7 +7,7 @@ class AddStyleColumnsToIssueStatuses < ActiveRecord::Migration[4.2]
 
   def self.down
     remove_column :issue_statuses, :icon
-    remove_column :text_color, :icon
-    remove_column :background_color, :icon
+    remove_column :issue_statuses, :text_color
+    remove_column :issue_statuses, :background_color
   end
 end

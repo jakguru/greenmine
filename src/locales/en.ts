@@ -605,7 +605,29 @@ export default {
     "time-entries-imports-new": { title: "" },
     "time-entries-new": { title: "" },
     "time-entries-report": { title: "" },
-    trackers: { title: "", admin: { title: "Tracker Management" } },
+    trackers: {
+      title: "Tracker Management",
+      admin: { title: "Tracker Management" },
+      form: {
+        cells: {
+          name: "Tracker",
+          isInRoadmap: "Roadmap",
+          description: "Description",
+          defaultStatusId: "Default Status",
+          coreFields: "Core Fields",
+          customFields: "Custom Fields",
+          projects: "In Projects",
+          icon: "Icon",
+          color: "Color",
+          position: "Order",
+        },
+        values: {
+          coreFields: "{selected} Chosen",
+          customFields: "{selected} Chosen",
+          projects: "{selected} Chosen",
+        },
+      },
+    },
     "trackers-id-edit": { title: "" },
     "trackers-fields": { title: "" },
     "trackers-new": { title: "" },
@@ -763,6 +785,16 @@ export default {
     },
     actions: "Actions",
     open: "Open",
+    multiselect: {
+      selected: {
+        none: "None selected",
+        one: "1 selected",
+        more: "{count} selected",
+      },
+      filter: {
+        label: "Filter Choices",
+      },
+    },
   },
   theme: {
     base: {

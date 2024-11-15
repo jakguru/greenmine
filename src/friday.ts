@@ -575,14 +575,14 @@ export interface Issue {
   group_count?: number;
   group_totals?: GroupTotals;
   calculated_priority?: string;
-  tracker?: Tracker;
+  tracker?: IssueTrackerItem;
   project?: Project;
   estimated_hours?: number;
   logged_hours?: number;
   status?: string;
 }
 
-export interface Tracker {
+export interface IssueTrackerItem {
   id: number;
   name: string;
 }
@@ -679,4 +679,23 @@ export interface IssueStatus {
   icon: `mdi-${string}` | null;
   text_color: `#${string}` | "on-working" | "on-mud" | null;
   background_color: `#${string}` | "working" | "mud" | null;
+}
+
+export interface Tracker {
+  id: number;
+  name: string;
+  default_status_id: number;
+  is_in_roadmap: boolean;
+  description: string;
+  core_fields: string[];
+  custom_field_ids: number[];
+  position: number;
+  icon: `mdi-${string}` | null;
+  color: `#${string}` | null;
+  project_ids: number[];
+}
+
+export interface SelectableListItem<T = string> {
+  value: T;
+  label: string;
 }
