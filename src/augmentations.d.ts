@@ -25,6 +25,10 @@ declare module "@jakguru/vueprint" {
       data: RealtimeApplicationUpdateEventPayload,
       from?: string,
     ) => void;
+    "rtu:trackers": (
+      data: RealtimeApplicationUpdateEventPayload,
+      from?: string,
+    ) => void;
   }
 }
 export {};

@@ -57,7 +57,16 @@ module FridayPlugin
 
         def create
           if friday_request?
-            render json: {}, status: 418
+            @tracker = Tracker.new
+            @tracker.safe_attributes = params[:tracker]
+            if request.post? && @tracker.save
+              enqueue_realtime_updates
+              render json: {
+                id: @tracker.id
+              }, status: 201
+            else
+              render json: {errors: @issue_status.errors.full_messages}, status: :unprocessable_entity
+            end
           else
             redmine_base_create
           end
@@ -65,7 +74,16 @@ module FridayPlugin
 
         def update
           if friday_request?
-            render json: {}, status: 418
+            @tracker = Tracker.find(params[:id])
+            @tracker.safe_attributes = params[:tracker]
+            if @tracker.save
+              enqueue_realtime_updates
+              render json: {
+                id: @tracker.id
+              }, status: 201
+            else
+              render json: {errors: @tracker.errors.full_messages}, status: :unprocessable_entity
+            end
           else
             redmine_base_update
           end
@@ -73,20 +91,20 @@ module FridayPlugin
 
         def destroy
           if friday_request?
-            render json: {}, status: 418
+            Tracker.find(params[:id]).destroy
+            render json: {}, status: 200
           else
             redmine_base_destroy
           end
+        rescue => e
+          render json: {errors: ERB::Util.h(e.message)}, status: :unprocessable_entity
         end
 
         private
 
         def enqueue_realtime_updates
           ActionCable.server.broadcast("rtu_application", {updated: true})
-          ActionCable.server.broadcast("rtu_enumerations", {updated: true})
-          if @enumeration.is_a?(IssuePriority) || @enumeration.is_a?(IssueImpact)
-            UpdateCalculatedPriorityWorker.perform_async
-          end
+          ActionCable.server.broadcast("rtu_trackers", {updated: true})
         end
 
         def get_project_nested_items(projects)

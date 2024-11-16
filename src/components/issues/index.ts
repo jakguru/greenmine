@@ -1,9 +1,10 @@
+/* eslint-disable vue/one-component-per-file */
 import { defineComponent, h, computed } from "vue";
 import { VChip } from "vuetify/components/VChip";
 import { useAppData } from "@/utils/app";
 
 import type { PropType } from "vue";
-import type { IssueStatus } from "@/friday";
+import type { IssueStatus, Tracker } from "@/friday";
 
 export const IssueStatusChip = defineComponent({
   name: "IssueStatusChip",
@@ -51,11 +52,11 @@ export const IssueStatusChip = defineComponent({
   },
   setup(props) {
     const appData = useAppData();
-    const appDataStatuses = computed<IssueStatus[]>(
+    const appDataTrackers = computed<IssueStatus[]>(
       () => appData.value.statuses || [],
     );
-    const appDataStatus = computed(() =>
-      appDataStatuses.value.find((ads) => {
+    const appDataTracker = computed(() =>
+      appDataTrackers.value.find((ads) => {
         if (props.id !== undefined) {
           return ads.id === props.id;
         }
@@ -65,8 +66,11 @@ export const IssueStatusChip = defineComponent({
     const backgroundColor = computed(() => {
       if ("string" === typeof props.backgroundColor) {
         return props.backgroundColor;
-      } else if (appDataStatus.value && appDataStatus.value.background_color) {
-        return appDataStatus.value.background_color;
+      } else if (
+        appDataTracker.value &&
+        appDataTracker.value.background_color
+      ) {
+        return appDataTracker.value.background_color;
       } else {
         return props.isClosed ? "mud" : "working";
       }
@@ -74,18 +78,18 @@ export const IssueStatusChip = defineComponent({
     const textColor = computed(() => {
       if ("string" === typeof props.textColor) {
         return props.textColor;
-      } else if (appDataStatus.value && appDataStatus.value.text_color) {
-        return appDataStatus.value.text_color;
+      } else if (appDataTracker.value && appDataTracker.value.text_color) {
+        return appDataTracker.value.text_color;
       } else {
         return props.isClosed ? "on-mud" : "on-working";
       }
     });
-    const textColorIsHex = computed(() => textColor.value.startsWith("#"));
+    const colorIsHex = computed(() => textColor.value.startsWith("#"));
     const icon = computed(() => {
       if (props.icon) {
         return props.icon as `mdi-${string}`;
-      } else if (appDataStatus.value && appDataStatus.value.icon) {
-        return appDataStatus.value.icon as `mdi-${string}`;
+      } else if (appDataTracker.value && appDataTracker.value.icon) {
+        return appDataTracker.value.icon as `mdi-${string}`;
       } else {
         return null;
       }
@@ -93,8 +97,8 @@ export const IssueStatusChip = defineComponent({
     const description = computed(() => {
       if (props.description) {
         return props.description;
-      } else if (appDataStatus.value) {
-        return appDataStatus.value.description;
+      } else if (appDataTracker.value) {
+        return appDataTracker.value.description;
       } else {
         return null;
       }
@@ -113,7 +117,7 @@ export const IssueStatusChip = defineComponent({
       color: backgroundColor.value,
       class: vChipClasses.value,
       style: {
-        color: textColorIsHex.value
+        color: colorIsHex.value
           ? textColor.value
           : `var(--v-theme-${textColor.value})`,
       },
@@ -121,6 +125,96 @@ export const IssueStatusChip = defineComponent({
       variant: "flat" as const,
       size: "small" as const,
       title: description.value,
+    }));
+    return () => h(VChip, vChipBindings.value, props.name);
+  },
+});
+
+export const TrackerChip = defineComponent({
+  name: "TrackerChip",
+  props: {
+    id: {
+      type: Number as PropType<number | undefined>,
+      default: undefined,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String as PropType<string | null | undefined>,
+      default: undefined,
+    },
+    icon: {
+      type: String as PropType<`mdi-${string}` | null | undefined>,
+      default: undefined,
+    },
+    color: {
+      type: String as PropType<`#${string}` | null | undefined>,
+      default: undefined,
+    },
+  },
+  setup(props) {
+    const appData = useAppData();
+    const appDataTrackers = computed<Tracker[]>(
+      () => appData.value.trackers || [],
+    );
+    const appDataTracker = computed(() =>
+      appDataTrackers.value.find((ads) => {
+        if (props.id !== undefined) {
+          return ads.id === props.id;
+        }
+        return ads.name === props.name;
+      }),
+    );
+    const color = computed(() => {
+      if ("string" === typeof props.color) {
+        return props.color;
+      } else if (appDataTracker.value && appDataTracker.value.color) {
+        return appDataTracker.value.color;
+      } else {
+        return "accent";
+      }
+    });
+    const icon = computed(() => {
+      if (props.icon) {
+        return props.icon as `mdi-${string}`;
+      } else if (appDataTracker.value && appDataTracker.value.icon) {
+        return appDataTracker.value.icon as `mdi-${string}`;
+      } else {
+        return null;
+      }
+    });
+    const description = computed(() => {
+      if (props.description) {
+        return props.description;
+      } else if (appDataTracker.value) {
+        return appDataTracker.value.description;
+      } else {
+        return null;
+      }
+    });
+    const vChipClasses = computed(() => {
+      const ret = new Set<string>();
+      ret.add("font-weight-bold");
+      ret.add("w-100");
+      ret.add("v-chip--issue-status");
+      if (props.icon) {
+        ret.add("ps-3");
+      }
+      return [...ret];
+    });
+    const vChipBindings = computed(() => ({
+      color: color.value,
+      class: vChipClasses.value,
+      prependIcon: icon.value || undefined,
+      variant: "tonal" as const,
+      size: "small" as const,
+      title: description.value,
+      style: {
+        border: "solid 1px",
+      },
+      rounded: 0,
     }));
     return () => h(VChip, vChipBindings.value, props.name);
   },

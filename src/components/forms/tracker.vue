@@ -49,17 +49,13 @@
         <template #item="{ element, index }">
           <tr>
             <td>
-              <!-- <TrackerChip
+              <TrackerChip
                 :id="element.id"
                 :name="element.name"
-                :is-closed="element.is_closed"
-                :position="element.position"
                 :description="element.description"
-                :default-done-ratio="element.default_done_ratio"
                 :icon="element.icon"
-                :text-color="element.text_color"
-                :background-color="element.background_color"
-              /> -->
+                :color="element.color"
+              />
             </td>
             <td>
               <VSaveableTextField
@@ -191,17 +187,14 @@
       <tfoot>
         <tr>
           <th>
-            <!-- <TrackerChip
+            <TrackerChip
               v-if="toAdd.name"
               :name="toAdd.name"
-              :is-closed="toAdd.is_closed"
               :position="toAdd.position"
               :description="toAdd.description"
-              :default-done-ratio="toAdd.default_done_ratio"
               :icon="toAdd.icon"
-              :text-color="toAdd.text_color"
-              :background-color="toAdd.background_color"
-            /> -->
+              :color="toAdd.color"
+            />
           </th>
           <th>
             <v-text-field
@@ -307,7 +300,7 @@ import {
   VColorField,
   VAbbreviatedMultiSelect,
 } from "@/components/fields";
-// import { TrackerChip } from "@/components/issues";
+import { TrackerChip } from "@/components/issues";
 import Draggable from "vuedraggable";
 import type { PropType } from "vue";
 import type { Tracker, SelectableListItem } from "@/friday";
@@ -320,7 +313,7 @@ export default defineComponent({
     VSaveableTextField,
     VColorField,
     VAbbreviatedMultiSelect,
-    // TrackerChip,
+    TrackerChip,
   },
   props: {
     formAuthenticityToken: {

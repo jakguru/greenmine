@@ -25,6 +25,8 @@ class UiController < ApplicationController
     field_formats = custom_field_types.keys.each_with_object({}) do |type, acc|
       acc[type] = Redmine::FieldFormat.as_select(type)
     end
+    core_fields = Tracker::CORE_FIELDS.to_a
+    issue_custom_fields = IssueCustomField.sorted.to_a
     render json: {
       name: Setting.send(:app_title),
       sudoMode: Redmine::SudoMode.active?,
@@ -70,6 +72,21 @@ class UiController < ApplicationController
           icon: v.icon,
           text_color: v.text_color,
           background_color: v.background_color
+        }
+      },
+      trackers: Tracker.sorted.preload(:default_status).each.collect { |v|
+        {
+          id: v.id,
+          name: v.name,
+          default_status_id: v.default_status_id,
+          is_in_roadmap: v.is_in_roadmap,
+          description: v.description,
+          core_fields: core_fields.select { |field| v.core_fields.include?(field) }.map(&:to_s),
+          custom_field_ids: issue_custom_fields.select { |field| v.custom_fields.to_a.include?(field) }.map(&:id),
+          position: v.position,
+          icon: v.icon,
+          color: v.color,
+          project_ids: v.projects.map(&:id)
         }
       },
       fetchedAt: Time.now,

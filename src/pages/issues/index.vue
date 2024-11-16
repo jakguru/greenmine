@@ -76,12 +76,14 @@ export default defineComponent({
       if (bus) {
         bus.on("rtu:enumerations", doRefresh, { local: true });
         bus.on("rtu:issue-statuses", doRefresh, { local: true });
+        bus.on("rtu:trackers", doRefresh, { local: true });
       }
     });
     onBeforeUnmount(() => {
       if (bus) {
         bus.off("rtu:enumerations", doRefresh);
         bus.off("rtu:issue-statuses", doRefresh);
+        bus.off("rtu:trackers", doRefresh);
       }
     });
     return {
