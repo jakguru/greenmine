@@ -58,7 +58,8 @@
                 v-model:edges="edges"
                 :edges-updatable="true"
                 :node-types="nodeTypes"
-                :default-edge-options="{ type: 'smoothstep' }"
+                :edge-types="edgeTypes"
+                :default-edge-options="{ type: 'issue-status-transition' }"
                 fit-view-on-init
                 @nodes-initialized="layoutGraph()"
               >
@@ -67,6 +68,9 @@
                 <Background />
                 <template #node-issue-status="bindings">
                   <IssueStatusNode v-bind="bindings" />
+                </template>
+                <template #edge-issue-status-transition="bindings">
+                  <IssueStatusTransitionEdge v-bind="bindings" />
                 </template>
               </VueFlow>
             </v-col>
@@ -116,6 +120,7 @@ import { Controls } from "@vue-flow/controls";
 import { useLayout } from "@/utils/flowchart";
 import { useDisplay } from "vuetify";
 import { IssueStatusNode } from "@/components/workflows/nodes";
+import { IssueStatusTransitionEdge } from "@/components/workflows/edges";
 import { IssueStatusChip } from "@/components/issues";
 
 import type { PropType } from "vue";
@@ -125,9 +130,11 @@ import type {
   Connection,
   EdgeUpdateEvent,
   NodeTypesObject,
+  EdgeTypesObject,
 } from "@vue-flow/core";
 import type { IssueStatus, Tracker, Role, FieldByTracker } from "@/friday";
 import type { SwalService } from "@jakguru/vueprint";
+import type { IssueStatusTransitionProps } from "@/components/workflows/edges";
 
 export default defineComponent({
   name: "WorkflowsIndex",
@@ -137,6 +144,7 @@ export default defineComponent({
     Controls,
     IssueStatusChip,
     IssueStatusNode,
+    IssueStatusTransitionEdge,
   },
   props: {
     formAuthenticityToken: {
@@ -248,6 +256,7 @@ export default defineComponent({
       fitView,
       addEdges,
       updateEdge,
+      removeEdges,
       applyNodeChanges,
       applyEdgeChanges,
       addNodes,
@@ -322,6 +331,9 @@ export default defineComponent({
     const nodeTypes: NodeTypesObject = {
       "issue-status": markRaw(IssueStatusNode),
     };
+    const edgeTypes: EdgeTypesObject = {
+      "issue-status-transition": markRaw(IssueStatusTransitionEdge),
+    };
     const workflowEditorWrapperBindings = computed(() => ({
       width: "100%",
       height: height.value - 334,
@@ -345,7 +357,20 @@ export default defineComponent({
         }
         return;
       }
-      addEdges([connection]);
+      const partialEdge: Partial<IssueStatusTransitionProps> & {
+        source: string;
+        target: string;
+      } = {
+        ...connection,
+        source: connection.source!,
+        target: connection.target!,
+        data: {
+          actions: {
+            removeEdges,
+          },
+        },
+      };
+      addEdges([partialEdge]);
       layoutGraph();
     });
     onEdgeUpdate(({ edge, connection }: EdgeUpdateEvent) => {
@@ -374,6 +399,7 @@ export default defineComponent({
       workflowEditorWrapperBindings,
       nodes,
       nodeTypes,
+      edgeTypes,
       edges,
       layoutGraph,
     };

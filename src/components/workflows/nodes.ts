@@ -84,7 +84,7 @@ export const IssueStatusNodeDataSchema = Joi.object<IssueStatusNodeData>({
   }).optional(),
 }).unknown(true);
 
-export const IssueStatusNode = defineComponent<NodeProps>({
+export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
   name: "IssueStatusNode",
   props: {
     id: {
