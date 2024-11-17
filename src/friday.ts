@@ -695,7 +695,31 @@ export interface Tracker {
   project_ids: number[];
 }
 
+export interface Role {
+  id: number;
+  name: string;
+  position: number;
+}
+
 export interface SelectableListItem<T = string> {
   value: T;
   label: string;
+}
+
+export interface CoreField {
+  value: string;
+  label: string;
+  required: boolean;
+}
+
+export interface IssueCustomField {
+  value: number;
+  label: string;
+  required: boolean;
+}
+
+export interface FieldByTracker {
+  trackerId: number;
+  coreFields: CoreField[];
+  issueCustomFields: IssueCustomField[];
 }

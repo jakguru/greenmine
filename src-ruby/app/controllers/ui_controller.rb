@@ -89,6 +89,13 @@ class UiController < ApplicationController
           project_ids: v.projects.map(&:id)
         }
       },
+      roles: Role.sorted.select(&:consider_workflow?).each.collect { |v|
+        {
+          id: v.id,
+          name: v.name,
+          position: v.position
+        }
+      },
       fetchedAt: Time.now,
       friday: {
         sidekiq: ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")

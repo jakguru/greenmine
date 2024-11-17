@@ -7,6 +7,7 @@ module FridayPlugin
       base.class_eval do
         safe_attributes "icon"
         safe_attributes "color"
+        const_set(:CORE_FIELDS, (Tracker::CORE_FIELDS + ["impact_id", "sprints"]).freeze)
       end
     end
 

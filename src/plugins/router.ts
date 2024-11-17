@@ -2018,8 +2018,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/workflows",
     name: "workflows",
-    // "component": () => import("@/pages/workflows.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/workflows/index.vue"),
     meta: {
       title: "pages.workflows.title",
     },
@@ -2027,28 +2026,25 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/workflows/copy",
     name: "workflows-copy",
-    // "component": () => import("@/pages/workflows/copy.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/workflows/index.vue"),
     meta: {
-      title: "pages.workflows-copy.title",
+      title: "pages.workflows.title",
     },
   },
   {
     path: "/workflows/edit",
     name: "workflows-edit",
-    // "component": () => import("@/pages/workflows/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/workflows/index.vue"),
     meta: {
-      title: "pages.workflows-edit.title",
+      title: "pages.workflows.title",
     },
   },
   {
     path: "/workflows/permissions",
     name: "workflows-permissions",
-    // "component": () => import("@/pages/workflows/permissions.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/workflows/index.vue"),
     meta: {
-      title: "pages.workflows-permissions.title",
+      title: "pages.workflows.title",
     },
   },
 ];

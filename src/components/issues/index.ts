@@ -6,47 +6,55 @@ import { useAppData } from "@/utils/app";
 import type { PropType } from "vue";
 import type { IssueStatus, Tracker } from "@/friday";
 
+export interface IssueStatusChipProps {
+  id?: number;
+  name: string;
+  isClosed?: boolean | null;
+  position?: number;
+  description?: string;
+  defaultDoneRatio?: number;
+  icon?: `mdi-${string}`;
+  textColor?: `#${string}` | "on-working" | "on-mud";
+  backgroundColor?: `#${string}` | "working" | "mud";
+}
+
 export const IssueStatusChip = defineComponent({
   name: "IssueStatusChip",
   props: {
     id: {
-      type: Number as PropType<number | undefined>,
+      type: Number as PropType<IssueStatusChipProps["id"]>,
       default: undefined,
     },
     name: {
-      type: String,
+      type: String as PropType<IssueStatusChipProps["name"]>,
       required: true,
     },
     isClosed: {
-      type: Boolean,
-      required: true,
+      type: Boolean as PropType<IssueStatusChipProps["isClosed"]>,
+      default: undefined,
     },
     position: {
-      type: Number as PropType<number | undefined>,
+      type: Number as PropType<IssueStatusChipProps["position"]>,
       default: undefined,
     },
     description: {
-      type: String as PropType<string | null | undefined>,
+      type: String as PropType<IssueStatusChipProps["description"]>,
       default: undefined,
     },
     defaultDoneRatio: {
-      type: Number as PropType<number | null | undefined>,
+      type: Number as PropType<IssueStatusChipProps["defaultDoneRatio"]>,
       default: undefined,
     },
     icon: {
-      type: String as PropType<`mdi-${string}` | null | undefined>,
+      type: String as PropType<IssueStatusChipProps["icon"]>,
       default: undefined,
     },
     textColor: {
-      type: String as PropType<
-        `#${string}` | "on-working" | "on-mud" | null | undefined
-      >,
+      type: String as PropType<IssueStatusChipProps["textColor"]>,
       default: undefined,
     },
     backgroundColor: {
-      type: String as PropType<
-        `#${string}` | "working" | "mud" | null | undefined
-      >,
+      type: String as PropType<IssueStatusChipProps["backgroundColor"]>,
       default: undefined,
     },
   },
@@ -63,6 +71,15 @@ export const IssueStatusChip = defineComponent({
         return ads.name === props.name;
       }),
     );
+    const isClosed = computed(() => {
+      if ("boolean" === typeof props.isClosed) {
+        return props.isClosed;
+      } else if (appDataTracker.value) {
+        return appDataTracker.value.is_closed;
+      } else {
+        return false;
+      }
+    });
     const backgroundColor = computed(() => {
       if ("string" === typeof props.backgroundColor) {
         return props.backgroundColor;
@@ -72,7 +89,7 @@ export const IssueStatusChip = defineComponent({
       ) {
         return appDataTracker.value.background_color;
       } else {
-        return props.isClosed ? "mud" : "working";
+        return isClosed.value ? "mud" : "working";
       }
     });
     const textColor = computed(() => {
@@ -81,12 +98,12 @@ export const IssueStatusChip = defineComponent({
       } else if (appDataTracker.value && appDataTracker.value.text_color) {
         return appDataTracker.value.text_color;
       } else {
-        return props.isClosed ? "on-mud" : "on-working";
+        return isClosed.value ? "on-mud" : "on-working";
       }
     });
     const colorIsHex = computed(() => textColor.value.startsWith("#"));
     const icon = computed(() => {
-      if (props.icon) {
+      if ("string" === typeof props.icon) {
         return props.icon as `mdi-${string}`;
       } else if (appDataTracker.value && appDataTracker.value.icon) {
         return appDataTracker.value.icon as `mdi-${string}`;

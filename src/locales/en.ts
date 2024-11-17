@@ -648,7 +648,29 @@ export default {
     "watchers-autocomplete-for-user": { title: "" },
     "watchers-new": { title: "" },
     "wiki-pages-auto-complete": { title: "" },
-    workflows: { title: "", admin: { title: "Workflow Management" } },
+    workflows: {
+      title: "Workflow Management",
+      admin: {
+        title: "Workflow Management",
+        newIssueStatuses: "New Issues Statuses for {role}",
+        nodes: {
+          new: "Initial Statuses",
+          standard: "Unused Statuses",
+        },
+        error: {
+          connection: {
+            title: "This transition is not allowed",
+            selfConnection: "You cannot connect a status to itself",
+          },
+        },
+        fieldPermissions: {
+          title: "{status} Field Permissions",
+          unrestrictied: "Unrestricted",
+          readonly: "Read-Only",
+          required: "Required",
+        },
+      },
+    },
     "workflows-copy": { title: "" },
     "workflows-edit": { title: "" },
     "workflows-permissions": { title: "" },
