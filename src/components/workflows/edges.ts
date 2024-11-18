@@ -1,19 +1,42 @@
-import { defineComponent, computed, h } from "vue";
-import { SmoothStepEdge, Position } from "@vue-flow/core";
+import { defineComponent, computed, h, ref } from "vue";
+import {
+  SmoothStepEdge,
+  Position,
+  EdgeLabelRenderer,
+  getSmoothStepPath,
+} from "@vue-flow/core";
+import { useI18n } from "vue-i18n";
+import { VBtn } from "vuetify/components/VBtn";
+import { VIcon } from "vuetify/components/VIcon";
+import { VSpeedDial } from "vuetify/components/VSpeedDial";
+import { VCard } from "vuetify/components/VCard";
+import { VDivider } from "vuetify/components/VDivider";
+import {
+  VToolbar,
+  VToolbarTitle,
+  VToolbarItems,
+} from "vuetify/components/VToolbar";
+import { VDialog } from "vuetify/components/VDialog";
+import { VSwitch } from "vuetify/components/VSwitch";
+import { VTable } from "vuetify/components/VTable";
+import { IssueStatusChip } from "@/components/issues";
 
 import type { PropType, VNode, Component } from "vue";
-import type { IssueStatusChipProps } from "@/components/issues";
 import type {
   EdgeProps,
   RemoveEdges,
   GraphNode,
   EdgeEventsOn,
 } from "@vue-flow/core";
+import type { Role, IssueStatus } from "@/friday";
+import type { IssueStatusChipProps } from "@/components/issues";
 
 export interface IssueStatusTransitionEdgeData {
   actions: {
     removeEdges: RemoveEdges;
   };
+  roles: Role[];
+  statuses: IssueStatus[];
 }
 
 export type IssueStatusTransitionProps =
@@ -127,6 +150,7 @@ export const IssueStatusTransitionEdge =
       },
     },
     setup(props) {
+      const { t } = useI18n({ useScope: "global" });
       const id = computed(() => props.id);
       const sourceNode = computed(() => props.sourceNode);
       const targetNode = computed(() => props.targetNode);
@@ -179,6 +203,229 @@ export const IssueStatusTransitionEdge =
         targetX: targetX.value,
         targetY: targetY.value,
       }));
-      return () => h(SmoothStepEdge, edgeProps.value);
+      const path = computed(() => getSmoothStepPath(edgeProps.value));
+      const showConfigurationDialog = ref(false);
+      const dialogProps = computed(() => ({
+        modelValue: showConfigurationDialog.value,
+        "onUpdate:modelValue": (v: boolean) => {
+          showConfigurationDialog.value = v;
+        },
+        maxWidth: 500,
+      }));
+      const sourceStatusId = computed(() =>
+        sourceNode.value &&
+        sourceNode.value.data &&
+        sourceNode.value.data.statusId
+          ? sourceNode.value.data.statusId
+          : 0,
+      );
+      const sourceStatus = computed(() =>
+        data.value.statuses.find((s) => s.id === sourceStatusId.value),
+      );
+      const targetStatusId = computed(() =>
+        targetNode.value &&
+        targetNode.value.data &&
+        targetNode.value.data.statusId
+          ? targetNode.value.data.statusId
+          : 0,
+      );
+      const targetStatus = computed(() =>
+        data.value.statuses.find((s) => s.id === targetStatusId.value),
+      );
+      const sourceIssueStatusChipProps = computed<IssueStatusChipProps>(() => ({
+        id: sourceStatusId.value,
+        name: sourceStatus.value ? sourceStatus.value.name : "Unknown",
+        isClosed: undefined,
+        Position: undefined,
+        description: undefined,
+        defaultDoneRatio: undefined,
+        icon: sourceStatusId.value === 0 ? "mdi-alert" : undefined,
+        textColor: sourceStatusId.value === 0 ? "#B71C1C" : undefined,
+        backgroundColor: sourceStatusId.value === 0 ? "#FFF176" : undefined,
+      }));
+      const targetIssueStatusChipProps = computed<IssueStatusChipProps>(() => ({
+        id: targetStatusId.value,
+        name: targetStatus.value ? targetStatus.value.name : "Unknown",
+        isClosed: undefined,
+        Position: undefined,
+        description: undefined,
+        defaultDoneRatio: undefined,
+        icon: targetStatusId.value === 0 ? "mdi-alert" : undefined,
+        textColor: targetStatusId.value === 0 ? "#B71C1C" : undefined,
+        backgroundColor: targetStatusId.value === 0 ? "#FFF176" : undefined,
+      }));
+      return () => [
+        h(SmoothStepEdge, edgeProps.value),
+        h(EdgeLabelRenderer, [
+          h(
+            "div",
+            {
+              style: {
+                pointerEvents: "all",
+                position: "absolute",
+                transform: `translate(-50%, -50%)
+                  translate(${path.value[1]}px, ${path.value[2]}px)`,
+              },
+              class: ["no-drag", "no-pan"],
+            },
+            [
+              h(
+                VSpeedDial,
+                {
+                  location: "top center",
+                  transition: "fade-transition",
+                },
+                {
+                  activator: ({
+                    isActive,
+                    props,
+                  }: {
+                    isActive: boolean;
+                    props: Record<string, any>;
+                  }) =>
+                    h(
+                      VBtn,
+                      {
+                        ...props,
+                        size: "16",
+                        density: "comfortable",
+                        icon: true,
+                        variant: isActive ? "tonal" : "elevated",
+                        color:
+                          style.value && style.value.stroke
+                            ? style.value.stroke
+                            : "accent",
+                      },
+                      h(
+                        VIcon,
+                        { size: "12" },
+                        isActive ? "mdi-close" : "mdi-dots-vertical",
+                      ),
+                    ),
+                  default: () => [
+                    h(VBtn, {
+                      icon: "mdi-delete",
+                      onClick: () => data.value.actions.removeEdges([id.value]),
+                      color: "error",
+                    }),
+                    h(VBtn, {
+                      icon: "mdi-cog",
+                      onClick: () => {
+                        showConfigurationDialog.value = true;
+                      },
+                      color: "accent",
+                    }),
+                  ],
+                },
+              ),
+            ],
+          ),
+          h(VDialog, dialogProps.value, [
+            h(
+              VCard,
+              {
+                color: "background",
+                minHeight: 40,
+              },
+              [
+                h(
+                  VToolbar,
+                  {
+                    color: "transparent",
+                    flat: true,
+                    dense: true,
+                  },
+                  [
+                    h(
+                      VToolbarTitle,
+                      h("span", { class: ["d-flex"] }, [
+                        h(
+                          "div",
+                          { class: ["d-flex", "align-center"] },
+                          h(IssueStatusChip, sourceIssueStatusChipProps.value),
+                        ),
+                        h(
+                          "div",
+                          { class: ["d-flex", "align-center", "mx-2"] },
+                          h(VIcon, "mdi-arrow-right-thick"),
+                        ),
+                        h(
+                          "div",
+                          { class: ["d-flex", "align-center"] },
+                          h(IssueStatusChip, targetIssueStatusChipProps.value),
+                        ),
+                      ]),
+                    ),
+                    h(VToolbarItems, [
+                      h(VBtn, {
+                        icon: "mdi-close",
+                        onClick: () => {
+                          showConfigurationDialog.value = false;
+                        },
+                      }),
+                    ]),
+                  ],
+                ),
+                h(VDivider),
+                h(
+                  VTable,
+                  {
+                    class: ["transparent", "bg-transparent"],
+                  },
+                  [
+                    h("thead", [
+                      h("tr", [
+                        h("th", {
+                          class: ["font-weight-bold", "no-wrap"],
+                        }),
+                        h(
+                          "th",
+                          {
+                            class: ["font-weight-bold", "no-wrap"],
+                          },
+                          t("pages.workflows.admin.roles.canTransition"),
+                        ),
+                        h(
+                          "th",
+                          {
+                            class: ["font-weight-bold", "no-wrap"],
+                          },
+                          t("pages.workflows.admin.roles.author"),
+                        ),
+                        h(
+                          "th",
+                          {
+                            class: ["font-weight-bold", "no-wrap"],
+                          },
+                          t("pages.workflows.admin.roles.assignee"),
+                        ),
+                      ]),
+                    ]),
+                    h("tbody", [
+                      ...data.value.roles.map((role) => {
+                        return h("tr", [
+                          h("td", { class: "font-weight-bold" }, role.name),
+                          h(
+                            "td",
+                            h(VSwitch, { color: "accent", hideDetails: true }),
+                          ),
+                          h(
+                            "td",
+                            h(VSwitch, { color: "accent", hideDetails: true }),
+                          ),
+                          h(
+                            "td",
+                            h(VSwitch, { color: "accent", hideDetails: true }),
+                          ),
+                        ]);
+                      }),
+                    ]),
+                  ],
+                ),
+              ],
+            ),
+          ]),
+        ]),
+      ];
     },
   });

@@ -660,7 +660,11 @@ export default {
         error: {
           connection: {
             title: "This transition is not allowed",
-            selfConnection: "You cannot connect a status to itself",
+            selfConnection: "You cannot transition a status to itself",
+            sourceMustBeOut:
+              "You must use the right handle for outbound status transitions",
+            targetMustBeIn:
+              "You must use the left handle for inbound status transitions",
           },
         },
         fieldPermissions: {
@@ -668,6 +672,11 @@ export default {
           unrestrictied: "Unrestricted",
           readonly: "Read-Only",
           required: "Required",
+        },
+        roles: {
+          canTransition: "Can Transition",
+          author: "If Author",
+          assignee: "If Assigned",
         },
       },
     },

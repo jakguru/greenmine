@@ -61,6 +61,7 @@
                 :edge-types="edgeTypes"
                 :default-edge-options="{ type: 'issue-status-transition' }"
                 fit-view-on-init
+                snap-to-grid
                 @nodes-initialized="layoutGraph()"
               >
                 <Controls position="top-left" :show-interactive="false">
@@ -114,10 +115,10 @@ import {
 import { useI18n } from "vue-i18n";
 import { useAppData } from "@/utils/app";
 import { useRoute, useRouter } from "vue-router";
-import { VueFlow, useVueFlow } from "@vue-flow/core";
+import { VueFlow, useVueFlow, MarkerType } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import { Controls } from "@vue-flow/controls";
-import { useLayout } from "@/utils/flowchart";
+// import { useElkLayout } from "@/utils/flowchart";
 import { useDisplay } from "vuetify";
 import { IssueStatusNode } from "@/components/workflows/nodes";
 import { IssueStatusTransitionEdge } from "@/components/workflows/edges";
@@ -133,7 +134,7 @@ import type {
   EdgeTypesObject,
 } from "@vue-flow/core";
 import type { IssueStatus, Tracker, Role, FieldByTracker } from "@/friday";
-import type { SwalService } from "@jakguru/vueprint";
+import type { SwalService, ToastService } from "@jakguru/vueprint";
 import type { IssueStatusTransitionProps } from "@/components/workflows/edges";
 
 export default defineComponent({
@@ -161,6 +162,7 @@ export default defineComponent({
     // const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const fieldsByTracker = computed(() => props.fieldsByTracker);
     const swal = inject<SwalService>("swal");
+    const toast = inject<ToastService>("toast");
     const appData = useAppData();
     const roles = computed<Role[]>(() => appData.value.roles);
     const statuses = computed<IssueStatus[]>(() => appData.value.statuses);
@@ -262,7 +264,7 @@ export default defineComponent({
       addNodes,
       removeNodes,
     } = useVueFlow();
-    const { layout } = useLayout();
+    // const { layout } = useElkLayout();
     const { onConnect, onEdgeUpdate, onNodesChange, onEdgesChange } =
       useVueFlow();
     const nodes = ref<Node[]>([]);
@@ -341,10 +343,19 @@ export default defineComponent({
       color: "transparent",
     }));
     const layoutGraph = () => {
-      nodes.value = layout(nodes.value, edges.value, "LR");
       nextTick(() => {
         fitView();
       });
+      // layout(nodes.value, edges.value).then((n) => {
+      //   nodes.value = n;
+      //   nextTick(() => {
+      //     fitView();
+      //   });
+      // });
+      // nodes.value = layout(nodes.value, edges.value);
+      // nextTick(() => {
+      //   fitView();
+      // });
     };
     onConnect((connection: Connection) => {
       if (connection.source === connection.target) {
@@ -357,6 +368,39 @@ export default defineComponent({
         }
         return;
       }
+      if (connection.sourceHandle !== "out") {
+        if (toast) {
+          toast.fire({
+            text: t("pages.workflows.admin.error.connection.sourceMustBeOut"),
+            icon: "error",
+          });
+        }
+        return;
+      }
+      if (connection.targetHandle !== "in") {
+        if (toast) {
+          toast.fire({
+            text: t("pages.workflows.admin.error.connection.targetMustBeIn"),
+            icon: "error",
+          });
+        }
+        return;
+      }
+      const sourceNode = nodes.value.find(
+        (n) => n.id === connection.source,
+      ) as Node;
+      const sourceNodeStatusId = sourceNode ? sourceNode.data.statusId : 0;
+      const sourceStatus = statuses.value.find(
+        (s) => s.id === sourceNodeStatusId,
+      );
+      let transitionColor = "#fdab3d";
+      if (sourceStatus) {
+        if (sourceStatus.background_color) {
+          transitionColor = sourceStatus.background_color;
+        } else if (sourceStatus.is_closed) {
+          transitionColor = "#323338";
+        }
+      }
       const partialEdge: Partial<IssueStatusTransitionProps> & {
         source: string;
         target: string;
@@ -364,12 +408,21 @@ export default defineComponent({
         ...connection,
         source: connection.source!,
         target: connection.target!,
+        markerEnd: MarkerType.ArrowClosed,
+        animated: true,
         data: {
           actions: {
             removeEdges,
           },
+          roles: roles.value,
+          statuses: statuses.value,
+        },
+        style: {
+          stroke: transitionColor,
+          strokeWidth: 2,
         },
       };
+      console.log(partialEdge, sourceStatus);
       addEdges([partialEdge]);
       layoutGraph();
     });

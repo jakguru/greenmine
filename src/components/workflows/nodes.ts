@@ -280,18 +280,18 @@ export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
             ),
           ]),
         ]),
+        h(IssueStatusChip, issueStatusChipProps.value),
         data.value.forNewIssue
           ? undefined
           : h(Handle, {
               id: "in",
               type: "target",
-              position: Position.Top,
+              position: Position.Left,
             }),
-        h(IssueStatusChip, issueStatusChipProps.value),
         h(Handle, {
           id: "out",
           type: "source",
-          position: Position.Bottom,
+          position: Position.Right,
         }),
         h(VDialog, dialogProps.value, [
           h(
