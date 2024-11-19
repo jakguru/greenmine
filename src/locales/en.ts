@@ -678,6 +678,11 @@ export default {
           author: "If Author",
           assignee: "If Assigned",
         },
+        sidebar: {
+          addStatuses: {
+            title: "Add Statuses",
+          },
+        },
       },
     },
     "workflows-copy": { title: "" },
@@ -826,6 +831,7 @@ export default {
         label: "Filter Choices",
       },
     },
+    start: "Start",
   },
   theme: {
     base: {

@@ -11,34 +11,76 @@ module FridayPlugin
             core_fields = Tracker::CORE_FIELDS.to_a
             issue_custom_fields = IssueCustomField.sorted.to_a
             trackers = Tracker.sorted.preload(:default_status)
-            available_fields_by_tracker = trackers.each.collect { |v|
+            roles = Role.sorted.select(&:consider_workflow?).each.collect { |v|
               {
-                trackerId: v.id,
-                coreFields: core_fields.select { |field| v.core_fields.include?(field) }.map { |f|
+                id: v.id,
+                name: v.name,
+                position: v.position
+              }
+            }
+            tracker = params[:tracker] ? Tracker.find(params[:tracker]) : Tracker.sorted.first
+            render json: {
+              formAuthenticityToken: form_authenticity_token,
+              tracker: tracker.nil? ? nil : {
+                id: tracker.id,
+                name: tracker.name,
+                default_status_id: tracker.default_status_id,
+                is_in_roadmap: tracker.is_in_roadmap,
+                description: tracker.description,
+                core_fields: core_fields.select { |field| tracker.core_fields.include?(field) }.map(&:to_s),
+                custom_field_ids: issue_custom_fields.select { |field| tracker.custom_fields.to_a.include?(field) }.map(&:id),
+                position: tracker.position,
+                icon: tracker.icon,
+                color: tracker.color,
+                project_ids: tracker.projects.map(&:id),
+                nodes: tracker.workflow_nodes,
+                edges: tracker.workflow_edges,
+                newIssueStatuses: make_new_issue_statuses_for_tracker(tracker, roles),
+                coreFields: core_fields.select { |field| tracker.core_fields.include?(field) }.map { |f|
                   {
                     value: f.to_s,
                     label: l("field_#{f}".sub(/_id$/, "")),
                     required: field_required?(f)
                   }
                 },
-                issueCustomFields: issue_custom_fields.select { |field| v.custom_fields.to_a.include?(field) }.map { |f|
+                issueCustomFields: issue_custom_fields.select { |field| tracker.custom_fields.to_a.include?(field) }.map { |f|
                   {
                     value: f.id,
                     label: f.name,
                     required: field_required?(f)
                   }
                 }
-              }
-            }
-            render json: {
-              formAuthenticityToken: form_authenticity_token,
-              fieldsByTracker: available_fields_by_tracker,
+              },
               trackers: trackers.map { |v|
                 {
                   id: v.id,
+                  name: v.name,
+                  default_status_id: v.default_status_id,
+                  is_in_roadmap: v.is_in_roadmap,
+                  description: v.description,
+                  core_fields: core_fields.select { |field| v.core_fields.include?(field) }.map(&:to_s),
+                  custom_field_ids: issue_custom_fields.select { |field| v.custom_fields.to_a.include?(field) }.map(&:id),
+                  position: v.position,
+                  icon: v.icon,
+                  color: v.color,
+                  project_ids: v.projects.map(&:id),
                   nodes: v.workflow_nodes,
                   edges: v.workflow_edges,
-                  newIssueStatuses: v.worflow_new_issue_statuses
+                  newIssueStatuses: v.workflow_new_issue_statuses,
+                  coreFields: core_fields.select { |field| v.core_fields.include?(field) }.map { |f|
+                    {
+                      value: f.to_s,
+                      label: l("field_#{f}".sub(/_id$/, "")),
+                      required: field_required?(f)
+                    }
+                  },
+                  issueCustomFields: issue_custom_fields.select { |field| v.custom_fields.to_a.include?(field) }.map { |f|
+                    {
+                      value: f.id,
+                      label: f.name,
+                      required: field_required?(f)
+                    }
+                  }
                 }
               }
             }
@@ -69,6 +111,19 @@ module FridayPlugin
 
         def field_required?(field)
           field.is_a?(CustomField) ? field.is_required? : %w[project_id tracker_id subject priority_id impact_id is_private].include?(field)
+        end
+
+        private
+
+        def make_new_issue_statuses_for_tracker(tracker, roles)
+          ret = {}
+          roles.each do |role|
+            ret[role[:id]] = tracker.workflow_new_issue_statuses[role[:id]] || [tracker.default_status_id]
+            if !ret[role[:id]].include?(tracker.default_status_id)
+              ret[role[:id]] << tracker.default_status_id
+            end
+          end
+          ret
         end
       end
     end

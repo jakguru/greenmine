@@ -38,7 +38,10 @@ module FridayPlugin
                   position: v.position,
                   icon: v.icon,
                   color: v.color,
-                  project_ids: v.projects.map(&:id)
+                  project_ids: v.projects.map(&:id),
+                  nodes: v.workflow_nodes,
+                  edges: v.workflow_edges,
+                  new_issue_statuses: v.workflow_new_issue_statuses
                 }
               },
               projects: get_project_nested_items(Project.all),

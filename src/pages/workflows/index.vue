@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container fluid class="workflow-management">
     <v-card min-height="100" color="surface">
       <v-toolbar color="transparent" density="compact">
         <v-toolbar-title class="font-weight-bold d-flex align-center" tag="h1">
@@ -12,132 +12,139 @@
       <v-divider />
       <v-tabs v-bind="vTabBindings" />
       <v-divider />
-      <v-container fluid>
-        <v-slide-group show-arrows>
-          <v-slide-group-item v-for="role in roles" :key="role.id">
-            <v-sheet color="transparent" width="280" class="py-2 px-3">
-              <v-autocomplete
-                v-model:model-value="statusIdsForNew[role.id.toString()]"
-                :items="statusesForNew"
-                multiple
-                item-title="name"
-                item-value="id"
-                :label="
-                  $t('pages.workflows.admin.newIssueStatuses', {
-                    role: role.name,
-                  })
-                "
-                chips
-                @update:model-value="updatePreSelectedStatusesFromForNew"
-              >
-                <template #chip="{ item, props }">
-                  <IssueStatusChip
-                    :id="
-                      // @ts-ignore
-                      item.raw.id
-                    "
-                    :name="
-                      // @ts-ignore
-                      item.raw.name
-                    "
-                    v-bind="props"
-                  />
-                </template>
-              </v-autocomplete>
-            </v-sheet>
-          </v-slide-group-item>
-        </v-slide-group>
-      </v-container>
-      <v-divider />
       <v-sheet v-bind="workflowEditorWrapperBindings">
-        <v-container class="fill-height" fluid>
-          <v-row no-gutters class="h-100">
-            <v-col cols="12" :md="statusesForStandard.length > 0 ? 10 : 12">
-              <VueFlow
-                v-model:nodes="nodes"
-                v-model:edges="edges"
-                :edges-updatable="true"
-                :node-types="nodeTypes"
-                :edge-types="edgeTypes"
-                :default-edge-options="{ type: 'issue-status-transition' }"
-                fit-view-on-init
-                snap-to-grid
-                @nodes-initialized="layoutGraph()"
+        <v-layout full-height>
+          <div class="w-100 h-100">
+            <VueFlow v-bind="vueFlowProps">
+              <Background />
+              <template #node-issue-status="bindings">
+                <IssueStatusNode v-bind="bindings" />
+              </template>
+              <template #edge-issue-status-transition="bindings">
+                <IssueStatusTransitionEdge
+                  v-bind="bindings"
+                  @button:click="
+                    (id) => setFocusOn('issue-status-transition', id)
+                  "
+                />
+              </template>
+              <template #node-tracker-workflow-start="bindings">
+                <TrackerWorkflowStartNode v-bind="bindings" />
+              </template>
+            </VueFlow>
+          </div>
+          <v-navigation-drawer v-bind="sidebarBindings">
+            <template #append>
+              <v-btn
+                class="sidebar-toggle"
+                color="accent"
+                variant="elevated"
+                size="x-small"
+                elevation="5"
+                @click="sidebarOpen = !sidebarOpen"
               >
-                <Controls position="top-left" :show-interactive="false">
-                </Controls>
-                <Controls
-                  position="bottom-right"
-                  :show-interactive="false"
-                  :show-zoom="false"
-                  :show-fit-view="false"
-                >
-                  <v-speed-dial
-                    location="top center"
-                    transition="fade-transition"
-                  >
-                    <template #activator="{ props: activatorProps, isActive }">
+                <v-icon>{{
+                  sidebarOpen ? "mdi-menu-up" : "mdi-menu-down"
+                }}</v-icon>
+              </v-btn>
+            </template>
+            <template v-if="'issue-status' === focus.type">
+              Showing Sidebar for Issue Status
+              {{ focus }}
+            </template>
+            <template v-else-if="'issue-status-transition' === focus.type">
+              Showing Sidebar for Issue Status Transition
+              {{ focus }}
+            </template>
+            <template v-else>
+              <v-toolbar color="transparent" density="compact">
+                <v-toolbar-title>
+                  {{ $t("pages.workflows.admin.sidebar.addStatuses.title") }}
+                </v-toolbar-title>
+                <v-toolbar-items>
+                  <v-btn icon="mdi-close" @click="sidebarOpen = false" />
+                </v-toolbar-items>
+              </v-toolbar>
+              <v-divider />
+              <v-virtual-scroll v-bind="remainingStatusesVirtualScrollerProps">
+                <template #default="{ item: status }">
+                  <v-list-item>
+                    <IssueStatusChip :id="status.id" :name="status.name" />
+                    <template #append>
                       <v-btn
-                        v-bind="activatorProps"
-                        size="large"
-                        :icon="isActive ? 'mdi-close' : 'mdi-wrench'"
+                        icon="mdi-plus"
                         color="accent"
-                        :variant="isActive ? 'tonal' : 'elevated'"
-                        :loading="isActive ? false : saving"
-                      ></v-btn>
+                        size="x-small"
+                        class="ms-2"
+                        @click="doAddStatus(status)"
+                      />
                     </template>
-
-                    <v-btn
-                      variant="tonal"
-                      color="accent"
-                      icon="mdi-shuffle"
-                      @click="organizeWithElk"
-                    ></v-btn>
-                    <v-btn
-                      variant="tonal"
-                      color="accent"
-                      icon="mdi-shuffle-variant"
-                      @click="organizeWithDagre"
-                    ></v-btn>
-                    <v-btn
-                      variant="tonal"
-                      color="accent"
-                      icon="mdi-content-save"
-                      :loading="saving"
-                      @click="doSave"
-                    ></v-btn>
-                  </v-speed-dial>
-                </Controls>
-                <Background />
-                <template #node-issue-status="bindings">
-                  <IssueStatusNode v-bind="bindings" />
+                  </v-list-item>
                 </template>
-                <template #edge-issue-status-transition="bindings">
-                  <IssueStatusTransitionEdge v-bind="bindings" />
-                </template>
-              </VueFlow>
-            </v-col>
-            <v-col v-if="statusesForStandard.length > 0" cols="12" md="2">
-              <v-list class="py-0 bg-transparent transparent">
-                <v-list-item
-                  v-for="status in statusesForStandard"
-                  :key="status.id"
-                >
-                  <IssueStatusChip :id="status.id" :name="status.name" />
-                  <template #append>
-                    <v-btn
-                      icon="mdi-plus"
-                      color="accent"
-                      size="x-small"
-                      class="ms-2"
-                      @click="onAddStatus(status)"
+              </v-virtual-scroll>
+            </template>
+          </v-navigation-drawer>
+          <v-speed-dial
+            app
+            location="bottom center"
+            transition="fade-transition"
+            absolute
+            attach="parent"
+          >
+            <template #activator="{ props: activatorProps }">
+              <v-fab
+                v-bind="activatorProps"
+                color="accent"
+                :icon="true"
+                z-index="5"
+                app
+                location="top left"
+                style="width: 72px !important"
+              >
+                <v-badge v-bind="speedDialBadgeProps">
+                  <template v-if="saving" #badge>
+                    <v-progress-circular
+                      indeterminate
+                      size="20"
+                      color="primary"
                     />
                   </template>
-                </v-list-item>
-              </v-list>
-            </v-col>
-          </v-row>
-        </v-container>
+                  <v-icon>mdi-wrench</v-icon>
+                </v-badge>
+              </v-fab>
+            </template>
+
+            <v-btn
+              key="1"
+              color="accent"
+              size="x-small"
+              icon="mdi-content-save"
+              :loading="saving"
+              @click="doSave"
+            />
+            <v-btn
+              key="2"
+              color="accent"
+              size="x-small"
+              icon="mdi-restore"
+              @click="resetNodes"
+            />
+            <v-btn
+              key="3"
+              color="accent"
+              size="x-small"
+              icon="mdi-fit-to-screen-outline"
+              @click="fitView"
+            />
+            <v-btn
+              key="3"
+              color="accent"
+              size="x-small"
+              icon="mdi-relation-one-to-one"
+              @click="organizeWithDagre"
+            />
+          </v-speed-dial>
+        </v-layout>
       </v-sheet>
     </v-card>
   </v-container>
@@ -155,14 +162,22 @@ import {
   inject,
 } from "vue";
 import { useI18n } from "vue-i18n";
-import { useAppData } from "@/utils/app";
+import { useAppData, cloneObject, checkObjectEquality } from "@/utils/app";
 import { useRoute, useRouter } from "vue-router";
-import { VueFlow, useVueFlow, MarkerType } from "@vue-flow/core";
+import {
+  VueFlow,
+  useVueFlow,
+  MarkerType,
+  ConnectionMode,
+} from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import { Controls } from "@vue-flow/controls";
 import { useLayout, useElkLayout } from "@/utils/flowchart";
 import { useDisplay } from "vuetify";
-import { IssueStatusNode } from "@/components/workflows/nodes";
+import {
+  IssueStatusNode,
+  TrackerWorkflowStartNode,
+} from "@/components/workflows/nodes";
 import { IssueStatusTransitionEdge } from "@/components/workflows/edges";
 import { IssueStatusChip } from "@/components/issues";
 
@@ -174,17 +189,18 @@ import type {
   EdgeUpdateEvent,
   NodeTypesObject,
   EdgeTypesObject,
+  NodeMouseEvent,
+  EdgeMouseEvent,
 } from "@vue-flow/core";
-import type { IssueStatus, Tracker, Role, FieldByTracker } from "@/friday";
+import type {
+  IssueStatus,
+  Tracker,
+  Role,
+  FieldByTracker,
+  WorkflowTracker,
+} from "@/friday";
 import type { SwalService, ToastService, ApiService } from "@jakguru/vueprint";
 import type { IssueStatusTransitionProps } from "@/components/workflows/edges";
-
-interface WorkflowTracker {
-  id: number;
-  nodes: Node[];
-  edges: Edge[];
-  newIssueStatuses: Record<string, number[]>;
-}
 
 export default defineComponent({
   name: "WorkflowsIndex",
@@ -194,6 +210,7 @@ export default defineComponent({
     Controls,
     IssueStatusChip,
     IssueStatusNode,
+    TrackerWorkflowStartNode,
     IssueStatusTransitionEdge,
   },
   props: {
@@ -201,9 +218,9 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    fieldsByTracker: {
-      type: Array as PropType<FieldByTracker[]>,
-      required: true,
+    tracker: {
+      type: Object as PropType<WorkflowTracker | null>,
+      default: null,
     },
     trackers: {
       type: Array as PropType<WorkflowTracker[]>,
@@ -212,21 +229,35 @@ export default defineComponent({
   },
   setup(props) {
     const { t } = useI18n({ useScope: "global" });
-    const formAuthenticityToken = computed(() => props.formAuthenticityToken);
-    const fieldsByTracker = computed(() => props.fieldsByTracker);
+    const { height } = useDisplay();
     const swal = inject<SwalService>("swal");
     const toast = inject<ToastService>("toast");
     const api = inject<ApiService>("api");
-    const appData = useAppData();
-    const roles = computed<Role[]>(() => appData.value.roles);
-    const statuses = computed<IssueStatus[]>(() => appData.value.statuses);
-    const trackers = computed<Tracker[]>(() => appData.value.trackers);
+    const formAuthenticityToken = computed(() => props.formAuthenticityToken);
+    const tracker = computed(() => props.tracker);
+    const trackers = computed(() => props.trackers);
     const firstTracker = computed(() => trackers.value[0]);
     const firstTrackerId = computed(() =>
       firstTracker.value ? firstTracker.value.id : 0,
     );
+    const appData = useAppData();
+    const roles = computed<Role[]>(() => appData.value.roles);
+    const statuses = computed<IssueStatus[]>(() => appData.value.statuses);
     const route = useRoute();
     const router = useRouter();
+    const {
+      fitView,
+      removeEdges,
+      addEdges,
+      updateEdge,
+      applyNodeChanges,
+      applyEdgeChanges,
+      addNodes,
+      setNodes,
+      setEdges,
+      updateNodeData,
+      updateEdgeData,
+    } = useVueFlow();
     const tabs = computed(() =>
       [...trackers.value].map((t) => ({
         text: t.name,
@@ -257,234 +288,282 @@ export default defineComponent({
         }
       },
     }));
-    const tracker = computed(() =>
-      trackers.value.find((t: Tracker) => t.id === parseInt(tab.value)),
-    );
-    const workflowTrackers = computed(() => props.trackers);
-    const workflowTracker = computed(() =>
-      workflowTrackers.value.find((t) => t.id === parseInt(tab.value)),
-    );
-    const statusIdsForNewByRoleId = ref<Record<string, number[]>>({});
-    const statusIdsForNew = computed<Record<string, number[]>>({
-      get() {
-        const ret: Record<string, number[]> = {};
-        const defaultStatusId = tracker.value?.default_status_id;
-        roles.value.forEach((role) => {
-          ret[role.id.toString()] = [];
-          if (defaultStatusId) {
-            ret[role.id.toString()].push(defaultStatusId);
-          }
-          if (
-            Array.isArray(statusIdsForNewByRoleId.value[role.id.toString()])
-          ) {
-            ret[role.id.toString()].push(
-              ...statusIdsForNewByRoleId.value[role.id.toString()],
-            );
-          }
-        });
-        return ret;
+    const workflowEditorWrapperBindings = computed(() => ({
+      width: "100%",
+      height: height.value - 220,
+      minHeight: 400,
+      color: "transparent" as const,
+      style: {
+        position: "relative" as const,
       },
-      set(v: Record<string, number[]>) {
-        for (const key in v) {
-          statusIdsForNewByRoleId.value[key] = v[key];
+    }));
+    const sidebarOpen = ref(true);
+    const sidebarBindings = computed(() => ({
+      absolute: true,
+      color: "surface" as const,
+      location: "right" as const,
+      modelValue: sidebarOpen.value,
+      "onUpdate:modelValue": (v: boolean) => {
+        sidebarOpen.value = v;
+      },
+      class: ["workflow-management-sidebar"],
+      style: {
+        height: "100%",
+        top: 0,
+        bottom: 0,
+      },
+      permanent: true,
+      app: false,
+      elevation: sidebarOpen.value ? 5 : 0,
+    }));
+    const initialCoreFieldRestrictions = computed(() =>
+      Object.assign(
+        {},
+        ...roles.value.map((r) => ({
+          [r.id.toString()]: !tracker.value
+            ? {}
+            : Object.assign(
+                {},
+                ...tracker.value.coreFields.map((f) => ({
+                  [f.value.toString()]: "",
+                })),
+              ),
+        })),
+      ),
+    );
+    const initialCustomFieldRestrictions = computed(() =>
+      Object.assign(
+        {},
+        ...roles.value.map((r) => ({
+          [r.id.toString()]: !tracker.value
+            ? {}
+            : Object.assign(
+                {},
+                ...tracker.value.issueCustomFields.map((f) => ({
+                  [f.value.toString()]: "",
+                })),
+              ),
+        })),
+      ),
+    );
+    const initialFieldRestrictions = computed(() => ({
+      coreFields: initialCoreFieldRestrictions.value,
+      customFields: initialCustomFieldRestrictions.value,
+    }));
+    const initialTransitionRestrictions = computed(() =>
+      Object.assign(
+        {},
+        ...roles.value.map((r) => ({
+          [r.id.toString()]: {
+            always: false,
+            author: false,
+            assignee: false,
+          },
+        })),
+      ),
+    );
+    const updateCurrentFieldRestrictonsForNodes = () => {
+      nodes.value.forEach((n) => {
+        if (n.type === "issue-status") {
+          const data = cloneObject(n.data);
+          data.current = Object.assign(
+            {},
+            cloneObject(initialFieldRestrictions.value),
+            n.data.current,
+          );
+          updateNodeData(n.id, data);
         }
-      },
+      });
+    };
+    const updateCurrentTransitionRestrictionsForEdges = () => {
+      edges.value.forEach((e) => {
+        if (e.type === "issue-status-transition") {
+          const data = cloneObject(e.data);
+          data.current = Object.assign(
+            {},
+            cloneObject(initialTransitionRestrictions.value),
+            e.data.current,
+          );
+          updateEdgeData(e.id, data);
+        }
+      });
+    };
+    watch(() => roles.value, updateCurrentFieldRestrictonsForNodes, {
+      deep: true,
     });
-    const statusesForNew = computed(() =>
-      [...statuses.value].map((s) => ({
-        ...s,
-        props: {
-          disabled: tracker.value?.default_status_id === s.id,
-        },
-      })),
-    );
-    const getUniquePreselectedStatuseFromForNew = () => {
-      const ids = new Set<number>();
-      for (const key in statusIdsForNew.value) {
-        statusIdsForNew.value[key].forEach((id) => ids.add(id));
-      }
-      return [...ids];
-    };
-    const fieldsForTracker = computed(() =>
-      fieldsByTracker.value.find((f) => f.trackerId === parseInt(tab.value)),
-    );
-    /**
-     * Workflow Editor Shared
-     */
-    const { height } = useDisplay();
-    const {
-      fitView,
-      addEdges,
-      updateEdge,
-      removeEdges,
-      applyNodeChanges,
-      applyEdgeChanges,
-      addNodes,
-      removeNodes,
-    } = useVueFlow();
-    const { layout: elkLayout } = useElkLayout();
-    const { layout: dagreLayout } = useLayout();
-    const { onConnect, onEdgeUpdate, onNodesChange, onEdgesChange } =
-      useVueFlow();
-    const nodes = ref<Node[]>([]);
-    const edges = ref<Edge[]>([]);
-    const preselectedStatusesFromForNew = ref<number[]>([]);
-    const updatePreSelectedStatusesFromForNew = () => {
-      preselectedStatusesFromForNew.value =
-        getUniquePreselectedStatuseFromForNew();
-    };
-    /**
-     * Workflow Editor List
-     */
-    const statusesForStandard = computed(() =>
+    watch(() => roles.value, updateCurrentTransitionRestrictionsForEdges, {
+      deep: true,
+    });
+    const remainingStatuses = computed(() =>
       [...statuses.value].filter((s) =>
         nodes.value.every((n) => n.id !== `issue-status-${s.id}`),
       ),
     );
-    const onAddStatus = (status: IssueStatus, forNewIssue: boolean = false) => {
+    const remainingStatusesVirtualScrollerProps = computed(() => ({
+      items: remainingStatuses.value,
+      height:
+        remainingStatuses.value.length > 0
+          ? workflowEditorWrapperBindings.value.height - 49
+          : workflowEditorWrapperBindings.value.height - 97,
+    }));
+    const doAddStatus = (status: IssueStatus) => {
+      let x = 0;
+      nodes.value.forEach((n) => {
+        if (n.position.x >= x) {
+          x = n.position.x;
+        }
+      });
+      if (x > 0) {
+        x += 100;
+      }
+      if (x === 0 && nodes.value.length > 0) {
+        x += 100;
+      }
       const node: Node = {
         id: `issue-status-${status.id}`,
         type: "issue-status",
         data: {
           statusId: status.id,
           statusName: status.name,
-          forNewIssue,
-          preselectedStatusesFromForNew,
-          actions: {
-            removeNodes,
-          },
-          roles: roles.value,
-          fieldsForTracker,
-          current: {},
+          current: cloneObject(initialFieldRestrictions.value),
         },
-        position: { x: 0, y: 0 },
+        position: { x, y: 0 },
       };
-      //   nodes.value.push(node);
       addNodes([node]);
     };
-    watch(
-      () => preselectedStatusesFromForNew.value,
-      (ids) => {
-        const toAdd = ids.filter(
-          (id) => !nodes.value.some((n) => n.id === `issue-status-${id}`),
-        );
-        toAdd.forEach((id) => {
-          const status = statuses.value.find((s) => s.id === id);
-          if (status) {
-            onAddStatus(status);
-          }
-        });
-      },
-      { immediate: true, deep: true },
-    );
-    onMounted(() => {
-      if (workflowTracker.value) {
-        statusIdsForNew.value = {};
-        for (const key in workflowTracker.value.newIssueStatuses) {
-          statusIdsForNew.value[key] =
-            workflowTracker.value.newIssueStatuses[key];
-        }
-        addNodes(
-          workflowTracker.value.nodes.map((n) => ({
-            ...n,
-            data: {
-              ...n.data,
-              actions: {
-                ...n.data.actions,
-                removeNodes,
-              },
-            },
-          })),
-        );
-        addEdges(
-          workflowTracker.value.edges.map((e) => ({
-            ...e,
-            data: {
-              ...e.data,
-              actions: {
-                ...e.data.actions,
-                removeEdges,
-              },
-            },
-          })),
-        );
-      }
-      updatePreSelectedStatusesFromForNew();
-    });
-    watch(
-      () => tab.value,
-      () => {
-        removeNodes(nodes.value.map((n) => n.id));
-        removeEdges(edges.value.map((e) => e.id));
-        statusIdsForNew.value = {};
-        nextTick(() => {
-          if (workflowTracker.value) {
-            for (const key in workflowTracker.value.newIssueStatuses) {
-              statusIdsForNew.value[key] =
-                workflowTracker.value.newIssueStatuses[key];
-            }
-            addNodes(
-              workflowTracker.value.nodes.map((n) => ({
-                ...n,
-                data: {
-                  ...n.data,
-                  actions: {
-                    ...n.data.actions,
-                    removeNodes,
-                  },
-                },
-              })),
-            );
-            addEdges(
-              workflowTracker.value.edges.map((e) => ({
-                ...e,
-                data: {
-                  ...e.data,
-                  actions: {
-                    ...e.data.actions,
-                    removeEdges,
-                  },
-                },
-              })),
-            );
-          }
-          updatePreSelectedStatusesFromForNew();
-        });
-      },
-    );
-    /**
-     * Workflow Editor UI
-     * Based on VueFlow
-     */
     const nodeTypes: NodeTypesObject = {
       "issue-status": markRaw(IssueStatusNode),
+      "tracker-workflow-start": markRaw(TrackerWorkflowStartNode),
     };
     const edgeTypes: EdgeTypesObject = {
       "issue-status-transition": markRaw(IssueStatusTransitionEdge),
     };
-    const workflowEditorWrapperBindings = computed(() => ({
-      width: "100%",
-      height: height.value - 334,
-      minHeight: 400,
-      color: "transparent",
+    const startNode = {
+      id: "start-node",
+      type: "tracker-workflow-start",
+      data: {},
+      position: { x: 0, y: 0 },
+    };
+    const nodes = ref<Node[]>(
+      tracker.value ? [startNode, ...tracker.value.nodes] : [startNode],
+    );
+    const edges = ref<Edge[]>(tracker.value ? tracker.value.edges : []);
+    const resetNodes = () => {
+      setNodes([startNode]);
+      setEdges([]);
+    };
+    watch(
+      () => tracker.value,
+      (trkr) => {
+        if (!trkr) {
+          resetNodes();
+          return;
+        }
+        const { nodes: updatedList } = trkr;
+        const hasStartNode = updatedList.some((n) => n.id === "start-node");
+        if (!hasStartNode) {
+          updatedList.unshift(startNode);
+        }
+        setNodes(updatedList);
+      },
+      { deep: true },
+    );
+    watch(
+      () => tracker.value,
+      (trkr) => {
+        if (!trkr) {
+          resetNodes();
+          return;
+        }
+        const { edges: updatedList } = trkr;
+        setEdges(updatedList);
+      },
+      { deep: true },
+    );
+    const focusType = ref<
+      | null
+      | "tracker-workflow-start"
+      | "issue-status"
+      | "issue-status-transition"
+    >(null);
+    const focusId = ref<null | string>(null);
+    const focus = computed(() => ({
+      type: focusType.value,
+      id: focusId.value,
     }));
-    const layoutGraph = () => {
-      // noop - this is deprecated and no longer used, but not removed to avoid breaking changes
+    let clearFocusTimeout: NodeJS.Timeout | undefined;
+    const setFocusOn = (
+      type:
+        | "tracker-workflow-start"
+        | "issue-status"
+        | "issue-status-transition",
+      id: string,
+    ) => {
+      if (clearFocusTimeout) {
+        clearTimeout(clearFocusTimeout);
+      }
+      focusType.value = type;
+      focusId.value = id;
+      sidebarOpen.value = true;
     };
-    const organizeWithDagre = () => {
-      nodes.value = dagreLayout(nodes.value, edges.value, "LR");
-      nextTick(() => {
-        fitView();
-      });
+    const clearFocus = () => {
+      sidebarOpen.value = false;
+      if (clearFocusTimeout) {
+        clearTimeout(clearFocusTimeout);
+      }
+      clearFocusTimeout = setTimeout(() => {
+        focusType.value = null;
+        focusId.value = null;
+      }, 300);
     };
-    const organizeWithElk = () => {
-      elkLayout(nodes.value, edges.value).then((n) => {
-        nodes.value = n;
-        nextTick(() => {
-          fitView();
-        });
-      });
-    };
+    const vueFlowProps = computed(() => ({
+      nodes: nodes.value,
+      edges: edges.value,
+      "onUpdate:nodes": (v: Node[]) => {
+        nodes.value = v;
+      },
+      "onUpdate:edges": (v: Edge[]) => {
+        edges.value = v;
+      },
+      edgesUpdatable: true,
+      nodeTypes,
+      edgeTypes,
+      defaultEdgeOptions: { type: "issue-status-transition" },
+      connectionLineOptions: {
+        markerEnd: MarkerType.Arrow,
+      },
+      fitViewOnInit: true,
+      snapToGrid: true,
+      connectionMode: ConnectionMode.Strict,
+      nodesConnectable: true,
+      elevateEdgesOnSelect: true,
+      onPaneClick: () => {
+        clearFocus();
+      },
+      onNodeClick: (e: NodeMouseEvent) => {
+        switch (e.node.type) {
+          case "tracker-workflow-start":
+          case "issue-status":
+            setFocusOn(e.node.type, e.node.id);
+            break;
+          default:
+            clearFocus();
+            break;
+        }
+      },
+      onEdgeClick: (e: EdgeMouseEvent) => {
+        switch (e.edge.type) {
+          case "issue-status-transition":
+            setFocusOn(e.edge.type, e.edge.id);
+            break;
+          default:
+            clearFocus();
+            break;
+        }
+      },
+    }));
+    const { onConnect, onEdgeUpdate, onNodesChange, onEdgesChange } =
+      useVueFlow();
     onConnect((connection: Connection) => {
       if (connection.source === connection.target) {
         if (swal) {
@@ -539,12 +618,7 @@ export default defineComponent({
         markerEnd: MarkerType.ArrowClosed,
         animated: true,
         data: {
-          actions: {
-            removeEdges,
-          },
-          roles: roles.value,
-          statuses: statuses.value,
-          current: {},
+          current: cloneObject(initialTransitionRestrictions.value),
         },
         style: {
           stroke: transitionColor,
@@ -552,18 +626,15 @@ export default defineComponent({
         },
       };
       addEdges([partialEdge]);
-      layoutGraph();
     });
     onEdgeUpdate(({ edge, connection }: EdgeUpdateEvent) => {
       updateEdge(edge, connection);
     });
     onNodesChange((changes) => {
       applyNodeChanges(changes);
-      layoutGraph();
     });
     onEdgesChange((changes) => {
       applyEdgeChanges(changes);
-      layoutGraph();
     });
     let doSaveAbortController: AbortController | undefined;
     const saving = ref(false);
@@ -577,39 +648,42 @@ export default defineComponent({
       }
       doSaveAbortController = new AbortController();
       saving.value = true;
-      try {
-        const { status } = await api.patch(
-          `/workflows/update`,
-          {
-            formAuthenticityToken: formAuthenticityToken.value,
-            trackerId: parseInt(tab.value),
-            nodes: nodes.value,
-            edges: edges.value,
-            status_ids_for_new: statusIdsForNew.value,
-          },
-          {
-            signal: doSaveAbortController.signal,
-          },
-        );
-        if (status !== 201) {
-          if (toast) {
-            toast.fire({
-              text: t("pages.workflows.admin.error.saveFailed"),
-              icon: "error",
-            });
-          }
-        } else if (showFeedback && toast) {
-          toast.fire({
-            text: t("pages.workflows.admin.success.saveSuccess"),
-            icon: "success",
-          });
-        }
-        if (status === 201) {
-          dirty.value = false;
-        }
-      } catch {
-        // noop
-      }
+      const payload = cloneObject({
+        formAuthenticityToken: formAuthenticityToken.value,
+        trackerId: parseInt(tab.value),
+        nodes: nodes.value,
+        edges: edges.value,
+      });
+      console.log(payload);
+      // try {
+      //   const { status } = await api.patch(
+      //     `/workflows/update`,
+      //     payload,
+      //     {
+      //       signal: doSaveAbortController.signal,
+      //     },
+      //   );
+      //   if (status !== 201) {
+      //     if (toast) {
+      //       toast.fire({
+      //         text: t("pages.workflows.admin.error.saveFailed"),
+      //         icon: "error",
+      //       });
+      //     }
+      //   } else if (showFeedback && toast) {
+      //     toast.fire({
+      //       text: t("pages.workflows.admin.success.saveSuccess"),
+      //       icon: "success",
+      //     });
+      //   }
+      //   if (status === 201) {
+      //     dirty.value = false;
+      //   }
+      // } catch {
+      //   // noop
+      // }
+      dirty.value = false;
+      // remove after debug
       saving.value = false;
     };
     let autoSaveTimeout: NodeJS.Timeout | undefined;
@@ -639,41 +713,39 @@ export default defineComponent({
       },
       { deep: true },
     );
-    watch(
-      () => statusIdsForNew.value,
-      () => {
-        dirty.value = true;
-        if (autoSaveTimeout) {
-          clearTimeout(autoSaveTimeout);
-        }
-        autoSaveTimeout = setTimeout(() => {
-          doSave();
-        }, 500);
-      },
-      { deep: true },
-    );
+    const speedDialBadgeProps = computed(() => ({
+      modelValue: saving.value || dirty.value,
+      color: saving.value ? "primary" : "error",
+      location: "bottom right" as const,
+      icon: dirty.value && !saving.value ? "mdi-content-save-alert" : undefined,
+      floating: true,
+    }));
+    const { layout: dagreLayout } = useLayout();
+    const organizeWithDagre = () => {
+      nodes.value = dagreLayout(nodes.value, edges.value, "LR");
+      nextTick(() => {
+        fitView();
+      });
+    };
     return {
-      tabs,
       vTabBindings,
-      statuses,
-      roles,
-      statusIdsForNew,
-      statusesForNew,
-      updatePreSelectedStatusesFromForNew,
-      // Workflow Editor List
-      statusesForStandard,
-      onAddStatus,
-      // Workflow Editor
       workflowEditorWrapperBindings,
-      nodes,
-      nodeTypes,
-      edgeTypes,
-      edges,
-      layoutGraph,
-      organizeWithDagre,
-      organizeWithElk,
-      saving,
+      vueFlowProps,
+      resetNodes,
+      fitView,
+      removeEdges,
+      sidebarOpen,
+      sidebarBindings,
+      doAddStatus,
+      remainingStatuses,
+      remainingStatusesVirtualScrollerProps,
+      setFocusOn,
+      clearFocus,
+      focus,
       doSave,
+      saving,
+      speedDialBadgeProps,
+      organizeWithDagre,
     };
   },
 });
@@ -688,5 +760,37 @@ export default defineComponent({
 .vue-flow__node-input,
 .vue-flow__node-output {
   padding: 0;
+}
+
+.workflow-management {
+  .workflow-management-sidebar {
+    .v-navigation-drawer__append {
+      position: absolute;
+      top: 0;
+      left: -3px;
+      bottom: 0;
+      width: 3px;
+      overflow: visible;
+      display: flex;
+      align-items: center;
+      justify-content: start;
+
+      .sidebar-toggle {
+        transform: rotate(90deg) translate(0, 26px);
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+      }
+    }
+  }
+  // .workflow-management-sidebar-indicator-wrapper {
+  //   position: absolute;
+  //   right: 0;
+  //   top: 0;
+  //   bottom: 0;
+  //   width: 3px;
+  //   background-color: rgb(var(--v-theme-accent));
+  //   background: rgb(var(--v-theme-accent));
+  //   z-index: 10;
+  // }
 }
 </style>

@@ -1,3 +1,5 @@
+import type { Node, Edge } from "@vue-flow/core";
+
 export interface QueryResponse<T = any> {
   params: QueryResponseParams;
   payload: QueryResponsePayload<T>;
@@ -720,6 +722,14 @@ export interface IssueCustomField {
 
 export interface FieldByTracker {
   trackerId: number;
+  coreFields: CoreField[];
+  issueCustomFields: IssueCustomField[];
+}
+
+export interface WorkflowTracker extends Tracker {
+  nodes: Node[];
+  edges: Edge[];
+  newIssueStatuses: Record<string, number[]>;
   coreFields: CoreField[];
   issueCustomFields: IssueCustomField[];
 }

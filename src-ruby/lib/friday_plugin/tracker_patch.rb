@@ -20,7 +20,7 @@ module FridayPlugin
           edges_json.nil? ? [] : JSON.parse(edges_json)
         end
 
-        def worflow_new_issue_statuses
+        def workflow_new_issue_statuses
           new_issue_statuses_json.nil? ? {} : JSON.parse(new_issue_statuses_json)
         end
       end
