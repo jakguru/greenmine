@@ -72,7 +72,7 @@ export const useElkLayout = () => {
     const elkGraph: ElkNode = {
       id: "root",
       layoutOptions: {
-        "elk.algorithm": "radial",
+        "elk.algorithm": "mrtree",
         "elk.spacing.nodeNode": "100", // Optional: increase spacing between nodes
         "elk.spacing.edgeNode": "50", // Optional: increase spacing between edges and nodes
       },

@@ -4,6 +4,7 @@ module FridayPlugin
       base.class_eval do
         base.send(:include, FridayHelper)
         alias_method :redmine_base_index, :index
+        alias_method :redmine_base_update, :update
 
         def index
           if friday_request?
@@ -31,10 +32,38 @@ module FridayPlugin
             }
             render json: {
               formAuthenticityToken: form_authenticity_token,
-              fieldsByTracker: available_fields_by_tracker
+              fieldsByTracker: available_fields_by_tracker,
+              trackers: trackers.map { |v|
+                {
+                  id: v.id,
+                  nodes: v.workflow_nodes,
+                  edges: v.workflow_edges,
+                  newIssueStatuses: v.worflow_new_issue_statuses
+                }
+              }
             }
           else
             redmine_base_index
+          end
+        end
+
+        def update
+          if friday_request?
+            tracker = Tracker.find(params[:trackerId])
+            if tracker.nil?
+              render json: {}, status: 404
+              return
+            end
+            tracker.nodes_json = params[:nodes].to_json
+            tracker.edges_json = params[:edges].to_json
+            tracker.new_issue_statuses_json = params[:status_ids_for_new].to_json
+            if tracker.save
+              render json: {}, status: 201
+            else
+              render json: {errors: tracker.errors}, status: 400
+            end
+          else
+            redmine_base_update
           end
         end
 

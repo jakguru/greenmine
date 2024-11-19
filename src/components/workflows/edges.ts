@@ -1,9 +1,10 @@
-import { defineComponent, computed, h, ref } from "vue";
+import { defineComponent, computed, h, ref, watch } from "vue";
 import {
   SmoothStepEdge,
   Position,
   EdgeLabelRenderer,
   getSmoothStepPath,
+  useVueFlow,
 } from "@vue-flow/core";
 import { useI18n } from "vue-i18n";
 import { VBtn } from "vuetify/components/VBtn";
@@ -31,12 +32,21 @@ import type {
 import type { Role, IssueStatus } from "@/friday";
 import type { IssueStatusChipProps } from "@/components/issues";
 
+export interface IssueStatusTransitionRules {
+  [roleId: string]: {
+    always: boolean;
+    author: boolean;
+    assignee: boolean;
+  };
+}
+
 export interface IssueStatusTransitionEdgeData {
   actions: {
     removeEdges: RemoveEdges;
   };
   roles: Role[];
   statuses: IssueStatus[];
+  current: IssueStatusTransitionRules;
 }
 
 export type IssueStatusTransitionProps =
@@ -254,6 +264,46 @@ export const IssueStatusTransitionEdge =
         textColor: targetStatusId.value === 0 ? "#B71C1C" : undefined,
         backgroundColor: targetStatusId.value === 0 ? "#FFF176" : undefined,
       }));
+      const { updateEdgeData } = useVueFlow();
+      const current = computed({
+        get: () => data.value.current,
+        set: (v: IssueStatusTransitionRules) => {
+          const toPush = {
+            ...data.value,
+            current: v,
+          };
+          updateEdgeData(id.value, toPush);
+        },
+      });
+      const populateCurrent = () => {
+        data.value.roles.forEach((role) => {
+          if (!current.value[role.id.toString()]) {
+            current.value[role.id.toString()] = {
+              always: false,
+              author: false,
+              assignee: false,
+            };
+          }
+          if ("undefined" === typeof current.value[role.id.toString()].always) {
+            current.value[role.id.toString()].always = false;
+          }
+          if ("undefined" === typeof current.value[role.id.toString()].author) {
+            current.value[role.id.toString()].author = false;
+          }
+          if (
+            "undefined" === typeof current.value[role.id.toString()].assignee
+          ) {
+            current.value[role.id.toString()].assignee = false;
+          }
+        });
+      };
+      watch(
+        () => data.value.roles,
+        () => {
+          populateCurrent();
+        },
+        { immediate: true, deep: true },
+      );
       return () => [
         h(SmoothStepEdge, edgeProps.value),
         h(EdgeLabelRenderer, [
@@ -407,15 +457,54 @@ export const IssueStatusTransitionEdge =
                           h("td", { class: "font-weight-bold" }, role.name),
                           h(
                             "td",
-                            h(VSwitch, { color: "accent", hideDetails: true }),
+                            current.value[role.id.toString()]
+                              ? h(VSwitch, {
+                                  color: "accent",
+                                  hideDetails: true,
+                                  modelValue:
+                                    current.value[role.id.toString()].always,
+                                  "onUpdate:modelValue": (v: unknown) => {
+                                    current.value[role.id.toString()].always =
+                                      Boolean(v);
+                                  },
+                                })
+                              : "",
                           ),
                           h(
                             "td",
-                            h(VSwitch, { color: "accent", hideDetails: true }),
+                            current.value[role.id.toString()]
+                              ? h(VSwitch, {
+                                  color: "accent",
+                                  hideDetails: true,
+                                  disabled:
+                                    current.value[role.id.toString()].always,
+                                  modelValue:
+                                    current.value[role.id.toString()].always ||
+                                    current.value[role.id.toString()].author,
+                                  "onUpdate:modelValue": (v: unknown) => {
+                                    current.value[role.id.toString()].author =
+                                      Boolean(v);
+                                  },
+                                })
+                              : "",
                           ),
                           h(
                             "td",
-                            h(VSwitch, { color: "accent", hideDetails: true }),
+                            current.value[role.id.toString()]
+                              ? h(VSwitch, {
+                                  color: "accent",
+                                  hideDetails: true,
+                                  disabled:
+                                    current.value[role.id.toString()].always,
+                                  modelValue:
+                                    current.value[role.id.toString()].always ||
+                                    current.value[role.id.toString()].assignee,
+                                  "onUpdate:modelValue": (v: unknown) => {
+                                    current.value[role.id.toString()].assignee =
+                                      Boolean(v);
+                                  },
+                                })
+                              : "",
                           ),
                         ]);
                       }),

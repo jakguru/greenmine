@@ -1,6 +1,6 @@
-import { defineComponent, computed, h, ref, onMounted } from "vue";
+import { defineComponent, computed, h, ref, onMounted, watch } from "vue";
 import { useI18n, I18nT } from "vue-i18n";
-import { Handle, Position } from "@vue-flow/core";
+import { Handle, Position, useVueFlow } from "@vue-flow/core";
 import { NodeToolbar } from "@vue-flow/node-toolbar";
 import { IssueStatusChip } from "@/components/issues";
 import { VCard } from "vuetify/components/VCard";
@@ -30,6 +30,17 @@ import type {
 } from "@vue-flow/core";
 import type { Role, FieldByTracker } from "@/friday";
 
+export interface IssueStatusFieldPermissions {
+  [roleId: string]: {
+    coreFields: {
+      [fieldId: string]: string;
+    };
+    customFields: {
+      [fieldId: string]: string;
+    };
+  };
+}
+
 export interface IssueStatusNodeData {
   statusId: number;
   statusName: string;
@@ -40,6 +51,7 @@ export interface IssueStatusNodeData {
   };
   roles: Role[];
   fieldsForTracker: FieldByTracker | undefined;
+  current: IssueStatusFieldPermissions;
 }
 
 export const IssueStatusNodeDataSchema = Joi.object<IssueStatusNodeData>({
@@ -82,6 +94,7 @@ export const IssueStatusNodeDataSchema = Joi.object<IssueStatusNodeData>({
       )
       .required(),
   }).optional(),
+  current: Joi.object().default({}),
 }).unknown(true);
 
 export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
@@ -178,11 +191,39 @@ export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
           },
           roles: [],
           fieldsForTracker: undefined,
+          current: {},
         };
       }
       return value;
     };
     const data = computed(() => getIssueStatusNodeData(props.data));
+    const { updateNodeData } = useVueFlow();
+    const current = computed({
+      get: () => data.value.current,
+      set: (v: IssueStatusFieldPermissions) => {
+        const toPush = {
+          ...data.value,
+          current: v,
+        };
+        console.log("setting current", id.value, toPush);
+        updateNodeData(id.value, toPush);
+      },
+    });
+    const localCurrent = ref<IssueStatusFieldPermissions>(data.value.current);
+    watch(
+      () => data.value.current,
+      () => {
+        localCurrent.value = data.value.current;
+      },
+      { deep: true, immediate: true },
+    );
+    watch(
+      () => localCurrent.value,
+      () => {
+        current.value = localCurrent.value;
+      },
+      { deep: true },
+    );
     const issueStatusChipProps = computed<IssueStatusChipProps>(() => ({
       id: data.value.statusId === 0 ? undefined : data.value.statusId,
       name: data.value.statusName,
@@ -234,6 +275,59 @@ export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
           coreFields: [],
           issueCustomFields: [],
         },
+    );
+    const populateCurrent = () => {
+      data.value.roles.forEach((role) => {
+        if (!localCurrent.value[role.id.toString()]) {
+          localCurrent.value[role.id.toString()] = {
+            coreFields: {},
+            customFields: {},
+          };
+          // console.log(`added localCurrent.value[${role.id.toString()}]`);
+        }
+        fieldsForTracker.value.coreFields.forEach((field) => {
+          if (
+            !localCurrent.value[role.id.toString()].coreFields[
+              field.value.toString()
+            ]
+          ) {
+            localCurrent.value[role.id.toString()].coreFields[
+              field.value.toString()
+            ] = "";
+            // console.log(
+            //   `added localCurrent.value[${role.id.toString()}].coreFields[${field.value.toString()}]`,
+            // );
+          }
+        });
+        fieldsForTracker.value.issueCustomFields.forEach((field) => {
+          if (
+            !localCurrent.value[role.id.toString()].customFields[
+              field.value.toString()
+            ]
+          ) {
+            localCurrent.value[role.id.toString()].customFields[
+              field.value.toString()
+            ] = "";
+            // console.log(
+            //   `added localCurrent.value[${role.id.toString()}].customFields[${field.value.toString()}]`,
+            // );
+          }
+        });
+      });
+    };
+    watch(
+      () => data.value.roles,
+      () => {
+        populateCurrent();
+      },
+      { deep: true, immediate: true },
+    );
+    watch(
+      () => fieldsForTracker.value,
+      () => {
+        populateCurrent();
+      },
+      { deep: true, immediate: true },
     );
     const dialogProps = computed(() => ({
       modelValue: showSettingsDialog.value,
@@ -385,17 +479,27 @@ export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
                             field.label,
                           ),
                         ),
-                        ...data.value.roles.map((_role) => {
+                        ...data.value.roles.map((role) => {
                           return h(
                             "td",
                             { width: "200" },
-                            h(VSelect, {
-                              items: field.required
-                                ? fieldPermissionItemsForRequired
-                                : fieldPermissionItemsForUnrequired,
-                              density: "compact",
-                              modelValue: "",
-                            }),
+                            localCurrent.value[role.id.toString()] &&
+                              localCurrent.value[role.id.toString()].coreFields
+                              ? h(VSelect, {
+                                  items: field.required
+                                    ? fieldPermissionItemsForRequired
+                                    : fieldPermissionItemsForUnrequired,
+                                  density: "compact",
+                                  modelValue:
+                                    localCurrent.value[role.id.toString()]
+                                      .coreFields[field.value],
+                                  "onUpdate:modelValue": (v: string) => {
+                                    localCurrent.value[
+                                      role.id.toString()
+                                    ].coreFields[field.value] = v;
+                                  },
+                                })
+                              : "",
                           );
                         }),
                       ]);
@@ -416,17 +520,28 @@ export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
                             field.label,
                           ),
                         ),
-                        ...data.value.roles.map((_role) => {
+                        ...data.value.roles.map((role) => {
                           return h(
                             "td",
                             { width: "180" },
-                            h(VSelect, {
-                              items: field.required
-                                ? fieldPermissionItemsForRequired
-                                : fieldPermissionItemsForUnrequired,
-                              density: "compact",
-                              modelValue: "",
-                            }),
+                            localCurrent.value[role.id.toString()] &&
+                              localCurrent.value[role.id.toString()]
+                                .customFields
+                              ? h(VSelect, {
+                                  items: field.required
+                                    ? fieldPermissionItemsForRequired
+                                    : fieldPermissionItemsForUnrequired,
+                                  density: "compact",
+                                  modelValue:
+                                    localCurrent.value[role.id.toString()]
+                                      .customFields[field.value],
+                                  "onUpdate:modelValue": (v: string) => {
+                                    localCurrent.value[
+                                      role.id.toString()
+                                    ].customFields[field.value] = v;
+                                  },
+                                })
+                              : "",
                           );
                         }),
                       ]);

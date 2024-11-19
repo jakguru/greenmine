@@ -52,7 +52,7 @@
       <v-sheet v-bind="workflowEditorWrapperBindings">
         <v-container class="fill-height" fluid>
           <v-row no-gutters class="h-100">
-            <v-col cols="12" md="10">
+            <v-col cols="12" :md="statusesForStandard.length > 0 ? 10 : 12">
               <VueFlow
                 v-model:nodes="nodes"
                 v-model:edges="edges"
@@ -66,6 +66,48 @@
               >
                 <Controls position="top-left" :show-interactive="false">
                 </Controls>
+                <Controls
+                  position="bottom-right"
+                  :show-interactive="false"
+                  :show-zoom="false"
+                  :show-fit-view="false"
+                >
+                  <v-speed-dial
+                    location="top center"
+                    transition="fade-transition"
+                  >
+                    <template #activator="{ props: activatorProps, isActive }">
+                      <v-btn
+                        v-bind="activatorProps"
+                        size="large"
+                        :icon="isActive ? 'mdi-close' : 'mdi-wrench'"
+                        color="accent"
+                        :variant="isActive ? 'tonal' : 'elevated'"
+                        :loading="isActive ? false : saving"
+                      ></v-btn>
+                    </template>
+
+                    <v-btn
+                      variant="tonal"
+                      color="accent"
+                      icon="mdi-shuffle"
+                      @click="organizeWithElk"
+                    ></v-btn>
+                    <v-btn
+                      variant="tonal"
+                      color="accent"
+                      icon="mdi-shuffle-variant"
+                      @click="organizeWithDagre"
+                    ></v-btn>
+                    <v-btn
+                      variant="tonal"
+                      color="accent"
+                      icon="mdi-content-save"
+                      :loading="saving"
+                      @click="doSave"
+                    ></v-btn>
+                  </v-speed-dial>
+                </Controls>
                 <Background />
                 <template #node-issue-status="bindings">
                   <IssueStatusNode v-bind="bindings" />
@@ -75,7 +117,7 @@
                 </template>
               </VueFlow>
             </v-col>
-            <v-col cols="12" md="2">
+            <v-col v-if="statusesForStandard.length > 0" cols="12" md="2">
               <v-list class="py-0 bg-transparent transparent">
                 <v-list-item
                   v-for="status in statusesForStandard"
@@ -118,7 +160,7 @@ import { useRoute, useRouter } from "vue-router";
 import { VueFlow, useVueFlow, MarkerType } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import { Controls } from "@vue-flow/controls";
-// import { useElkLayout } from "@/utils/flowchart";
+import { useLayout, useElkLayout } from "@/utils/flowchart";
 import { useDisplay } from "vuetify";
 import { IssueStatusNode } from "@/components/workflows/nodes";
 import { IssueStatusTransitionEdge } from "@/components/workflows/edges";
@@ -134,8 +176,15 @@ import type {
   EdgeTypesObject,
 } from "@vue-flow/core";
 import type { IssueStatus, Tracker, Role, FieldByTracker } from "@/friday";
-import type { SwalService, ToastService } from "@jakguru/vueprint";
+import type { SwalService, ToastService, ApiService } from "@jakguru/vueprint";
 import type { IssueStatusTransitionProps } from "@/components/workflows/edges";
+
+interface WorkflowTracker {
+  id: number;
+  nodes: Node[];
+  edges: Edge[];
+  newIssueStatuses: Record<string, number[]>;
+}
 
 export default defineComponent({
   name: "WorkflowsIndex",
@@ -156,13 +205,18 @@ export default defineComponent({
       type: Array as PropType<FieldByTracker[]>,
       required: true,
     },
+    trackers: {
+      type: Array as PropType<WorkflowTracker[]>,
+      required: true,
+    },
   },
   setup(props) {
     const { t } = useI18n({ useScope: "global" });
-    // const formAuthenticityToken = computed(() => props.formAuthenticityToken);
+    const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const fieldsByTracker = computed(() => props.fieldsByTracker);
     const swal = inject<SwalService>("swal");
     const toast = inject<ToastService>("toast");
+    const api = inject<ApiService>("api");
     const appData = useAppData();
     const roles = computed<Role[]>(() => appData.value.roles);
     const statuses = computed<IssueStatus[]>(() => appData.value.statuses);
@@ -203,10 +257,14 @@ export default defineComponent({
         }
       },
     }));
-    const statusIdsForNewByRoleId = ref<Record<string, number[]>>({});
     const tracker = computed(() =>
       trackers.value.find((t: Tracker) => t.id === parseInt(tab.value)),
     );
+    const workflowTrackers = computed(() => props.trackers);
+    const workflowTracker = computed(() =>
+      workflowTrackers.value.find((t) => t.id === parseInt(tab.value)),
+    );
+    const statusIdsForNewByRoleId = ref<Record<string, number[]>>({});
     const statusIdsForNew = computed<Record<string, number[]>>({
       get() {
         const ret: Record<string, number[]> = {};
@@ -264,7 +322,8 @@ export default defineComponent({
       addNodes,
       removeNodes,
     } = useVueFlow();
-    // const { layout } = useElkLayout();
+    const { layout: elkLayout } = useElkLayout();
+    const { layout: dagreLayout } = useLayout();
     const { onConnect, onEdgeUpdate, onNodesChange, onEdgesChange } =
       useVueFlow();
     const nodes = ref<Node[]>([]);
@@ -296,6 +355,7 @@ export default defineComponent({
           },
           roles: roles.value,
           fieldsForTracker,
+          current: {},
         },
         position: { x: 0, y: 0 },
       };
@@ -308,12 +368,6 @@ export default defineComponent({
         const toAdd = ids.filter(
           (id) => !nodes.value.some((n) => n.id === `issue-status-${id}`),
         );
-        const toRemove = nodes.value.filter(
-          (n) => n.type === "issue-status" && !ids.includes(n.data.statusId),
-        );
-        toRemove.forEach((n) => {
-          removeNodes([n]);
-        });
         toAdd.forEach((id) => {
           const status = statuses.value.find((s) => s.id === id);
           if (status) {
@@ -324,8 +378,80 @@ export default defineComponent({
       { immediate: true, deep: true },
     );
     onMounted(() => {
+      if (workflowTracker.value) {
+        statusIdsForNew.value = {};
+        for (const key in workflowTracker.value.newIssueStatuses) {
+          statusIdsForNew.value[key] =
+            workflowTracker.value.newIssueStatuses[key];
+        }
+        addNodes(
+          workflowTracker.value.nodes.map((n) => ({
+            ...n,
+            data: {
+              ...n.data,
+              actions: {
+                ...n.data.actions,
+                removeNodes,
+              },
+            },
+          })),
+        );
+        addEdges(
+          workflowTracker.value.edges.map((e) => ({
+            ...e,
+            data: {
+              ...e.data,
+              actions: {
+                ...e.data.actions,
+                removeEdges,
+              },
+            },
+          })),
+        );
+      }
       updatePreSelectedStatusesFromForNew();
     });
+    watch(
+      () => tab.value,
+      () => {
+        removeNodes(nodes.value.map((n) => n.id));
+        removeEdges(edges.value.map((e) => e.id));
+        statusIdsForNew.value = {};
+        nextTick(() => {
+          if (workflowTracker.value) {
+            for (const key in workflowTracker.value.newIssueStatuses) {
+              statusIdsForNew.value[key] =
+                workflowTracker.value.newIssueStatuses[key];
+            }
+            addNodes(
+              workflowTracker.value.nodes.map((n) => ({
+                ...n,
+                data: {
+                  ...n.data,
+                  actions: {
+                    ...n.data.actions,
+                    removeNodes,
+                  },
+                },
+              })),
+            );
+            addEdges(
+              workflowTracker.value.edges.map((e) => ({
+                ...e,
+                data: {
+                  ...e.data,
+                  actions: {
+                    ...e.data.actions,
+                    removeEdges,
+                  },
+                },
+              })),
+            );
+          }
+          updatePreSelectedStatusesFromForNew();
+        });
+      },
+    );
     /**
      * Workflow Editor UI
      * Based on VueFlow
@@ -343,19 +469,21 @@ export default defineComponent({
       color: "transparent",
     }));
     const layoutGraph = () => {
+      // noop - this is deprecated and no longer used, but not removed to avoid breaking changes
+    };
+    const organizeWithDagre = () => {
+      nodes.value = dagreLayout(nodes.value, edges.value, "LR");
       nextTick(() => {
         fitView();
       });
-      // layout(nodes.value, edges.value).then((n) => {
-      //   nodes.value = n;
-      //   nextTick(() => {
-      //     fitView();
-      //   });
-      // });
-      // nodes.value = layout(nodes.value, edges.value);
-      // nextTick(() => {
-      //   fitView();
-      // });
+    };
+    const organizeWithElk = () => {
+      elkLayout(nodes.value, edges.value).then((n) => {
+        nodes.value = n;
+        nextTick(() => {
+          fitView();
+        });
+      });
     };
     onConnect((connection: Connection) => {
       if (connection.source === connection.target) {
@@ -416,13 +544,13 @@ export default defineComponent({
           },
           roles: roles.value,
           statuses: statuses.value,
+          current: {},
         },
         style: {
           stroke: transitionColor,
           strokeWidth: 2,
         },
       };
-      console.log(partialEdge, sourceStatus);
       addEdges([partialEdge]);
       layoutGraph();
     });
@@ -437,6 +565,93 @@ export default defineComponent({
       applyEdgeChanges(changes);
       layoutGraph();
     });
+    let doSaveAbortController: AbortController | undefined;
+    const saving = ref(false);
+    const dirty = ref(false);
+    const doSave = async (showFeedback: boolean = false) => {
+      if (!api) {
+        return;
+      }
+      if (doSaveAbortController) {
+        doSaveAbortController.abort();
+      }
+      doSaveAbortController = new AbortController();
+      saving.value = true;
+      try {
+        const { status } = await api.patch(
+          `/workflows/update`,
+          {
+            formAuthenticityToken: formAuthenticityToken.value,
+            trackerId: parseInt(tab.value),
+            nodes: nodes.value,
+            edges: edges.value,
+            status_ids_for_new: statusIdsForNew.value,
+          },
+          {
+            signal: doSaveAbortController.signal,
+          },
+        );
+        if (status !== 201) {
+          if (toast) {
+            toast.fire({
+              text: t("pages.workflows.admin.error.saveFailed"),
+              icon: "error",
+            });
+          }
+        } else if (showFeedback && toast) {
+          toast.fire({
+            text: t("pages.workflows.admin.success.saveSuccess"),
+            icon: "success",
+          });
+        }
+        if (status === 201) {
+          dirty.value = false;
+        }
+      } catch {
+        // noop
+      }
+      saving.value = false;
+    };
+    let autoSaveTimeout: NodeJS.Timeout | undefined;
+    watch(
+      () => nodes.value,
+      () => {
+        dirty.value = true;
+        if (autoSaveTimeout) {
+          clearTimeout(autoSaveTimeout);
+        }
+        autoSaveTimeout = setTimeout(() => {
+          doSave();
+        }, 500);
+      },
+      { deep: true },
+    );
+    watch(
+      () => edges.value,
+      () => {
+        dirty.value = true;
+        if (autoSaveTimeout) {
+          clearTimeout(autoSaveTimeout);
+        }
+        autoSaveTimeout = setTimeout(() => {
+          doSave();
+        }, 500);
+      },
+      { deep: true },
+    );
+    watch(
+      () => statusIdsForNew.value,
+      () => {
+        dirty.value = true;
+        if (autoSaveTimeout) {
+          clearTimeout(autoSaveTimeout);
+        }
+        autoSaveTimeout = setTimeout(() => {
+          doSave();
+        }, 500);
+      },
+      { deep: true },
+    );
     return {
       tabs,
       vTabBindings,
@@ -455,6 +670,10 @@ export default defineComponent({
       edgeTypes,
       edges,
       layoutGraph,
+      organizeWithDagre,
+      organizeWithElk,
+      saving,
+      doSave,
     };
   },
 });
