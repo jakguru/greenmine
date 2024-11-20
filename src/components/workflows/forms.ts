@@ -4,16 +4,28 @@ import { useI18n, I18nT } from "vue-i18n";
 import { VBtn } from "vuetify/components/VBtn";
 import { VIcon } from "vuetify/components/VIcon";
 import { VDivider } from "vuetify/components/VDivider";
+import { VSwitch } from "vuetify/components/VSwitch";
+import { VSelect } from "vuetify/components/VSelect";
+import { VBadge } from "vuetify/components/VBadge";
+import { VTable } from "vuetify/components/VTable";
 import {
   VToolbar,
   VToolbarTitle,
   VToolbarItems,
 } from "vuetify/components/VToolbar";
 import { IssueStatusChip } from "@/components/issues";
+import { cloneObject, checkObjectEquality } from "@/utils/app";
 
 import type { PropType } from "vue";
-import type { IssueStatus, Role } from "@/friday";
-import type { Node, Edge, RemoveEdges, RemoveNodes } from "@vue-flow/core";
+import type { IssueStatus, Role, CoreField, IssueCustomField } from "@/friday";
+import type {
+  Node,
+  Edge,
+  RemoveEdges,
+  RemoveNodes,
+  UpdateEdgeData,
+  UpdateNodeData,
+} from "@vue-flow/core";
 import type { IssueStatusFieldPermissions } from "@/components/workflows/nodes";
 import type { IssueStatusTransitionRules } from "@/components/workflows/edges";
 import type { IssueStatusChipProps } from "@/components/issues";
@@ -27,6 +39,10 @@ export const IssueStatusTransitionForm = defineComponent({
     },
     remove: {
       type: Function as PropType<RemoveEdges>,
+      required: true,
+    },
+    update: {
+      type: Function as PropType<UpdateEdgeData>,
       required: true,
     },
     roles: {
@@ -51,6 +67,26 @@ export const IssueStatusTransitionForm = defineComponent({
     const statuses = computed(() => props.statuses);
     const current = computed<IssueStatusTransitionRules>(
       () => selection.value.data.current,
+    );
+    const modelValue = ref<IssueStatusTransitionRules>(current.value);
+    watch(
+      () => current.value,
+      (currentValue) => {
+        modelValue.value = currentValue;
+      },
+      { deep: true, immediate: true },
+    );
+    watch(
+      () => modelValue.value,
+      (newValue) => {
+        const updatedData = cloneObject(selection.value.data);
+        updatedData.current = cloneObject(newValue);
+        if (checkObjectEquality(current.value, newValue)) {
+          return;
+        }
+        props.update(selection.value.id, updatedData);
+      },
+      { deep: true },
     );
     const { t } = useI18n({ useScope: "global" });
     const sourceNodeId = computed(() => selection.value?.source || "");
@@ -184,6 +220,98 @@ export const IssueStatusTransitionForm = defineComponent({
           ],
         ),
         h(VDivider),
+        h(
+          VTable,
+          {
+            class: ["transparent", "bg-transparent"],
+          },
+          [
+            h("thead", [
+              h("tr", [
+                h("th", {
+                  class: ["font-weight-bold", "no-wrap"],
+                }),
+                h(
+                  "th",
+                  {
+                    class: ["font-weight-bold", "no-wrap"],
+                  },
+                  t("pages.workflows.admin.roles.canTransition"),
+                ),
+                h(
+                  "th",
+                  {
+                    class: ["font-weight-bold", "no-wrap"],
+                  },
+                  t("pages.workflows.admin.roles.author"),
+                ),
+                h(
+                  "th",
+                  {
+                    class: ["font-weight-bold", "no-wrap"],
+                  },
+                  t("pages.workflows.admin.roles.assignee"),
+                ),
+              ]),
+            ]),
+            h("tbody", [
+              ...roles.value.map((role) => {
+                return h("tr", [
+                  h("td", { class: "font-weight-bold" }, role.name),
+                  h(
+                    "td",
+                    modelValue.value[role.id.toString()]
+                      ? h(VSwitch, {
+                          color: "accent",
+                          hideDetails: true,
+                          modelValue:
+                            modelValue.value[role.id.toString()].always,
+                          "onUpdate:modelValue": (v: unknown) => {
+                            modelValue.value[role.id.toString()].always =
+                              Boolean(v);
+                          },
+                        })
+                      : "",
+                  ),
+                  h(
+                    "td",
+                    modelValue.value[role.id.toString()]
+                      ? h(VSwitch, {
+                          color: "accent",
+                          hideDetails: true,
+                          disabled: modelValue.value[role.id.toString()].always,
+                          modelValue:
+                            modelValue.value[role.id.toString()].always ||
+                            modelValue.value[role.id.toString()].author,
+                          "onUpdate:modelValue": (v: unknown) => {
+                            modelValue.value[role.id.toString()].author =
+                              Boolean(v);
+                          },
+                        })
+                      : "",
+                  ),
+                  h(
+                    "td",
+                    modelValue.value[role.id.toString()]
+                      ? h(VSwitch, {
+                          color: "accent",
+                          hideDetails: true,
+                          disabled: modelValue.value[role.id.toString()].always,
+                          modelValue:
+                            modelValue.value[role.id.toString()].always ||
+                            modelValue.value[role.id.toString()].assignee,
+                          "onUpdate:modelValue": (v: unknown) => {
+                            modelValue.value[role.id.toString()].assignee =
+                              Boolean(v);
+                          },
+                        })
+                      : "",
+                  ),
+                ]);
+              }),
+            ]),
+          ],
+        ),
       ]);
   },
 });
@@ -199,12 +327,24 @@ export const IssueStatusRestrictionsForm = defineComponent({
       type: Function as PropType<RemoveNodes>,
       required: true,
     },
+    update: {
+      type: Function as PropType<UpdateNodeData>,
+      required: true,
+    },
     roles: {
       type: Array as PropType<Role[]>,
       required: true,
     },
     statuses: {
       type: Array as PropType<IssueStatus[]>,
+      required: true,
+    },
+    coreFields: {
+      type: Array as PropType<CoreField[]>,
+      required: true,
+    },
+    issueCustomFields: {
+      type: Array as PropType<IssueCustomField[]>,
       required: true,
     },
   },
@@ -215,8 +355,30 @@ export const IssueStatusRestrictionsForm = defineComponent({
     const selection = computed(() => props.selection);
     const roles = computed(() => props.roles);
     const statuses = computed(() => props.statuses);
+    const coreFields = computed(() => props.coreFields);
+    const issueCustomFields = computed(() => props.issueCustomFields);
     const current = computed<IssueStatusFieldPermissions>(
       () => selection.value.data.current,
+    );
+    const modelValue = ref<IssueStatusFieldPermissions>(current.value);
+    watch(
+      () => current.value,
+      (currentValue) => {
+        modelValue.value = currentValue;
+      },
+      { deep: true, immediate: true },
+    );
+    watch(
+      () => modelValue.value,
+      (newValue) => {
+        const updatedData = cloneObject(selection.value.data);
+        updatedData.current = cloneObject(newValue);
+        if (checkObjectEquality(current.value, newValue)) {
+          return;
+        }
+        props.update(selection.value.id, updatedData);
+      },
+      { deep: true },
     );
     const { t } = useI18n({ useScope: "global" });
     const statusId = computed(() => selection.value?.data.statusId || 0);
@@ -238,6 +400,30 @@ export const IssueStatusRestrictionsForm = defineComponent({
       textColor: !issueStatus.value ? "#B71C1C" : undefined,
       backgroundColor: !issueStatus.value ? "#FFF176" : undefined,
     }));
+    const fieldPermissionItemsForRequired = [
+      {
+        value: "",
+        title: t("pages.workflows.admin.fieldPermissions.unrestrictied"),
+      },
+      {
+        value: "readonly",
+        title: t("pages.workflows.admin.fieldPermissions.readonly"),
+      },
+    ];
+    const fieldPermissionItemsForUnrequired = [
+      {
+        value: "",
+        title: t("pages.workflows.admin.fieldPermissions.unrestrictied"),
+      },
+      {
+        value: "readonly",
+        title: t("pages.workflows.admin.fieldPermissions.readonly"),
+      },
+      {
+        value: "required",
+        title: t("pages.workflows.admin.fieldPermissions.required"),
+      },
+    ];
     return () =>
       h("div", { class: "issue-status-restrictions-form" }, [
         h(
@@ -292,6 +478,117 @@ export const IssueStatusRestrictionsForm = defineComponent({
           ],
         ),
         h(VDivider),
+        h(
+          VTable,
+          {
+            class: ["transparent", "bg-transparent"],
+          },
+          [
+            h("thead", [
+              h("tr", [
+                h("th", {
+                  class: ["font-weight-bold", "no-wrap"],
+                }),
+                ...roles.value.map((role) => {
+                  return h(
+                    "th",
+                    {
+                      width: "200",
+                      class: ["font-weight-bold", "no-wrap"],
+                    },
+                    role.name,
+                  );
+                }),
+              ]),
+            ]),
+            h("tbody", [
+              ...coreFields.value.map((field) => {
+                return h("tr", [
+                  h(
+                    "td",
+                    { class: ["font-weight-bold", "no-wrap"] },
+                    h(
+                      VBadge,
+                      {
+                        color: "red",
+                        dot: true,
+                        modelValue: field.required,
+                        floating: true,
+                      },
+                      field.label,
+                    ),
+                  ),
+                  ...roles.value.map((role) => {
+                    return h(
+                      "td",
+                      { width: "200" },
+                      "undefined" !==
+                        typeof modelValue.value.coreFields[role.id.toString()]
+                        ? h(VSelect, {
+                            items: field.required
+                              ? fieldPermissionItemsForRequired
+                              : fieldPermissionItemsForUnrequired,
+                            density: "compact",
+                            modelValue:
+                              modelValue.value.coreFields[role.id.toString()][
+                                field.value
+                              ],
+                            "onUpdate:modelValue": (v: string) => {
+                              modelValue.value.coreFields[role.id.toString()][
+                                field.value
+                              ] = v;
+                            },
+                          })
+                        : "",
+                    );
+                  }),
+                ]);
+              }),
+              ...issueCustomFields.value.map((field) => {
+                return h("tr", [
+                  h(
+                    "td",
+                    { class: ["font-weight-bold"] },
+                    h(
+                      VBadge,
+                      {
+                        color: "red",
+                        dot: true,
+                        modelValue: field.required,
+                        floating: true,
+                      },
+                      field.label,
+                    ),
+                  ),
+                  ...roles.value.map((role) => {
+                    return h(
+                      "td",
+                      { width: "180" },
+                      "undefined" !==
+                        typeof modelValue.value.customFields[role.id.toString()]
+                        ? h(VSelect, {
+                            items: field.required
+                              ? fieldPermissionItemsForRequired
+                              : fieldPermissionItemsForUnrequired,
+                            density: "compact",
+                            modelValue:
+                              modelValue.value.customFields[role.id.toString()][
+                                field.value
+                              ],
+                            "onUpdate:modelValue": (v: string) => {
+                              modelValue.value.customFields[role.id.toString()][
+                                field.value
+                              ] = v;
+                            },
+                          })
+                        : "",
+                    );
+                  }),
+                ]);
+              }),
+            ]),
+          ],
+        ),
       ]);
   },
 });

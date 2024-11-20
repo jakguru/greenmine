@@ -19,11 +19,13 @@ import type {
 } from "@vue-flow/core";
 
 export interface IssueStatusFieldPermissions {
-  [roleId: string]: {
-    coreFields: {
+  coreFields: {
+    [roleId: string]: {
       [fieldId: string]: string;
     };
-    customFields: {
+  };
+  customFields: {
+    [roleId: string]: {
       [fieldId: string]: string;
     };
   };
@@ -127,7 +129,10 @@ export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
         return {
           statusId: 0,
           statusName: error.message,
-          current: {},
+          current: {
+            coreFields: {},
+            customFields: {},
+          } as IssueStatusFieldPermissions,
         };
       }
       return value;

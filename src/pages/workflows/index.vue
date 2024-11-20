@@ -762,6 +762,7 @@ export default defineComponent({
       selection: selection.value as Edge,
       onClose: () => clearFocus(),
       remove: removeEdges,
+      update: updateEdgeData,
       roles: roles.value,
       statuses: statuses.value,
       nodes: nodes.value,
@@ -770,8 +771,11 @@ export default defineComponent({
       selection: selection.value as Node,
       onClose: () => clearFocus(),
       remove: removeNodes,
+      update: updateNodeData,
       roles: roles.value,
       statuses: statuses.value,
+      coreFields: tracker.value ? tracker.value.coreFields : [],
+      issueCustomFields: tracker.value ? tracker.value.issueCustomFields : [],
     }));
     return {
       vTabBindings,
