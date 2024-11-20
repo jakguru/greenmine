@@ -49,12 +49,14 @@
               </v-btn>
             </template>
             <template v-if="'issue-status' === focus.type">
-              Showing Sidebar for Issue Status
-              {{ focus }}
+              <IssueStatusRestrictionsForm
+                v-bind="issueStatusRestrictionsFormProps"
+              />
             </template>
             <template v-else-if="'issue-status-transition' === focus.type">
-              Showing Sidebar for Issue Status Transition
-              {{ focus }}
+              <IssueStatusTransitionForm
+                v-bind="issueStatusTransitionFormProps"
+              />
             </template>
             <template v-else>
               <v-toolbar color="transparent" density="compact">
@@ -158,11 +160,10 @@ import {
   nextTick,
   markRaw,
   watch,
-  onMounted,
   inject,
 } from "vue";
 import { useI18n } from "vue-i18n";
-import { useAppData, cloneObject, checkObjectEquality } from "@/utils/app";
+import { useAppData, cloneObject } from "@/utils/app";
 import { useRoute, useRouter } from "vue-router";
 import {
   VueFlow,
@@ -171,14 +172,17 @@ import {
   ConnectionMode,
 } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
-import { Controls } from "@vue-flow/controls";
-import { useLayout, useElkLayout } from "@/utils/flowchart";
+import { useLayout } from "@/utils/flowchart";
 import { useDisplay } from "vuetify";
 import {
   IssueStatusNode,
   TrackerWorkflowStartNode,
 } from "@/components/workflows/nodes";
 import { IssueStatusTransitionEdge } from "@/components/workflows/edges";
+import {
+  IssueStatusTransitionForm,
+  IssueStatusRestrictionsForm,
+} from "@/components/workflows/forms";
 import { IssueStatusChip } from "@/components/issues";
 
 import type { PropType } from "vue";
@@ -192,13 +196,7 @@ import type {
   NodeMouseEvent,
   EdgeMouseEvent,
 } from "@vue-flow/core";
-import type {
-  IssueStatus,
-  Tracker,
-  Role,
-  FieldByTracker,
-  WorkflowTracker,
-} from "@/friday";
+import type { IssueStatus, Role, WorkflowTracker } from "@/friday";
 import type { SwalService, ToastService, ApiService } from "@jakguru/vueprint";
 import type { IssueStatusTransitionProps } from "@/components/workflows/edges";
 
@@ -207,11 +205,12 @@ export default defineComponent({
   components: {
     VueFlow,
     Background,
-    Controls,
     IssueStatusChip,
     IssueStatusNode,
     TrackerWorkflowStartNode,
     IssueStatusTransitionEdge,
+    IssueStatusTransitionForm,
+    IssueStatusRestrictionsForm,
   },
   props: {
     formAuthenticityToken: {
@@ -229,7 +228,7 @@ export default defineComponent({
   },
   setup(props) {
     const { t } = useI18n({ useScope: "global" });
-    const { height } = useDisplay();
+    const { height, width } = useDisplay();
     const swal = inject<SwalService>("swal");
     const toast = inject<ToastService>("toast");
     const api = inject<ApiService>("api");
@@ -248,6 +247,7 @@ export default defineComponent({
     const {
       fitView,
       removeEdges,
+      removeNodes,
       addEdges,
       updateEdge,
       applyNodeChanges,
@@ -298,6 +298,31 @@ export default defineComponent({
       },
     }));
     const sidebarOpen = ref(true);
+    const focusType = ref<
+      | null
+      | "tracker-workflow-start"
+      | "issue-status"
+      | "issue-status-transition"
+    >(null);
+    const focusId = ref<null | string>(null);
+    const focus = computed(() => ({
+      type: focusType.value,
+      id: focusId.value,
+    }));
+    const sidebarWidth = computed(() => {
+      if (!sidebarOpen.value) {
+        return 256;
+      }
+      switch (focusType.value) {
+        case "issue-status-transition":
+          return 600;
+        case "issue-status":
+          return 200 * (roles.value.length + 1);
+        case null:
+        default:
+          return 256;
+      }
+    });
     const sidebarBindings = computed(() => ({
       absolute: true,
       color: "surface" as const,
@@ -315,6 +340,8 @@ export default defineComponent({
       permanent: true,
       app: false,
       elevation: sidebarOpen.value ? 5 : 0,
+      width: sidebarWidth.value,
+      maxWidth: width.value - 62,
     }));
     const initialCoreFieldRestrictions = computed(() =>
       Object.assign(
@@ -480,17 +507,6 @@ export default defineComponent({
       },
       { deep: true },
     );
-    const focusType = ref<
-      | null
-      | "tracker-workflow-start"
-      | "issue-status"
-      | "issue-status-transition"
-    >(null);
-    const focusId = ref<null | string>(null);
-    const focus = computed(() => ({
-      type: focusType.value,
-      id: focusId.value,
-    }));
     let clearFocusTimeout: NodeJS.Timeout | undefined;
     const setFocusOn = (
       type:
@@ -506,6 +522,19 @@ export default defineComponent({
       focusId.value = id;
       sidebarOpen.value = true;
     };
+    const selection = computed<Node | Edge | undefined>(() => {
+      if (!focus.value) {
+        return;
+      }
+      switch (focus.value.type) {
+        case "issue-status":
+          return nodes.value.find((n) => n.id === focus.value.id);
+        case "issue-status-transition":
+          return edges.value.find((e) => e.id === focus.value.id);
+        default:
+          return undefined;
+      }
+    });
     const clearFocus = () => {
       sidebarOpen.value = false;
       if (clearFocusTimeout) {
@@ -600,7 +629,8 @@ export default defineComponent({
       const sourceStatus = statuses.value.find(
         (s) => s.id === sourceNodeStatusId,
       );
-      let transitionColor = "#fdab3d";
+      let transitionColor =
+        sourceNode.type === "tracker-workflow-start" ? "#62B682" : "#fdab3d";
       if (sourceStatus) {
         if (sourceStatus.background_color) {
           transitionColor = sourceStatus.background_color;
@@ -653,6 +683,7 @@ export default defineComponent({
         trackerId: parseInt(tab.value),
         nodes: nodes.value,
         edges: edges.value,
+        status_ids_for_new: {},
       });
       console.log(payload);
       // try {
@@ -727,6 +758,21 @@ export default defineComponent({
         fitView();
       });
     };
+    const issueStatusTransitionFormProps = computed(() => ({
+      selection: selection.value as Edge,
+      onClose: () => clearFocus(),
+      remove: removeEdges,
+      roles: roles.value,
+      statuses: statuses.value,
+      nodes: nodes.value,
+    }));
+    const issueStatusRestrictionsFormProps = computed(() => ({
+      selection: selection.value as Node,
+      onClose: () => clearFocus(),
+      remove: removeNodes,
+      roles: roles.value,
+      statuses: statuses.value,
+    }));
     return {
       vTabBindings,
       workflowEditorWrapperBindings,
@@ -746,6 +792,9 @@ export default defineComponent({
       saving,
       speedDialBadgeProps,
       organizeWithDagre,
+      selection,
+      issueStatusTransitionFormProps,
+      issueStatusRestrictionsFormProps,
     };
   },
 });

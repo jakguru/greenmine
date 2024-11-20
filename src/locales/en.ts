@@ -683,6 +683,14 @@ export default {
             title: "Add Statuses",
           },
         },
+        remove: {
+          node: "Remove Issue Status",
+          edge: "Remove Transition",
+        },
+        trackerWorkflowStart: {
+          name: "Incoming Issue",
+          description: "When a new issue is created",
+        },
       },
     },
     "workflows-copy": { title: "" },
