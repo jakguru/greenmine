@@ -139,13 +139,55 @@
               @click="fitView"
             />
             <v-btn
-              key="3"
+              key="4"
               color="accent"
               size="x-small"
               icon="mdi-relation-one-to-one"
               @click="organizeWithDagre"
             />
+            <v-btn
+              key="5"
+              color="accent"
+              size="x-small"
+              icon="mdi-content-copy"
+              @click="showCopyFromDialog = true"
+            />
           </v-speed-dial>
+          <v-dialog v-model="showCopyFromDialog" max-width="400" contained>
+            <v-card color="surface">
+              <v-toolbar color="transparent" density="compact">
+                <v-toolbar-title>
+                  {{ $t("pages.workflows.admin.copyFrom.title") }}
+                </v-toolbar-title>
+                <v-toolbar-items>
+                  <v-btn icon @click="showCopyFromDialog = false">
+                    <v-icon>mdi-close</v-icon>
+                  </v-btn>
+                </v-toolbar-items>
+              </v-toolbar>
+              <v-divider />
+              <v-container fluid>
+                <v-autocomplete
+                  v-model="copyFromTrackerId"
+                  :items="[...trackers].filter((t) => t.id !== tracker?.id)"
+                  item-title="name"
+                  item-value="id"
+                  :label="$t('pages.workflows.admin.copyFrom.field')"
+                  dense
+                  outlined
+                  hide-details
+                  :disabled="copying"
+                />
+              </v-container>
+              <v-divider />
+              <v-card-actions>
+                <v-spacer />
+                <v-btn color="accent" :loading="copying" @click="doCopyFrom">
+                  {{ $t("pages.workflows.admin.copyFrom.copy") }}
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </v-layout>
       </v-sheet>
     </v-card>
@@ -161,9 +203,16 @@ import {
   markRaw,
   watch,
   inject,
+  onMounted,
+  onBeforeUnmount,
 } from "vue";
 import { useI18n } from "vue-i18n";
-import { useAppData, cloneObject } from "@/utils/app";
+import {
+  useAppData,
+  cloneObject,
+  checkObjectEquality,
+  useReloadRouteData,
+} from "@/utils/app";
 import { useRoute, useRouter } from "vue-router";
 import {
   VueFlow,
@@ -197,7 +246,12 @@ import type {
   EdgeMouseEvent,
 } from "@vue-flow/core";
 import type { IssueStatus, Role, WorkflowTracker } from "@/friday";
-import type { SwalService, ToastService, ApiService } from "@jakguru/vueprint";
+import type {
+  SwalService,
+  ToastService,
+  ApiService,
+  BusService,
+} from "@jakguru/vueprint";
 import type { IssueStatusTransitionProps } from "@/components/workflows/edges";
 
 export default defineComponent({
@@ -232,6 +286,7 @@ export default defineComponent({
     const swal = inject<SwalService>("swal");
     const toast = inject<ToastService>("toast");
     const api = inject<ApiService>("api");
+    const bus = inject<BusService>("bus");
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const tracker = computed(() => props.tracker);
     const trackers = computed(() => props.trackers);
@@ -244,6 +299,22 @@ export default defineComponent({
     const statuses = computed<IssueStatus[]>(() => appData.value.statuses);
     const route = useRoute();
     const router = useRouter();
+    const routeDataReloader = useReloadRouteData(route, api, toast);
+    const onRtuWorkflows = () => {
+      if (!routeDataReloader.loading.value) {
+        routeDataReloader.call();
+      }
+    };
+    onMounted(() => {
+      if (bus) {
+        bus.on("rtu:workflows", onRtuWorkflows, { local: true });
+      }
+    });
+    onBeforeUnmount(() => {
+      if (bus) {
+        bus.off("rtu:workflows", onRtuWorkflows);
+      }
+    });
     const {
       fitView,
       removeEdges,
@@ -297,7 +368,7 @@ export default defineComponent({
         position: "relative" as const,
       },
     }));
-    const sidebarOpen = ref(true);
+    const sidebarOpen = ref(false);
     const focusType = ref<
       | null
       | "tracker-workflow-start"
@@ -421,11 +492,6 @@ export default defineComponent({
     watch(() => roles.value, updateCurrentTransitionRestrictionsForEdges, {
       deep: true,
     });
-    const remainingStatuses = computed(() =>
-      [...statuses.value].filter((s) =>
-        nodes.value.every((n) => n.id !== `issue-status-${s.id}`),
-      ),
-    );
     const remainingStatusesVirtualScrollerProps = computed(() => ({
       items: remainingStatuses.value,
       height:
@@ -471,41 +537,79 @@ export default defineComponent({
       data: {},
       position: { x: 0, y: 0 },
     };
-    const nodes = ref<Node[]>(
-      tracker.value ? [startNode, ...tracker.value.nodes] : [startNode],
+    const nodes = ref<Node[]>([startNode]);
+    const edges = ref<Edge[]>([]);
+    const remainingStatuses = computed(() =>
+      [...statuses.value].filter((s) =>
+        nodes.value.every((n) => n.id !== `issue-status-${s.id}`),
+      ),
     );
-    const edges = ref<Edge[]>(tracker.value ? tracker.value.edges : []);
+    onMounted(() => {
+      if (remainingStatuses.value.length > 0) {
+        sidebarOpen.value = true;
+      }
+    });
     const resetNodes = () => {
       setNodes([startNode]);
       setEdges([]);
     };
+    const updateNodesFromTrackerUpdate = async (trkr: WorkflowTracker) => {
+      const { nodes: updatedList } = trkr;
+      const hasStartNode = updatedList.some((n) => n.id === "start-node");
+      if (!hasStartNode) {
+        updatedList.unshift(startNode);
+      }
+      await setNodes(updatedList);
+    };
+    const updateEdgesFromTrackerUpdate = async (trkr: WorkflowTracker) => {
+      const { edges: updatedList } = trkr;
+      const updatedListOfEdges = updatedList.map((connection) => {
+        const sourceNode = nodes.value.find(
+          (n) => n.id === connection.source,
+        ) as Node;
+        const sourceNodeStatusId = sourceNode ? sourceNode.data.statusId : 0;
+        const sourceStatus = statuses.value.find(
+          (s) => s.id === sourceNodeStatusId,
+        );
+        let transitionColor =
+          sourceNode.type === "tracker-workflow-start" ? "#62B682" : "#fdab3d";
+        if (sourceStatus) {
+          if (sourceStatus.background_color) {
+            transitionColor = sourceStatus.background_color;
+          } else if (sourceStatus.is_closed) {
+            transitionColor = "#323338";
+          }
+        }
+        const partialEdge: any = {
+          ...connection,
+          source: connection.source!,
+          target: connection.target!,
+          markerEnd: MarkerType.ArrowClosed,
+          animated: true,
+          style: {
+            stroke: transitionColor,
+            strokeWidth: 2,
+          },
+        };
+        return partialEdge;
+      });
+      await setEdges(updatedListOfEdges);
+    };
     watch(
       () => tracker.value,
-      (trkr) => {
+      (trkr, was) => {
         if (!trkr) {
           resetNodes();
           return;
         }
-        const { nodes: updatedList } = trkr;
-        const hasStartNode = updatedList.some((n) => n.id === "start-node");
-        if (!hasStartNode) {
-          updatedList.unshift(startNode);
+        const update = !was || checkObjectEquality(tracker.value, was);
+        if (update) {
+          updateNodesFromTrackerUpdate(trkr).then(() => {
+            updateEdgesFromTrackerUpdate(trkr);
+          });
         }
-        setNodes(updatedList);
       },
-      { deep: true },
-    );
-    watch(
-      () => tracker.value,
-      (trkr) => {
-        if (!trkr) {
-          resetNodes();
-          return;
-        }
-        const { edges: updatedList } = trkr;
-        setEdges(updatedList);
-      },
-      { deep: true },
+      { deep: true, immediate: true },
     );
     let clearFocusTimeout: NodeJS.Timeout | undefined;
     const setFocusOn = (
@@ -685,61 +789,60 @@ export default defineComponent({
         edges: edges.value,
         status_ids_for_new: {},
       });
-      console.log(payload);
-      // try {
-      //   const { status } = await api.patch(
-      //     `/workflows/update`,
-      //     payload,
-      //     {
-      //       signal: doSaveAbortController.signal,
-      //     },
-      //   );
-      //   if (status !== 201) {
-      //     if (toast) {
-      //       toast.fire({
-      //         text: t("pages.workflows.admin.error.saveFailed"),
-      //         icon: "error",
-      //       });
-      //     }
-      //   } else if (showFeedback && toast) {
-      //     toast.fire({
-      //       text: t("pages.workflows.admin.success.saveSuccess"),
-      //       icon: "success",
-      //     });
-      //   }
-      //   if (status === 201) {
-      //     dirty.value = false;
-      //   }
-      // } catch {
-      //   // noop
-      // }
-      dirty.value = false;
-      // remove after debug
+      try {
+        const { status } = await api.patch(`/workflows/update`, payload, {
+          signal: doSaveAbortController.signal,
+        });
+        if (status !== 201) {
+          if (toast) {
+            toast.fire({
+              text: t("pages.workflows.admin.error.saveFailed"),
+              icon: "error",
+            });
+          }
+        } else if (showFeedback && toast) {
+          toast.fire({
+            text: t("pages.workflows.admin.success.saveSuccess"),
+            icon: "success",
+          });
+        }
+        if (status === 201) {
+          dirty.value = false;
+        }
+      } catch {
+        // noop
+      }
       saving.value = false;
     };
     let autoSaveTimeout: NodeJS.Timeout | undefined;
     watch(
       () => nodes.value,
-      () => {
+      (is, was) => {
+        if (checkObjectEquality(is, was)) {
+          return;
+        }
         dirty.value = true;
         if (autoSaveTimeout) {
           clearTimeout(autoSaveTimeout);
         }
         autoSaveTimeout = setTimeout(() => {
-          doSave();
+          // doSave();
         }, 500);
       },
       { deep: true },
     );
     watch(
       () => edges.value,
-      () => {
+      (is, was) => {
+        if (checkObjectEquality(is, was)) {
+          return;
+        }
         dirty.value = true;
         if (autoSaveTimeout) {
           clearTimeout(autoSaveTimeout);
         }
         autoSaveTimeout = setTimeout(() => {
-          doSave();
+          // doSave();
         }, 500);
       },
       { deep: true },
@@ -766,6 +869,7 @@ export default defineComponent({
       roles: roles.value,
       statuses: statuses.value,
       nodes: nodes.value,
+      tracker: tracker.value,
     }));
     const issueStatusRestrictionsFormProps = computed(() => ({
       selection: selection.value as Node,
@@ -776,7 +880,33 @@ export default defineComponent({
       statuses: statuses.value,
       coreFields: tracker.value ? tracker.value.coreFields : [],
       issueCustomFields: tracker.value ? tracker.value.issueCustomFields : [],
+      tracker: tracker.value,
     }));
+    const showCopyFromDialog = ref(false);
+    const copying = ref(false);
+    const copyFromTrackerId = ref<number | null>(null);
+    watch(
+      () => showCopyFromDialog.value,
+      () => {
+        copyFromTrackerId.value = null;
+      },
+    );
+    const doCopyFrom = () => {
+      const trackerToCopyFrom = trackers.value.find(
+        (t) => t.id === copyFromTrackerId.value,
+      );
+      if (!trackerToCopyFrom) {
+        return;
+      }
+      const trkr = cloneObject(trackerToCopyFrom);
+      copying.value = true;
+      updateNodesFromTrackerUpdate(trkr).then(() => {
+        updateEdgesFromTrackerUpdate(trkr).then(() => {
+          showCopyFromDialog.value = false;
+          copying.value = false;
+        });
+      });
+    };
     return {
       vTabBindings,
       workflowEditorWrapperBindings,
@@ -799,6 +929,10 @@ export default defineComponent({
       selection,
       issueStatusTransitionFormProps,
       issueStatusRestrictionsFormProps,
+      showCopyFromDialog,
+      copying,
+      copyFromTrackerId,
+      doCopyFrom,
     };
   },
 });

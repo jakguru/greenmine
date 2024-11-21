@@ -146,7 +146,6 @@ export const IssueStatusNode = defineComponent<NodeProps<IssueStatusNodeData>>({
           ...data.value,
           current: v,
         };
-        console.log("setting current", id.value, toPush);
         updateNodeData(id.value, toPush);
       },
     });

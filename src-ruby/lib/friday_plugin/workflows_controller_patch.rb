@@ -3,11 +3,13 @@ module FridayPlugin
     def self.included(base)
       base.class_eval do
         base.send(:include, FridayHelper)
+        base.send(:include, FridayWorkflowsHelper)
         alias_method :redmine_base_index, :index
         alias_method :redmine_base_update, :update
 
         def index
           if friday_request?
+            set_friday_workflow_helper_globals
             core_fields = Tracker::CORE_FIELDS.to_a
             issue_custom_fields = IssueCustomField.sorted.to_a
             trackers = Tracker.sorted.preload(:default_status)
@@ -33,8 +35,10 @@ module FridayPlugin
                 icon: tracker.icon,
                 color: tracker.color,
                 project_ids: tracker.projects.map(&:id),
-                nodes: tracker.workflow_nodes,
-                edges: tracker.workflow_edges,
+                # nodes: tracker.workflow_nodes,
+                nodes: get_workflow_nodes_for_tracker(tracker),
+                # edges: tracker.workflow_edges,
+                edges: get_workflow_edges_for_tracker(tracker),
                 newIssueStatuses: make_new_issue_statuses_for_tracker(tracker, roles),
                 coreFields: core_fields.select { |field| tracker.core_fields.include?(field) }.map { |f|
                   {
@@ -64,8 +68,10 @@ module FridayPlugin
                   icon: v.icon,
                   color: v.color,
                   project_ids: v.projects.map(&:id),
-                  nodes: v.workflow_nodes,
-                  edges: v.workflow_edges,
+                  # nodes: v.workflow_nodes,
+                  nodes: get_workflow_nodes_for_tracker(v),
+                  # edges: v.workflow_edges,
+                  edges: get_workflow_edges_for_tracker(v),
                   newIssueStatuses: v.workflow_new_issue_statuses,
                   coreFields: core_fields.select { |field| v.core_fields.include?(field) }.map { |f|
                     {
@@ -96,9 +102,11 @@ module FridayPlugin
               render json: {}, status: 404
               return
             end
+            update_from_nodes_and_edges(tracker, params[:nodes], params[:edges])
             tracker.nodes_json = params[:nodes].to_json
             tracker.edges_json = params[:edges].to_json
             tracker.new_issue_statuses_json = params[:status_ids_for_new].to_json
+            enqueue_realtime_updates
             if tracker.save
               render json: {}, status: 201
             else
@@ -124,6 +132,11 @@ module FridayPlugin
             end
           end
           ret
+        end
+
+        def enqueue_realtime_updates
+          ActionCable.server.broadcast("rtu_application", {updated: true})
+          ActionCable.server.broadcast("rtu_workflows", {updated: true})
         end
       end
     end

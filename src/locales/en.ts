@@ -666,6 +666,10 @@ export default {
             targetMustBeIn:
               "You must use the left handle for inbound status transitions",
           },
+          saveFailed: "Failed to save the workflow",
+        },
+        success: {
+          saveSuccess: "Workflow Updated Successfully",
         },
         fieldPermissions: {
           title: "{status} Field Permissions",
@@ -690,6 +694,11 @@ export default {
         trackerWorkflowStart: {
           name: "Incoming Issue",
           description: "When a new issue is created",
+        },
+        copyFrom: {
+          title: "Copy from another Tracker",
+          field: "Copy from",
+          copy: "Copy",
         },
       },
     },

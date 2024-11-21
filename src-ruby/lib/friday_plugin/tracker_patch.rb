@@ -4,6 +4,7 @@ module FridayPlugin
   module TrackerPatch
     def self.included(base)
       base.send(:include, InstanceMethods)
+      base.send(:include, FridayWorkflowsHelper)
       base.class_eval do
         safe_attributes "icon"
         safe_attributes "color"

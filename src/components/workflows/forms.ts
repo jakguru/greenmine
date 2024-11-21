@@ -17,7 +17,13 @@ import { IssueStatusChip } from "@/components/issues";
 import { cloneObject, checkObjectEquality } from "@/utils/app";
 
 import type { PropType } from "vue";
-import type { IssueStatus, Role, CoreField, IssueCustomField } from "@/friday";
+import type {
+  IssueStatus,
+  Role,
+  CoreField,
+  IssueCustomField,
+  WorkflowTracker,
+} from "@/friday";
 import type {
   Node,
   Edge,
@@ -57,6 +63,10 @@ export const IssueStatusTransitionForm = defineComponent({
       type: Array as PropType<Node[]>,
       required: true,
     },
+    tracker: {
+      type: Object as PropType<WorkflowTracker | null>,
+      required: true,
+    },
   },
   emits: {
     close: () => true,
@@ -65,8 +75,9 @@ export const IssueStatusTransitionForm = defineComponent({
     const selection = computed(() => props.selection);
     const roles = computed(() => props.roles);
     const statuses = computed(() => props.statuses);
-    const current = computed<IssueStatusTransitionRules>(
-      () => selection.value.data.current,
+    const tracker = computed(() => props.tracker);
+    const current = computed<IssueStatusTransitionRules>(() =>
+      selection.value ? selection.value.data.current : {},
     );
     const modelValue = ref<IssueStatusTransitionRules>(current.value);
     watch(
@@ -79,6 +90,9 @@ export const IssueStatusTransitionForm = defineComponent({
     watch(
       () => modelValue.value,
       (newValue) => {
+        if (!selection.value) {
+          return;
+        }
         const updatedData = cloneObject(selection.value.data);
         updatedData.current = cloneObject(newValue);
         if (checkObjectEquality(current.value, newValue)) {
@@ -167,6 +181,11 @@ export const IssueStatusTransitionForm = defineComponent({
       textColor: targetStatusId.value === 0 ? "#B71C1C" : undefined,
       backgroundColor: targetStatusId.value === 0 ? "#FFF176" : undefined,
     }));
+    const transitioningFromIncomingToTrackerDefault = computed(
+      () =>
+        sourceStatusId.value === -1 &&
+        targetStatusId.value === tracker.value?.default_status_id,
+    );
     const doDelete = () => {
       emit("close");
       props.remove([selection.value.id]);
@@ -207,6 +226,7 @@ export const IssueStatusTransitionForm = defineComponent({
                     doDelete();
                   },
                   color: "warning",
+                  disabled: transitioningFromIncomingToTrackerDefault.value,
                 },
                 t("pages.workflows.admin.remove.edge"),
               ),
@@ -264,6 +284,8 @@ export const IssueStatusTransitionForm = defineComponent({
                       ? h(VSwitch, {
                           color: "accent",
                           hideDetails: true,
+                          disabled:
+                            transitioningFromIncomingToTrackerDefault.value,
                           modelValue:
                             modelValue.value[role.id.toString()].always,
                           "onUpdate:modelValue": (v: unknown) => {
@@ -279,7 +301,9 @@ export const IssueStatusTransitionForm = defineComponent({
                       ? h(VSwitch, {
                           color: "accent",
                           hideDetails: true,
-                          disabled: modelValue.value[role.id.toString()].always,
+                          disabled:
+                            transitioningFromIncomingToTrackerDefault.value ||
+                            modelValue.value[role.id.toString()].always,
                           modelValue:
                             modelValue.value[role.id.toString()].always ||
                             modelValue.value[role.id.toString()].author,
@@ -296,7 +320,9 @@ export const IssueStatusTransitionForm = defineComponent({
                       ? h(VSwitch, {
                           color: "accent",
                           hideDetails: true,
-                          disabled: modelValue.value[role.id.toString()].always,
+                          disabled:
+                            transitioningFromIncomingToTrackerDefault.value ||
+                            modelValue.value[role.id.toString()].always,
                           modelValue:
                             modelValue.value[role.id.toString()].always ||
                             modelValue.value[role.id.toString()].assignee,
@@ -347,6 +373,10 @@ export const IssueStatusRestrictionsForm = defineComponent({
       type: Array as PropType<IssueCustomField[]>,
       required: true,
     },
+    tracker: {
+      type: Object as PropType<WorkflowTracker | null>,
+      required: true,
+    },
   },
   emits: {
     close: () => true,
@@ -357,8 +387,14 @@ export const IssueStatusRestrictionsForm = defineComponent({
     const statuses = computed(() => props.statuses);
     const coreFields = computed(() => props.coreFields);
     const issueCustomFields = computed(() => props.issueCustomFields);
-    const current = computed<IssueStatusFieldPermissions>(
-      () => selection.value.data.current,
+    const tracker = computed(() => props.tracker);
+    const current = computed<IssueStatusFieldPermissions>(() =>
+      selection.value
+        ? selection.value.data.current
+        : {
+            coreFields: {},
+            customFields: {},
+          },
     );
     const modelValue = ref<IssueStatusFieldPermissions>(current.value);
     watch(
@@ -371,6 +407,9 @@ export const IssueStatusRestrictionsForm = defineComponent({
     watch(
       () => modelValue.value,
       (newValue) => {
+        if (!selection.value) {
+          return;
+        }
         const updatedData = cloneObject(selection.value.data);
         updatedData.current = cloneObject(newValue);
         if (checkObjectEquality(current.value, newValue)) {
@@ -464,6 +503,7 @@ export const IssueStatusRestrictionsForm = defineComponent({
                   onClick: () => {
                     doDelete();
                   },
+                  disabled: statusId.value === tracker.value?.default_status_id,
                   color: "warning",
                 },
                 t("pages.workflows.admin.remove.node"),
