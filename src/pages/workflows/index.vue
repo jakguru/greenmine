@@ -233,6 +233,9 @@ import {
   IssueStatusRestrictionsForm,
 } from "@/components/workflows/forms";
 import { IssueStatusChip } from "@/components/issues";
+import { getDebugger } from "@jakguru/vueprint/utilities/debug";
+
+const debug = getDebugger("Friday:Workflows", "#62B682", "#FFFFFF");
 
 import type { PropType } from "vue";
 import type {
@@ -253,6 +256,7 @@ import type {
   BusService,
 } from "@jakguru/vueprint";
 import type { IssueStatusTransitionProps } from "@/components/workflows/edges";
+import type { RealtimeApplicationUpdateEventWithTabUUIDPayload } from "@/utils/realtime";
 
 export default defineComponent({
   name: "WorkflowsIndex",
@@ -300,19 +304,26 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
     const routeDataReloader = useReloadRouteData(route, api, toast);
-    const onRtuWorkflows = () => {
+    const onRtuWorkflows = (
+      data: RealtimeApplicationUpdateEventWithTabUUIDPayload,
+    ) => {
+      debug("onRtuWorkflows", data);
+    };
+    const onRtuUpdate = () => {
       if (!routeDataReloader.loading.value) {
-        routeDataReloader.call();
+        routeDataReloader.reload();
       }
     };
     onMounted(() => {
       if (bus) {
         bus.on("rtu:workflows", onRtuWorkflows, { local: true });
+        bus.on("rtu:trackers", onRtuUpdate, { local: true });
       }
     });
     onBeforeUnmount(() => {
       if (bus) {
         bus.off("rtu:workflows", onRtuWorkflows);
+        bus.off("rtu:trackers", onRtuUpdate);
       }
     });
     const {

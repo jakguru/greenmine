@@ -1,6 +1,7 @@
 import { appDebug } from "@/utils/app";
 import type { BusService } from "@jakguru/vueprint";
 import type Cable from "@rails/actioncable";
+import type { Node, Edge } from "@vue-flow/core";
 
 export interface RealtimeModelEventPayload {
   updated: number[];
@@ -8,6 +9,13 @@ export interface RealtimeModelEventPayload {
 
 export interface RealtimeApplicationUpdateEventPayload {
   updated: boolean;
+}
+
+export interface RealtimeApplicationUpdateEventWithTabUUIDPayload {
+  updated: boolean;
+  from: string | null;
+  nodes: Node[];
+  edges: Edge[];
 }
 
 export interface RealtimeDisconnectedEventPayload {
@@ -148,7 +156,7 @@ export const hookRealtime = (bus: BusService, consumer: Cable.Consumer) => {
       room: "workflows",
     },
     {
-      received(data: RealtimeApplicationUpdateEventPayload) {
+      received(data: RealtimeApplicationUpdateEventWithTabUUIDPayload) {
         appDebug("Realtime updates channel for workflows received", data);
         bus.emit(
           "rtu:workflows",

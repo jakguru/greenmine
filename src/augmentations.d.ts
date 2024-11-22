@@ -2,6 +2,7 @@
 
 import type {
   RealtimeApplicationUpdateEventPayload,
+  RealtimeApplicationUpdateEventWithTabUUIDPayload,
   RealtimeModelEventPayload,
 } from "./utils/realtime";
 
@@ -30,7 +31,7 @@ declare module "@jakguru/vueprint" {
       from?: string,
     ) => void;
     "rtu:workflows": (
-      data: RealtimeApplicationUpdateEventPayload,
+      data: RealtimeApplicationUpdateEventWithTabUUIDPayload,
       from?: string,
     ) => void;
   }

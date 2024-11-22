@@ -143,6 +143,8 @@ module FridayWorkflowsHelper
     raw_workflow_permissions = get_raw_workflow_permissions_from_nodes(tracker, nodes)
     raw_workflow_transitions = get_raw_workflow_transitions_from_edges(tracker, edges)
     workflow_rule_ids = []
+    changes_made = false
+
     raw_workflow_permissions.each do |raw|
       raw = raw.to_h.deep_symbolize_keys if raw.is_a?(ActionController::Parameters)
       Rails.logger.info "raw #{raw}"
@@ -157,9 +159,11 @@ module FridayWorkflowsHelper
       if existing.nil?
         existing = WorkflowPermission.create(raw)
         existing.save
+        changes_made = true
       end
       workflow_rule_ids << existing.id
     end
+
     raw_workflow_transitions.each do |raw|
       raw = raw.to_h.deep_symbolize_keys if raw.is_a?(ActionController::Parameters)
       existing = WorkflowTransition
@@ -174,10 +178,78 @@ module FridayWorkflowsHelper
       if existing.nil?
         existing = WorkflowTransition.create(raw)
         existing.save
+        changes_made = true
       end
       workflow_rule_ids << existing.id
     end
-    WorkflowPermission.where(tracker_id: tracker.id).where.not(id: workflow_rule_ids).destroy_all
+
+    deleted_count = WorkflowPermission.where(tracker_id: tracker.id).where.not(id: workflow_rule_ids).destroy_all.size
+    changes_made = true if deleted_count > 0
+
+    changes_made
+  end
+
+  def nodes_are_different?(tracker_nodes_json, ui_nodes_json)
+    # Parse JSON and handle nil cases
+    tracker_nodes = tracker_nodes_json.nil? ? [] : JSON.parse(tracker_nodes_json)
+    ui_nodes = ui_nodes_json.nil? ? [] : JSON.parse(ui_nodes_json)
+
+    # Sort nodes by 'id' to ensure order doesn't matter
+    sorted_tracker_nodes = tracker_nodes.sort_by { |node| node["id"] }
+    sorted_ui_nodes = ui_nodes.sort_by { |node| node["id"] }
+
+    # Compare lengths first to quickly determine difference
+    return true if sorted_tracker_nodes.length != sorted_ui_nodes.length
+
+    # Iterate and compare the specific properties of each node
+    sorted_tracker_nodes.each_with_index do |tracker_node, index|
+      ui_node = sorted_ui_nodes[index]
+
+      # Check if node IDs match (to confirm we are comparing the right nodes)
+      return true if tracker_node["id"] != ui_node["id"]
+
+      # Compare the 'position' property
+      return true if tracker_node["position"] != ui_node["position"]
+
+      # Compare the 'data' property
+      return true if tracker_node["data"] != ui_node["data"]
+    end
+
+    # If no differences are found, return false
+    false
+  end
+
+  def edges_are_different?(tracker_edges_json, ui_edges_json)
+    # Parse JSON and handle nil cases
+    tracker_edges = tracker_edges_json.nil? ? [] : JSON.parse(tracker_edges_json)
+    ui_edges = ui_edges_json.nil? ? [] : JSON.parse(ui_edges_json)
+
+    # Sort edges by 'id' to ensure order doesn't matter
+    sorted_tracker_edges = tracker_edges.sort_by { |edge| edge["id"] }
+    sorted_ui_edges = ui_edges.sort_by { |edge| edge["id"] }
+
+    # Compare lengths first to quickly determine difference
+    return true if sorted_tracker_edges.length != sorted_ui_edges.length
+
+    # Iterate and compare the specific properties of each edge
+    sorted_tracker_edges.each_with_index do |tracker_edge, index|
+      ui_edge = sorted_ui_edges[index]
+
+      # Check if edge IDs match (to confirm we are comparing the right edges)
+      return true if tracker_edge["id"] != ui_edge["id"]
+
+      # Compare the 'source' property
+      return true if tracker_edge["source"] != ui_edge["source"]
+
+      # Compare the 'target' property
+      return true if tracker_edge["target"] != ui_edge["target"]
+
+      # Compare the 'data' property
+      return true if tracker_edge["data"] != ui_edge["data"]
+    end
+
+    # If no differences are found, return false
+    false
   end
 
   private

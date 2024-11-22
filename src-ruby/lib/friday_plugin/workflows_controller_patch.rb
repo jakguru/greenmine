@@ -102,15 +102,27 @@ module FridayPlugin
               render json: {}, status: 404
               return
             end
-            update_from_nodes_and_edges(tracker, params[:nodes], params[:edges])
-            tracker.nodes_json = params[:nodes].to_json
-            tracker.edges_json = params[:edges].to_json
-            tracker.new_issue_statuses_json = params[:status_ids_for_new].to_json
-            enqueue_realtime_updates
-            if tracker.save
-              render json: {}, status: 201
+            changes_were_made = update_from_nodes_and_edges(tracker, params[:nodes], params[:edges])
+            if !changes_were_made && nodes_are_different?(tracker.nodes_json, params[:nodes].to_json)
+              changes_were_made = true
+            end
+            if !changes_were_made && edges_are_different?(tracker.edges_json, params[:edges].to_json)
+              changes_were_made = true
+            end
+            if changes_were_made
+              tracker.nodes_json = params[:nodes].to_json
+              tracker.edges_json = params[:edges].to_json
+              tracker.new_issue_statuses_json = params[:status_ids_for_new].to_json
+              if tracker.save
+                Rails.logger.info("Tracker #{tracker.id} updated")
+                enqueue_realtime_updates(params[:nodes], params[:edges], params[:from])
+                render json: {}, status: 201
+              else
+                Rails.logger.error("Tracker #{tracker.id} had no changes to update")
+                render json: {errors: tracker.errors}, status: 400
+              end
             else
-              render json: {errors: tracker.errors}, status: 400
+              render json: {}, status: 201
             end
           else
             redmine_base_update
@@ -134,9 +146,8 @@ module FridayPlugin
           ret
         end
 
-        def enqueue_realtime_updates
-          ActionCable.server.broadcast("rtu_application", {updated: true})
-          ActionCable.server.broadcast("rtu_workflows", {updated: true})
+        def enqueue_realtime_updates(nodes, edges, from = nil)
+          ActionCable.server.broadcast("rtu_workflows", {updated: true, nodes: nodes, edges: edges, from: from})
         end
       end
     end
