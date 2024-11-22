@@ -1,21 +1,23 @@
 import dagre from "@dagrejs/dagre";
 import ELK from "elkjs";
 import { Position, useVueFlow } from "@vue-flow/core";
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { useAppData } from "./app";
 
 import type { Node, Edge } from "@vue-flow/core";
 import type { ElkNode, ElkExtendedEdge } from "elkjs";
+import type { IssueStatus } from "@/friday";
 
 export const useLayout = () => {
   const { findNode } = useVueFlow();
-
+  const appData = useAppData();
   const graph = ref(new dagre.graphlib.Graph());
-
+  const statuses = computed(() => appData.value.statuses);
   const previousDirection = ref("LR");
 
   function layout(nodes: Node[], edges: Edge[], direction: string) {
-    // we create a new graph instance, in case some nodes/edges were removed, otherwise dagre would act as if they were still there
-    const dagreGraph = new dagre.graphlib.Graph();
+    // Create a new graph instance to avoid stale data
+    const dagreGraph = new dagre.graphlib.Graph({ multigraph: true });
 
     graph.value = dagreGraph;
 
@@ -24,30 +26,56 @@ export const useLayout = () => {
     const isHorizontal = direction === "LR";
     dagreGraph.setGraph({
       rankdir: direction,
-      ranksep: 100, // Increased separation between ranks (rows or columns)
-      nodesep: 100, // Increased separation between nodes to reduce overlap
-      edgesep: 50, // Increased separation between edges to minimize intersections
     });
 
     previousDirection.value = direction;
 
+    // Set nodes in the graph
     for (const node of nodes) {
-      // if you need width+height of nodes for your layout, you can use the dimensions property of the internal node (`GraphNode` type)
       const graphNode = findNode(node.id);
+      const nodeWidth = graphNode?.dimensions.width || 150;
+      const nodeHeight = graphNode?.dimensions.height || 50;
+
+      let rank = 1;
+      if (node.type === "tracker-workflow-start") {
+        // Set left-most rank for "tracker-workflow-start" nodes
+        rank = 0;
+      } else if (node.type === "issue-status") {
+        // Set rank based on "position" attribute from the corresponding status
+        const status = statuses.value.find(
+          (s: IssueStatus) => s.id === node.data.statusId,
+        );
+        rank = status?.position || 1;
+      }
+
+      // Add to rank based on incoming connections to ensure nodes are placed after their dependencies
+      const incomingEdges = edges.filter((edge) => edge.target === node.id);
+      if (incomingEdges.length > 0) {
+        const maxIncomingRank = Math.max(
+          ...incomingEdges.map((edge) => {
+            const sourceNode = dagreGraph.node(edge.source);
+            return sourceNode?.rank || 0;
+          }),
+        );
+        rank = Math.max(rank, maxIncomingRank + 1);
+      }
 
       dagreGraph.setNode(node.id, {
-        width: graphNode?.dimensions.width || 150,
-        height: graphNode?.dimensions.height || 50,
+        width: nodeWidth,
+        height: nodeHeight,
+        rank,
       });
     }
 
+    // Set edges in the graph
     for (const edge of edges) {
       dagreGraph.setEdge(edge.source, edge.target, { weight: 1 });
     }
 
+    // Perform layout calculation
     dagre.layout(dagreGraph);
 
-    // set nodes with updated positions
+    // Update node positions based on the calculated layout
     return nodes.map((node) => {
       const nodeWithPosition = dagreGraph.node(node.id);
 

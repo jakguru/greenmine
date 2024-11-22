@@ -147,7 +147,6 @@ module FridayWorkflowsHelper
 
     raw_workflow_permissions.each do |raw|
       raw = raw.to_h.deep_symbolize_keys if raw.is_a?(ActionController::Parameters)
-      Rails.logger.info "raw #{raw}"
       existing = WorkflowPermission
         .where(type: raw[:type])
         .where(tracker_id: raw[:tracker_id])

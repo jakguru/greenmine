@@ -306,6 +306,9 @@ export default defineComponent({
     const onRtuWorkflows = (
       data: RealtimeApplicationUpdateEventWithTabUUIDPayload,
     ) => {
+      if (data.from === bus?.uuid) {
+        return;
+      }
       debug("onRtuWorkflows", data);
       const { nodes, edges } = data;
       const trkr = Object.assign({}, cloneObject(tracker.value), {
