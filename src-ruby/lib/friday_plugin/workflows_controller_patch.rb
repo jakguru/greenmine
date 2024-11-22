@@ -118,10 +118,11 @@ module FridayPlugin
                 enqueue_realtime_updates(params[:nodes], params[:edges], params[:from])
                 render json: {}, status: 201
               else
-                Rails.logger.error("Tracker #{tracker.id} had no changes to update")
+                Rails.logger.error("Tracker #{tracker.id} failed to save changes")
                 render json: {errors: tracker.errors}, status: 400
               end
             else
+              Rails.logger.error("Tracker #{tracker.id} had no changes to update")
               render json: {}, status: 201
             end
           else

@@ -183,8 +183,13 @@ module FridayWorkflowsHelper
       workflow_rule_ids << existing.id
     end
 
-    deleted_count = WorkflowPermission.where(tracker_id: tracker.id).where.not(id: workflow_rule_ids).destroy_all.size
-    changes_made = true if deleted_count > 0
+    permissions_to_remove = WorkflowPermission.where(tracker_id: tracker.id).where.not(id: workflow_rule_ids)
+    transitions_to_remove = WorkflowTransition.where(tracker_id: tracker.id).where.not(id: workflow_rule_ids)
+    to_remove = permissions_to_remove + transitions_to_remove
+    to_remove.each do |rule|
+      rule.destroy
+      changes_made = true
+    end
 
     changes_made
   end

@@ -111,3 +111,65 @@ export const useElkLayout = () => {
 
   return { layout: elkLayout };
 };
+
+export const checkNodeListEquality = (a: Node[], b: Node[]) => {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let equal = true;
+  for (let i = 0; i < a.length; i++) {
+    if (
+      a[i].id !== b[i].id ||
+      JSON.stringify(a[i].position) !== JSON.stringify(b[i].position) ||
+      JSON.stringify(a[i].data) !== JSON.stringify(b[i].data)
+    ) {
+      equal = false;
+      break;
+    }
+  }
+  if (equal) {
+    for (let i = 0; i < b.length; i++) {
+      if (
+        a[i].id !== b[i].id ||
+        JSON.stringify(a[i].position) !== JSON.stringify(b[i].position) ||
+        JSON.stringify(a[i].data) !== JSON.stringify(b[i].data)
+      ) {
+        equal = false;
+        break;
+      }
+    }
+  }
+  return equal;
+};
+
+export const checkEdgeListEquality = (a: Edge[], b: Edge[]) => {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let equal = true;
+  for (let i = 0; i < a.length; i++) {
+    if (
+      a[i].id !== b[i].id ||
+      a[i].source !== b[i].source ||
+      a[i].target !== b[i].target ||
+      JSON.stringify(a[i].data) !== JSON.stringify(b[i].data)
+    ) {
+      equal = false;
+      break;
+    }
+  }
+  if (equal) {
+    for (let i = 0; i < b.length; i++) {
+      if (
+        a[i].id !== b[i].id ||
+        a[i].source !== b[i].source ||
+        a[i].target !== b[i].target ||
+        JSON.stringify(a[i].data) !== JSON.stringify(b[i].data)
+      ) {
+        equal = false;
+        break;
+      }
+    }
+  }
+  return equal;
+};

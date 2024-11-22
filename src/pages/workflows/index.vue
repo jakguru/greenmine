@@ -207,12 +207,7 @@ import {
   onBeforeUnmount,
 } from "vue";
 import { useI18n } from "vue-i18n";
-import {
-  useAppData,
-  cloneObject,
-  checkObjectEquality,
-  useReloadRouteData,
-} from "@/utils/app";
+import { useAppData, cloneObject, useReloadRouteData } from "@/utils/app";
 import { useRoute, useRouter } from "vue-router";
 import {
   VueFlow,
@@ -221,7 +216,11 @@ import {
   ConnectionMode,
 } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
-import { useLayout } from "@/utils/flowchart";
+import {
+  useLayout,
+  checkNodeListEquality,
+  checkEdgeListEquality,
+} from "@/utils/flowchart";
 import { useDisplay } from "vuetify";
 import {
   IssueStatusNode,
@@ -308,10 +307,18 @@ export default defineComponent({
       data: RealtimeApplicationUpdateEventWithTabUUIDPayload,
     ) => {
       debug("onRtuWorkflows", data);
+      const { nodes, edges } = data;
+      const trkr = Object.assign({}, cloneObject(tracker.value), {
+        nodes,
+        edges,
+      });
+      updateNodesFromTrackerUpdate(trkr).then(() => {
+        updateEdgesFromTrackerUpdate(trkr);
+      });
     };
     const onRtuUpdate = () => {
       if (!routeDataReloader.loading.value) {
-        routeDataReloader.reload();
+        routeDataReloader.call();
       }
     };
     onMounted(() => {
@@ -608,20 +615,33 @@ export default defineComponent({
     };
     watch(
       () => tracker.value,
-      (trkr, was) => {
+      (trkr) => {
         if (!trkr) {
+          debug("Tracker is updated to non-existing. Resetting Nodes");
           resetNodes();
           return;
+        } else {
+          debug("Tracker is updated to existing. Updating Nodes and Edges");
         }
-        const update = !was || checkObjectEquality(tracker.value, was);
-        if (update) {
-          updateNodesFromTrackerUpdate(trkr).then(() => {
-            updateEdgesFromTrackerUpdate(trkr);
-          });
-        }
+        updateNodesFromTrackerUpdate(trkr).then(() => {
+          updateEdgesFromTrackerUpdate(trkr);
+        });
       },
-      { deep: true, immediate: true },
+      { deep: true },
     );
+    onMounted(() => {
+      const trkr = tracker.value ? cloneObject(tracker.value) : null;
+      if (!trkr) {
+        debug("Tracker is non-existing. Resetting Nodes");
+        resetNodes();
+        return;
+      } else {
+        debug("Tracker is existing. Updating Nodes and Edges");
+      }
+      updateNodesFromTrackerUpdate(trkr).then(() => {
+        updateEdgesFromTrackerUpdate(trkr);
+      });
+    });
     let clearFocusTimeout: NodeJS.Timeout | undefined;
     const setFocusOn = (
       type:
@@ -799,6 +819,7 @@ export default defineComponent({
         nodes: nodes.value,
         edges: edges.value,
         status_ids_for_new: {},
+        from: bus ? bus.uuid : "",
       });
       try {
         const { status } = await api.patch(`/workflows/update`, payload, {
@@ -826,34 +847,50 @@ export default defineComponent({
       saving.value = false;
     };
     let autoSaveTimeout: NodeJS.Timeout | undefined;
+    const previousNodes = ref<Node[]>([]);
+    const previousEdges = ref<Edge[]>([]);
     watch(
       () => nodes.value,
-      (is, was) => {
-        if (checkObjectEquality(is, was)) {
+      () => {
+        if (
+          checkNodeListEquality(
+            cloneObject(nodes.value),
+            cloneObject(previousNodes.value),
+          )
+        ) {
           return;
         }
+        debug("Nodes are not equal. Setting dirty and starting save");
+        previousNodes.value = cloneObject(nodes.value);
         dirty.value = true;
         if (autoSaveTimeout) {
           clearTimeout(autoSaveTimeout);
         }
         autoSaveTimeout = setTimeout(() => {
-          // doSave();
+          doSave();
         }, 500);
       },
       { deep: true },
     );
     watch(
       () => edges.value,
-      (is, was) => {
-        if (checkObjectEquality(is, was)) {
+      () => {
+        if (
+          checkEdgeListEquality(
+            cloneObject(edges.value),
+            cloneObject(previousEdges.value),
+          )
+        ) {
           return;
         }
+        debug("Edges are not equal. Setting dirty and starting save");
+        previousEdges.value = cloneObject(edges.value);
         dirty.value = true;
         if (autoSaveTimeout) {
           clearTimeout(autoSaveTimeout);
         }
         autoSaveTimeout = setTimeout(() => {
-          // doSave();
+          doSave();
         }, 500);
       },
       { deep: true },
