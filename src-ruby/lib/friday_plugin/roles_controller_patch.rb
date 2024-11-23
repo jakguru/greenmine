@@ -23,10 +23,8 @@ module FridayPlugin
 
         def new
           if friday_request?
-            render json: {
-              formAuthenticityToken: form_authenticity_token,
-              id: nil
-            }
+            @role = Role.new
+            render_model_response
           else
             redmine_base_new
           end
@@ -34,10 +32,7 @@ module FridayPlugin
 
         def edit
           if friday_request?
-            render json: {
-              formAuthenticityToken: form_authenticity_token,
-              id: @role.id
-            }
+            render_model_response
           else
             redmine_base_edit
           end
@@ -88,6 +83,83 @@ module FridayPlugin
           end
           if (default_query = RoleQuery.default(project: @project))
             params[:query_id] = default_query.id
+          end
+        end
+
+        def render_model_response
+          render json: {
+            formAuthenticityToken: form_authenticity_token,
+            id: @role.new_record? ? nil : @role.id,
+            anonymous: @role.anonymous?,
+            builtin: @role.builtin?,
+            model: @role.attributes,
+            values: {
+              issueVisibilities: Role::ISSUES_VISIBILITY_OPTIONS.collect { |v|
+                {
+                  value: v.first,
+                  title: l(v.last)
+                }
+              },
+              timeEntryVisbilities: Role::TIME_ENTRIES_VISIBILITY_OPTIONS.collect { |v|
+                {
+                  value: v.first,
+                  title: l(v.last)
+                }
+              },
+              userVisibilities: Role::USERS_VISIBILITY_OPTIONS.collect { |v|
+                {
+                  value: v.first,
+                  title: l(v.last)
+                }
+              },
+              roles: Role.givable.collect { |role|
+                {
+                  value: role.id,
+                  label: role.name
+                }
+              },
+              permissions: @role.setable_permissions.collect { |permission|
+                {
+                  value: permission.name,
+                  label: l_or_humanize(permission.name, prefix: "permission_"),
+                  module: permission.project_module,
+                  group: get_permission_group(permission)
+                }
+              },
+              groups: @role.setable_permissions.group_by { |permission| permission.project_module.to_s }.collect { |group, permissions|
+                {
+                  value: get_permission_group(permissions.first),
+                  label: get_permission_group_label(get_permission_group(permissions.first))
+                }
+              },
+              trackers: Tracker.sorted.all.collect { |tracker|
+                {
+                  value: tracker.id,
+                  label: tracker.name
+                }
+              }
+            }
+          }
+        end
+
+        def get_permission_group(permission)
+          if permission.project_module.blank?
+            if permission.name.end_with?("sprint")
+              return "sprint"
+            end
+            return "project"
+          end
+          permission.project_module
+        end
+
+        def get_permission_group_label(group)
+          case group
+          when "sprint"
+            l(:label_sprint)
+          when "project"
+            l(:label_project)
+          else
+            l_or_humanize(group, prefix: "project_module_")
           end
         end
       end
