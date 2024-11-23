@@ -17,6 +17,8 @@ Redmine::Plugin.register :friday do
     default: {
       "users_allowed_to_manage_sprints" => [],
       "groups_allowed_to_manage_sprints" => [],
+      "issue_dates_clear_on_backlog" => "0",
+      "unstarted_issue_statuses" => [],
       "repository_base_path" => "/var/redmine/repos",
       "monday_access_token" => "",
       "monday_board_id" => "",
@@ -52,4 +54,23 @@ end
 
 Rails.application.configure do
   config.action_cable.mount_path = "/realtime"
+end
+
+Rails.application.config.after_initialize do
+  Rails.application.executor.wrap do
+    Thread.new do
+      ActiveSupport.on_load(:active_record) do
+        loop do
+          # Run the scheduled job check
+          FridayPlugin::ScheduledJobRunner.run_if_needed
+
+          # Sleep for 1 minute before checking again
+          sleep 60
+        rescue => e
+          Rails.logger.error("Error in Friday Scheduled Job Polling: #{e.message}")
+          sleep 1
+        end
+      end
+    end
+  end
 end

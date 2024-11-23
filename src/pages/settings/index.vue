@@ -1186,6 +1186,17 @@ export default defineComponent({
                 { cols: 12 },
               ),
             ],
+            [
+              makeFridayFormFieldFor("plugin_friday.unstarted_issue_statuses", {
+                cols: 12,
+              }),
+            ],
+            [
+              makeFridayFormFieldFor(
+                "plugin_friday.issue_dates_clear_on_backlog",
+                { cols: 12 },
+              ),
+            ],
           ];
         default:
           return [];

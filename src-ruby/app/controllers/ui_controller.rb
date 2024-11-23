@@ -52,6 +52,9 @@ class UiController < ApplicationController
         },
         CustomFieldQuery: {
           operators: CustomFieldQuery.operators_by_filter_type
+        },
+        RoleQuery: {
+          operators: RoleQuery.operators_by_filter_type
         }
       },
       settings: {

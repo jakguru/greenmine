@@ -395,6 +395,8 @@ export interface SettingsPayloadSettings {
   "plugin_friday.chatgpt_enabled": CheckboxSettingField;
   "plugin_friday.users_allowed_to_manage_sprints": SelectMultipleSettingField;
   "plugin_friday.groups_allowed_to_manage_sprints": SelectMultipleSettingField;
+  "plugin_friday.issue_dates_clear_on_backlog": CheckboxSettingField;
+  "plugin_friday.unstarted_issue_statuses": SelectMultipleSettingField;
 }
 
 export type SettingField =

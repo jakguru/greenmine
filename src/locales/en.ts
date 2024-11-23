@@ -355,7 +355,7 @@ export default {
     "relations-id": { title: "" },
     "repositories-id-committers": { title: "" },
     "repositories-id-edit": { title: "" },
-    roles: { title: "", admin: { title: "Role Management" } },
+    roles: { title: "Role Management", admin: { title: "Role Management" } },
     "roles-id": { title: "" },
     "roles-id-edit": { title: "" },
     "roles-new": { title: "" },
@@ -509,6 +509,9 @@ export default {
               "Non-admin users allowed to manage sprints",
             groups_allowed_to_manage_sprints:
               "Groups whos non-admin members are allowed to manage sprints",
+            issue_dates_clear_on_backlog:
+              "Automatically Fix Dates on Backlog Issues",
+            unstarted_issue_statuses: "Unstarted Issue Statuses",
             repository_base_path: "Repository Storage Directory Path",
             monday_access_token: "Monday.com API Access Token",
             monday_board_id: "Monday.com Board ID",
@@ -1435,6 +1438,15 @@ export default {
     delete: {
       title: "Delete",
       confirm: "Are you sure you want to delete this custom field?",
+    },
+  },
+  roleActionMenu: {
+    filterTo: {
+      title: "Filter",
+    },
+    delete: {
+      title: "Delete",
+      confirm: "Are you sure you want to delete this role?",
     },
   },
 };

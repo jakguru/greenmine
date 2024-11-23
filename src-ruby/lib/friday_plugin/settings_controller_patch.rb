@@ -839,6 +839,24 @@ module FridayPlugin
                       multiple: true
                     },
                     value: Setting["plugin_friday"]["groups_allowed_to_manage_sprints"]
+                  },
+                  "plugin_friday.issue_dates_clear_on_backlog": {
+                    type: "checkbox",
+                    props: {
+                      formKey: "plugin_friday_issue_dates_clear_on_backlog"
+                    },
+                    value: Setting["plugin_friday"]["issue_dates_clear_on_backlog"]
+                  },
+                  "plugin_friday.unstarted_issue_statuses": {
+                    type: "select",
+                    props: {
+                      formKey: "plugin_friday_unstarted_issue_statuses",
+                      items: IssueStatus.sorted.each.collect { |v|
+                        {value: v.id, label: v.name}
+                      },
+                      multiple: true
+                    },
+                    value: Setting["plugin_friday"]["unstarted_issue_statuses"]
                   }
                 }
               }

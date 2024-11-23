@@ -278,6 +278,13 @@ module FridayHelper
           url: new_custom_field_path({type: VersionCustomField})
         }
       end
+    elsif klass == RoleQuery
+      if user.admin
+        ret << {
+          title: l(:label_role_new),
+          url: new_role_path
+        }
+      end
     end
 
     ret
