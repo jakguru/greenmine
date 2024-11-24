@@ -19,7 +19,7 @@ import { cloneObject, checkObjectEquality } from "@/utils/app";
 import type { PropType } from "vue";
 import type {
   IssueStatus,
-  Role,
+  TruncatedRole,
   CoreField,
   IssueCustomField,
   WorkflowTracker,
@@ -52,7 +52,7 @@ export const IssueStatusTransitionForm = defineComponent({
       required: true,
     },
     roles: {
-      type: Array as PropType<Role[]>,
+      type: Array as PropType<TruncatedRole[]>,
       required: true,
     },
     statuses: {
@@ -358,7 +358,7 @@ export const IssueStatusRestrictionsForm = defineComponent({
       required: true,
     },
     roles: {
-      type: Array as PropType<Role[]>,
+      type: Array as PropType<TruncatedRole[]>,
       required: true,
     },
     statuses: {

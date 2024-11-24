@@ -40,7 +40,15 @@ module FridayPlugin
 
         def create
           if friday_request?
-            render json: {}, status: 418
+            @role = Role.new
+            @role.safe_attributes = params[:role]
+            if @role.save
+              render json: {
+                id: @role.id
+              }, status: 201
+            else
+              render json: {errors: @role.errors.full_messages}, status: 422
+            end
           else
             redmine_base_create
           end
@@ -48,7 +56,14 @@ module FridayPlugin
 
         def update
           if friday_request?
-            render json: {}, status: 418
+            @role.safe_attributes = params[:role]
+            if @role.save
+              render json: {
+                id: @role.id
+              }, status: 201
+            else
+              render json: {errors: @role.errors.full_messages}, status: 422
+            end
           else
             redmine_base_update
           end
@@ -92,24 +107,28 @@ module FridayPlugin
             id: @role.new_record? ? nil : @role.id,
             anonymous: @role.anonymous?,
             builtin: @role.builtin?,
-            model: @role.attributes,
+            model: @role.attributes.merge({
+              managed_role_ids: @role.managed_roles.collect(&:id),
+              permissions_all_trackers: @role.permissions_all_trackers,
+              permissions_tracker_ids: @role.permissions_tracker_ids
+            }),
             values: {
               issueVisibilities: Role::ISSUES_VISIBILITY_OPTIONS.collect { |v|
                 {
                   value: v.first,
-                  title: l(v.last)
+                  label: l(v.last)
                 }
               },
-              timeEntryVisbilities: Role::TIME_ENTRIES_VISIBILITY_OPTIONS.collect { |v|
+              timeEntryVisibilities: Role::TIME_ENTRIES_VISIBILITY_OPTIONS.collect { |v|
                 {
                   value: v.first,
-                  title: l(v.last)
+                  label: l(v.last)
                 }
               },
               userVisibilities: Role::USERS_VISIBILITY_OPTIONS.collect { |v|
                 {
                   value: v.first,
-                  title: l(v.last)
+                  label: l(v.last)
                 }
               },
               roles: Role.givable.collect { |role|
@@ -136,6 +155,12 @@ module FridayPlugin
                 {
                   value: tracker.id,
                   label: tracker.name
+                }
+              },
+              activities: [{value: nil, label: l(:label_none)}] + TimeEntryActivity.active.shared.collect { |activity|
+                {
+                  value: activity.id,
+                  label: activity.name
                 }
               }
             }

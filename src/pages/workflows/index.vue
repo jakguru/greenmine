@@ -247,7 +247,7 @@ import type {
   NodeMouseEvent,
   EdgeMouseEvent,
 } from "@vue-flow/core";
-import type { IssueStatus, Role, WorkflowTracker } from "@/friday";
+import type { IssueStatus, TruncatedRole, WorkflowTracker } from "@/friday";
 import type {
   SwalService,
   ToastService,
@@ -298,7 +298,7 @@ export default defineComponent({
       firstTracker.value ? firstTracker.value.id : 0,
     );
     const appData = useAppData();
-    const roles = computed<Role[]>(() => appData.value.roles);
+    const roles = computed<TruncatedRole[]>(() => appData.value.roles);
     const statuses = computed<IssueStatus[]>(() => appData.value.statuses);
     const route = useRoute();
     const router = useRouter();

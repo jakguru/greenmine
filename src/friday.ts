@@ -699,7 +699,7 @@ export interface Tracker {
   project_ids: number[];
 }
 
-export interface Role {
+export interface TruncatedRole {
   id: number;
   name: string;
   position: number;
@@ -734,4 +734,38 @@ export interface WorkflowTracker extends Tracker {
   newIssueStatuses: Record<string, number[]>;
   coreFields: CoreField[];
   issueCustomFields: IssueCustomField[];
+}
+
+export interface Role {
+  all_roles_managed: boolean;
+  assignable: boolean;
+  builtin: number;
+  default_time_entry_activity_id: number | null;
+  id: number;
+  issues_visibility: string;
+  managed_role_ids: number[];
+  name: string;
+  permissions: string[];
+  permissions_all_trackers: Record<string, "0" | "1">;
+  permissions_tracker_ids: Record<string, number[]>;
+  position: number;
+  settings: Record<string, any>;
+  time_entries_visibility: string;
+  users_visibility: string;
+}
+
+export interface Permission extends SelectableListItem<string> {
+  module: string | null;
+  group: string;
+}
+
+export interface RoleValuesProp {
+  groups: SelectableListItem<string>[];
+  issueVisibilities: SelectableListItem<string>[];
+  permissions: Permission[];
+  roles: SelectableListItem<number>[];
+  timeEntryVisibilities: SelectableListItem<string>[];
+  trackers: SelectableListItem<number>[];
+  userVisibilities: SelectableListItem<string>[];
+  activities: SelectableListItem<number>[];
 }

@@ -1657,8 +1657,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/roles/:id",
     name: "roles-id",
-    // "component": () => import("@/pages/roles/id.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/roles/edit.vue"),
     meta: {
       title: "pages.roles-id.title",
     },
@@ -1666,8 +1665,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/roles/:id/edit",
     name: "roles-id-edit",
-    // "component": () => import("@/pages/roles/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/roles/edit.vue"),
     meta: {
       title: "pages.roles-id-edit.title",
     },
@@ -1675,8 +1673,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/roles/new",
     name: "roles-new",
-    // "component": () => import("@/pages/roles/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/roles/edit.vue"),
     meta: {
       title: "pages.roles-new.title",
     },
@@ -1684,8 +1681,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/roles/permissions",
     name: "roles-permissions",
-    // "component": () => import("@/pages/roles/permissions.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/roles/index.vue"),
     meta: {
       title: "pages.roles-permissions.title",
     },

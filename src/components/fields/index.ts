@@ -12,6 +12,9 @@ import VQueryColumnSelectionField from "./querycolumnselection.vue";
 import VRepositoryCommitUpdateKeywordsField from "./repositorycommitupdatekeywords.vue";
 import VColorField from "./color.vue";
 import generatePasswordBrowser from "generate-password-browser";
+import VPermissionsGroupedField from "./permissionsGrouped.vue";
+import VPermissionsObjectField from "./permissionsObject.vue";
+import VPermissionsObjectGroupedField from "./permissionsObjectGrouped.vue";
 export { VCSVField } from "./csv";
 export { VLBSVField } from "./lbsv";
 export {
@@ -22,6 +25,9 @@ export {
   VRepositoryCommitUpdateKeywordsField,
   VColorField,
   VAbbreviatedMultiSelect,
+  VPermissionsGroupedField,
+  VPermissionsObjectField,
+  VPermissionsObjectGroupedField,
 };
 
 const VPasswordFieldWithGeneratorProps: Record<

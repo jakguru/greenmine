@@ -357,8 +357,50 @@ export default {
     "repositories-id-edit": { title: "" },
     roles: { title: "Role Management", admin: { title: "Role Management" } },
     "roles-id": { title: "" },
-    "roles-id-edit": { title: "" },
-    "roles-new": { title: "" },
+    "roles-id-edit": {
+      title: "Manage a Role",
+      content: {
+        fields: {
+          name: "Role Name",
+          assignable: "Can be assigned Issues",
+          issues_visibility: "Issues Visibility",
+          users_visibility: "Users Visibility",
+          time_entries_visibility: "Time Entries Visibility",
+          all_roles_managed: "Can Manage All Roles",
+          managed_role_ids: "Roles Managed",
+          permissions: "Permissions",
+          permissions_all_trackers: "Permissions for all Trackers",
+          permissions_tracker_ids: "Permissions per Tracker",
+          default_time_entry_activity_id: "Default Time Entry Activity",
+        },
+      },
+      onSave: {
+        success: "Role updated successfully",
+        error: "An error occurred while updating the role",
+      },
+    },
+    "roles-new": {
+      title: "Create a New Role",
+      content: {
+        fields: {
+          name: "Role Name",
+          assignable: "Can be assigned Issues",
+          issues_visibility: "Issues Visibility",
+          users_visibility: "Users Visibility",
+          time_entries_visibility: "Time Entries Visibility",
+          all_roles_managed: "Can Manage All Roles",
+          managed_role_ids: "Roles Managed",
+          permissions: "Permissions",
+          permissions_all_trackers: "Permissions for all Trackers",
+          permissions_tracker_ids: "Permissions per Tracker",
+          default_time_entry_activity_id: "Default Time Entry Activity",
+        },
+      },
+      onSave: {
+        success: "Role created successfully",
+        error: "An error occurred while creating the role",
+      },
+    },
     "roles-permissions": { title: "" },
     settings: {
       title: "System Settings",
