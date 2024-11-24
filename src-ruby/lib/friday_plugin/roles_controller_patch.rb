@@ -43,6 +43,7 @@ module FridayPlugin
             @role = Role.new
             @role.safe_attributes = params[:role]
             if @role.save
+              enqueue_realtime_updates
               render json: {
                 id: @role.id
               }, status: 201
@@ -58,6 +59,7 @@ module FridayPlugin
           if friday_request?
             @role.safe_attributes = params[:role]
             if @role.save
+              enqueue_realtime_updates
               render json: {
                 id: @role.id
               }, status: 201
@@ -74,6 +76,7 @@ module FridayPlugin
             if @role.builtin?
               render json: {errors: l(:error_can_not_delete_builtin_role)}, status: 403
             elsif @role.destroy
+              enqueue_realtime_updates
               render json: {}
             else
               render json: {errors: @role.errors.full_messages}, status: 400
@@ -186,6 +189,11 @@ module FridayPlugin
           else
             l_or_humanize(group, prefix: "project_module_")
           end
+        end
+
+        def enqueue_realtime_updates
+          ActionCable.server.broadcast("rtu_application", {updated: true})
+          ActionCable.server.broadcast("rtu_roles", {updated: true})
         end
       end
     end

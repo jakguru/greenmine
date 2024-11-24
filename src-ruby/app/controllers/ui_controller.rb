@@ -55,6 +55,9 @@ class UiController < ApplicationController
         },
         RoleQuery: {
           operators: RoleQuery.operators_by_filter_type
+        },
+        GroupQuery: {
+          operators: GroupQuery.operators_by_filter_type
         }
       },
       settings: {

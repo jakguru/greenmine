@@ -285,8 +285,14 @@ module FridayHelper
           url: new_role_path
         }
       end
+    elsif klass == GroupQuery
+      if user.admin
+        ret << {
+          title: l(:label_group_new),
+          url: new_group_path
+        }
+      end
     end
-
     ret
   end
 

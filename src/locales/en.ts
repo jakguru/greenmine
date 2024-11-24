@@ -182,7 +182,7 @@ export default {
     "enumerations-id-edit": { title: "" },
     "enumerations-type": { title: "" },
     "enumerations-new": { title: "" },
-    groups: { title: "", admin: { title: "Group Management" } },
+    groups: { title: "Group Management", admin: { title: "Group Management" } },
     "groups-group-id-memberships": { title: "" },
     "groups-group-id-memberships-id": { title: "" },
     "groups-group-id-memberships-id-edit": { title: "" },
@@ -1489,6 +1489,15 @@ export default {
     delete: {
       title: "Delete",
       confirm: "Are you sure you want to delete this role?",
+    },
+  },
+  groupActionMenu: {
+    filterTo: {
+      title: "Filter",
+    },
+    delete: {
+      title: "Delete",
+      confirm: "Are you sure you want to delete this group?",
     },
   },
 };

@@ -381,8 +381,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups",
     name: "groups",
-    // "component": () => import("@/pages/groups.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/index.vue"),
     meta: {
       title: "pages.groups.title",
     },
