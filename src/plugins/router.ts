@@ -1858,8 +1858,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users/:id",
     name: "users-id",
-    // "component": () => import("@/pages/users/id.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/edit.vue"),
     meta: {
       title: "pages.users-id.title",
     },
@@ -1867,8 +1866,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users/:id/edit",
     name: "users-id-edit",
-    // "component": () => import("@/pages/users/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/edit.vue"),
     meta: {
       title: "pages.users-id-edit.title",
     },
@@ -1876,8 +1874,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users/:user_id/email_addresses",
     name: "users-user-id-email-addresses",
-    // "component": () => import("@/pages/users/user_id/email_addresses.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/edit.vue"),
     meta: {
       title: "pages.users-user-id-email-addresses.title",
     },
@@ -1885,8 +1882,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users/:user_id/memberships",
     name: "users-user-id-memberships",
-    // "component": () => import("@/pages/users/user_id/memberships.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/edit.vue"),
     meta: {
       title: "pages.users-user-id-memberships.title",
     },
@@ -1894,8 +1890,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users/:user_id/memberships/:id",
     name: "users-user-id-memberships-id",
-    // "component": () => import("@/pages/users/user_id/memberships/id.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/edit.vue"),
     meta: {
       title: "pages.users-user-id-memberships-id.title",
     },
@@ -1903,8 +1898,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users/:user_id/memberships/:id/edit",
     name: "users-user-id-memberships-id-edit",
-    // "component": () => import("@/pages/users/user_id/memberships/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/edit.vue"),
     meta: {
       title: "pages.users-user-id-memberships-id-edit.title",
     },
@@ -1912,8 +1906,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users/:user_id/memberships/new",
     name: "users-user-id-memberships-new",
-    // "component": () => import("@/pages/users/user_id/memberships/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/edit.vue"),
     meta: {
       title: "pages.users-user-id-memberships-new.title",
     },

@@ -26,7 +26,7 @@ module FridayPlugin
             @user = User.new
             render_model_response
           else
-            redmine_base_new
+            render html: "", layout: true
           end
         end
 
@@ -34,7 +34,7 @@ module FridayPlugin
           if friday_request?
             render_model_response
           else
-            redmine_base_edit
+            render html: "", layout: true
           end
         end
 
@@ -123,13 +123,32 @@ module FridayPlugin
             id: @user.new_record? ? nil : @user.id,
             model: @user.attributes.merge({
               name: @user.name,
-              users: @user.users.collect(&:id),
+              groups: @user.groups.collect(&:id),
               memberships: @principal.memberships.preload(:member_roles, :roles).sorted_by_project.collect { |membership|
                 {
                   project: membership.project_id,
                   roles: membership.roles.sort.collect(&:id)
                 }
-              }
+              },
+              mails: @user.mails,
+              hide_mail: @user.pref[:hide_mail],
+              time_zone: @user.pref[:time_zone],
+              no_self_notified: @user.pref[:no_self_notified],
+              auto_watch_on: @user.pref[:auto_watch_on].reject(&:blank?),
+              my_page_layout: @user.pref[:my_page_layout],
+              my_page_settings: @user.pref[:my_page_settings],
+              recently_used_project_ids: @user.pref[:recently_used_project_ids],
+              gantt_zoom: @user.pref[:gantt_zoom],
+              gantt_months: @user.pref[:gantt_months],
+              notify_about_high_priority_issues: @user.pref[:notify_about_high_priority_issues],
+              comments_sorting: @user.pref[:comments_sorting],
+              warn_on_leaving_unsaved: @user.pref[:warn_on_leaving_unsaved],
+              textarea_font: @user.pref[:textarea_font],
+              recently_used_projects: @user.pref[:recently_used_projects],
+              history_default_tab: @user.pref[:history_default_tab],
+              toolbar_language_options: @user.pref[:toolbar_language_options],
+              default_issue_query: @user.pref[:default_issue_query],
+              default_project_query: @user.pref[:default_project_query]
             }),
             values: {
               roles: Role.givable.collect { |role|
@@ -139,12 +158,32 @@ module FridayPlugin
                 }
               },
               projects: get_project_nested_items(Project.all),
-              users: User.active.sorted.collect { |user|
+              groups: Group.active.sorted.collect { |group|
                 {
-                  value: user.id,
-                  label: user.name
+                  value: group.id,
+                  label: group.name
                 }
-              }
+              },
+              mailNotificationOptions: @user.valid_notification_options.collect { |v|
+                {
+                  value: v.first,
+                  label: l(v.last)
+                }
+              },
+              timezones: ActiveSupport::TimeZone.all.collect { |tz| {value: tz.name, label: tz.to_s} } << {value: "", label: l(:label_none)},
+              languages: ::I18n.backend.available_locales.map { |locale| {value: locale.to_s, label: "languages.#{locale}"} }.sort_by(&:first),
+              commmentsSortingOptions: [
+                {value: "asc", label: l(:label_chronological_order)},
+                {value: "desc", label: l(:label_reverse_chronological_order)}
+              ],
+              historyDefaultTabOptions: history_default_tab_options.collect { |v|
+                {
+                  value: v.last,
+                  label: v.first
+                }
+              },
+              defaultIssueQueryOptions: [{value: "", label: l(:label_none)}] + issue_query_options(@user),
+              defaultProjectQueryOptions: [{value: "", label: l(:label_none)}] + project_query_options(@user)
             }
           }
         end
@@ -231,6 +270,30 @@ module FridayPlugin
 
           # Return the base64 representation with the correct prefix
           "data:image/png;base64,#{base64_output}"
+        end
+
+        def issue_query_options(user)
+          global_queries = IssueQuery.for_all_projects
+          global_public_queries = global_queries.only_public
+          global_user_queries = global_queries.where(user_id: user.id).where.not(id: global_public_queries.pluck(:id))
+          grouped_options_for_select([global_public_queries, global_user_queries])
+        end
+
+        def project_query_options(user)
+          global_queries = ProjectQuery
+          global_public_queries = global_queries.only_public
+          global_user_queries = global_queries.where(user_id: user.id).where.not(id: global_public_queries.ids)
+          grouped_options_for_select([global_public_queries, global_user_queries])
+        end
+
+        def grouped_options_for_select(collections)
+          array = []
+          collections.each do |collection|
+            collection.pluck(:name, :id).each do |item|
+              array << {value: item[1], label: item[0]}
+            end
+          end
+          array
         end
       end
     end

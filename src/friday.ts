@@ -778,7 +778,7 @@ export interface Principal {
   mail_notifications: string;
   monday_person_id: string;
   must_change_passwd: boolean;
-  password_changed_on: string | null;
+  passwd_changed_on: string | null;
   salt: string | null;
   status: number;
   twofa_required: boolean;
@@ -796,6 +796,42 @@ export interface PrincipalMembership {
 
 export interface User extends Principal {
   type: "User";
+  auto_watch_on: Array<"issue_created" | "issue_contributed_to">;
+  comments_sorting: "asc" | "desc";
+  default_issue_query: "" | number;
+  default_project_query: "" | number;
+  gantt_months: number;
+  gantt_zoom: number;
+  groups: number[];
+  hide_mail: boolean;
+  history_default_tab: string;
+  mail_notification: string;
+  mails: string[];
+  memberships: PrincipalMembership[];
+  my_page_layout: Record<string, string[]>;
+  my_page_settings: any;
+  name: string;
+  no_self_notified: "0" | "1";
+  notify_about_high_priority_issues: "0" | "1";
+  recently_used_project_ids: string;
+  recently_used_projects: number;
+  textarea_font: string;
+  timezone: string;
+  toolbar_language_options: string;
+  warn_on_leaving_unsaved: "0" | "1";
+}
+
+export interface UserValuesProp {
+  commmentsSortingOptions: SelectableListItem<string>[];
+  defaultIssueQueryOptions: SelectableListItem<"" | number>[];
+  defaultProjectQueryOptions: SelectableListItem<"" | number>[];
+  groups: SelectableListItem<number>[];
+  historyDefaultTabOptions: SelectableListItem<string>[];
+  languages: SelectableListItem<string>[];
+  mailNotificationOptions: SelectableListItem<string>[];
+  projects: SelectableListItem<number>[];
+  roles: SelectableListItem<number>[];
+  timezones: SelectableListItem<string>[];
 }
 
 export interface Group extends Principal {
@@ -807,7 +843,7 @@ export interface Group extends Principal {
   mail_notifications: "";
   monday_person_id: "";
   type: "Group";
-  password_changed_on: null;
+  passwd_changed_on: null;
   salt: null;
   status: 1;
   twofa_scheme: null;
