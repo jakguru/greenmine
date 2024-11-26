@@ -706,7 +706,7 @@ export default {
     "trackers-id-edit": { title: "" },
     "trackers-fields": { title: "" },
     "trackers-new": { title: "" },
-    users: { title: "", admin: { title: "User Management" } },
+    users: { title: "User Management", admin: { title: "User Management" } },
     "users-id": { title: "" },
     "users-id-edit": { title: "" },
     "users-user-id-email-addresses": { title: "" },

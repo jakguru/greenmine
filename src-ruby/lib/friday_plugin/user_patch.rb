@@ -6,7 +6,7 @@ module FridayPlugin
       base.send(:include, InstanceMethods)
       base.class_eval do
         alias_method :redmine_base_allowed_to, :allowed_to?
-
+        safe_attributes "avatar"
         def allowed_to?(action, context, options = {}, &block)
           case action
           when :manage_sprints

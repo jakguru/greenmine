@@ -292,6 +292,13 @@ module FridayHelper
           url: new_group_path
         }
       end
+    elsif klass == UserQuery
+      if user.admin
+        ret << {
+          title: l(:label_user_new),
+          url: new_user_path
+        }
+      end
     end
     ret
   end

@@ -1850,8 +1850,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users",
     name: "users",
-    // "component": () => import("@/pages/users.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/index.vue"),
     meta: {
       title: "pages.users.title",
     },
