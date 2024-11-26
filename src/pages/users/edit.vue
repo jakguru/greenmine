@@ -15,6 +15,7 @@
       <v-divider />
       <FridayForm
         v-bind="fridayFormBindings"
+        ref="renderedForm"
         @success="onSuccess"
         @error="onError"
       >
@@ -58,12 +59,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, ref } from "vue";
+import { defineComponent, computed, inject, ref, h } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
 import { VSwitch } from "vuetify/components/VSwitch";
+import { VBtn } from "vuetify/components/VBtn";
 import {
+  VPasswordField,
   VBase64EncodedImageField,
   VProjectMembershipField,
 } from "@/components/fields";
@@ -76,9 +79,13 @@ import {
   checkObjectEquality,
 } from "@/utils/app";
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
+import * as genPass from "generate-password-browser";
 
 import type { PropType } from "vue";
-import type { FridayFormStructure } from "@/components/forms";
+import type {
+  FridayFormStructure,
+  FridayFormComponent,
+} from "@/components/forms";
 import type {
   SwalService,
   ToastService,
@@ -149,9 +156,21 @@ export default defineComponent({
     const mailNotificationOptions = computed(
       () => values.value.mailNotificationOptions,
     );
+    const passwordMinLength = computed(() => values.value.passwordMinLength);
+    const passwordRequiredCharClasses = computed(
+      () => values.value.passwordRequiredCharClasses,
+    );
     const projects = computed(() => values.value.projects);
     const roles = computed(() => values.value.roles);
     const timezones = computed(() => values.value.timezones);
+    const userStatusOptions = computed(() => values.value.userStatusOptions);
+    const autoWatchOnOptions = computed(() => [
+      { value: "issue_created", label: t("labels.autoWatchOn.issue_created") },
+      {
+        value: "issue_contributed_to",
+        label: t("labels.autoWatchOn.issue_contributed_to"),
+      },
+    ]);
     const { t } = useI18n({ useScope: "global" });
     const i18nPrefix = computed(() =>
       id.value ? "pages.users-id-edit" : "pages.users-new",
@@ -263,6 +282,70 @@ export default defineComponent({
         return;
       }
     };
+    const passwordFieldValidator = computed(() => {
+      let schema = Joi.string().required().min(Number(passwordMinLength.value));
+      if (passwordRequiredCharClasses.value.includes("uppercase")) {
+        schema = schema.concat(
+          Joi.string().pattern(
+            new RegExp("(?=.*[A-Z])"),
+            t("labels.charclasses.uppercase"),
+          ),
+        );
+      }
+      if (passwordRequiredCharClasses.value.includes("lowercase")) {
+        schema = schema.concat(
+          Joi.string().pattern(
+            new RegExp("(?=.*[a-z])"),
+            t("labels.charclasses.lowercase"),
+          ),
+        );
+      }
+      if (passwordRequiredCharClasses.value.includes("digits")) {
+        schema = schema.concat(
+          Joi.string().pattern(
+            new RegExp("(?=.*[0-9])"),
+            t("labels.charclasses.digits"),
+          ),
+        );
+      }
+      if (passwordRequiredCharClasses.value.includes("special_chars")) {
+        schema = schema.concat(
+          Joi.string().pattern(
+            new RegExp("(?=.*[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])"),
+            t("labels.charclasses.specialChars"),
+          ),
+        );
+      }
+      return getFormFieldValidator(
+        t,
+        schema,
+        t(`${i18nPrefix.value}.content.fields.password`),
+      );
+    });
+    const renderedForm = ref<FridayFormComponent | null>(null);
+    const doGeneratePassword = () => {
+      if (!renderedForm.value) {
+        if (toast) {
+          toast.fire({
+            title: t(`${i18nPrefix.value}.onGeneratePassword.error`),
+            icon: "error",
+          });
+        } else {
+          alert(t(`${i18nPrefix.value}.onGeneratePassword.error`));
+        }
+        return;
+      }
+      const generated = genPass.generate({
+        length: Number(passwordMinLength.value),
+        numbers: passwordRequiredCharClasses.value.includes("digits"),
+        symbols: passwordRequiredCharClasses.value.includes("special_chars"),
+        uppercase: passwordRequiredCharClasses.value.includes("uppercase"),
+        excludeSimilarCharacters: true,
+        strict: true,
+      });
+      renderedForm.value.setValue("password", generated);
+      renderedForm.value.setValue("must_change_passwd", true);
+    };
     const currentFieldValues = ref<Record<string, unknown>>({});
     const formStructure = computed<FridayFormStructure>(() => {
       switch (tab.value) {
@@ -316,9 +399,51 @@ export default defineComponent({
                 },
               },
             ],
+          ];
+        case "authentication":
+          return [
             [
               {
                 cols: 12,
+                md: 4,
+                fieldComponent: VTextField,
+                formKey: "login",
+                valueKey: "login",
+                label: t(`${i18nPrefix.value}.content.fields.login`),
+                bindings: {
+                  label: t(`${i18nPrefix.value}.content.fields.login`),
+                },
+                validator: getFormFieldValidator(
+                  t,
+                  Joi.string().required().max(255),
+                  t(`${i18nPrefix.value}.content.fields.login`),
+                ),
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "status",
+                valueKey: "status",
+                label: t(`${i18nPrefix.value}.content.fields.status`),
+                bindings: {
+                  label: t(`${i18nPrefix.value}.content.fields.status`),
+                  items: userStatusOptions.value,
+                  itemTitle: "label",
+                },
+                validator: getFormFieldValidator(
+                  t,
+                  Joi.string().required().max(255),
+                  t(`${i18nPrefix.value}.content.fields.status`),
+                ),
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
                 fieldComponent: VSwitch,
                 formKey: "admin",
                 valueKey: "admin",
@@ -329,18 +454,131 @@ export default defineComponent({
               },
             ],
           ];
-        case "authentication":
-          return [];
         case "password":
-          return [];
+          return [
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VPasswordField,
+                formKey: "password",
+                valueKey: "password",
+                label: t(`${i18nPrefix.value}.content.fields.password`),
+                bindings: {
+                  label: t(`${i18nPrefix.value}.content.fields.password`),
+                },
+                validator: passwordFieldValidator.value,
+              },
+              {
+                cols: 12,
+                md: 2,
+                fieldComponent: h(
+                  VBtn,
+                  {
+                    color: accentColor.value,
+                    height: "56px",
+                    onClick: doGeneratePassword,
+                  },
+                  `labels.generate`,
+                ),
+                formKey: "password_generator",
+                valueKey: "password_generator",
+                label: t(
+                  `${i18nPrefix.value}.content.fields.password_generator`,
+                ),
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VSwitch,
+                formKey: "must_change_passwd",
+                valueKey: "must_change_passwd",
+                label: t(
+                  `${i18nPrefix.value}.content.fields.must_change_passwd`,
+                ),
+                bindings: {
+                  label: t(
+                    `${i18nPrefix.value}.content.fields.must_change_passwd`,
+                  ),
+                },
+              },
+            ],
+          ];
         case "notifications":
-          return [];
+          return [
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "mail_notification",
+                valueKey: "mail_notification",
+                label: t(
+                  `${i18nPrefix.value}.content.fields.mail_notification`,
+                ),
+                bindings: {
+                  label: t(
+                    `${i18nPrefix.value}.content.fields.mail_notification`,
+                  ),
+                  items: mailNotificationOptions.value,
+                  itemTitle: "label",
+                },
+                validator: getFormFieldValidator(
+                  t,
+                  Joi.string().required().max(255),
+                  t(`${i18nPrefix.value}.content.fields.mail_notification`),
+                ),
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "auto_watch_on",
+                valueKey: "auto_watch_on",
+                label: t(`${i18nPrefix.value}.content.fields.auto_watch_on`),
+                bindings: {
+                  label: t(`${i18nPrefix.value}.content.fields.auto_watch_on`),
+                  items: autoWatchOnOptions.value,
+                  itemTitle: "label",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+                validator: getFormFieldValidator(
+                  t,
+                  Joi.string().required().max(255),
+                  t(`${i18nPrefix.value}.content.fields.auto_watch_on`),
+                ),
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VSwitch,
+                formKey: "no_self_notified",
+                valueKey: "no_self_notified",
+                label: t(`${i18nPrefix.value}.content.fields.no_self_notified`),
+                bindings: {
+                  label: t(
+                    `${i18nPrefix.value}.content.fields.no_self_notified`,
+                  ),
+                  trueValue: "1",
+                  falseValue: "0",
+                },
+              },
+            ],
+          ];
         case "preferences":
           return [
             [
               {
                 cols: 12,
-                md: 6,
+                md: 4,
                 fieldComponent: VAutocomplete,
                 formKey: "language",
                 valueKey: "language",
@@ -356,9 +594,11 @@ export default defineComponent({
                   t(`${i18nPrefix.value}.content.fields.language`),
                 ),
               },
+            ],
+            [
               {
                 cols: 12,
-                md: 6,
+                md: 4,
                 fieldComponent: VAutocomplete,
                 formKey: "timezone",
                 valueKey: "timezone",
@@ -469,6 +709,7 @@ export default defineComponent({
       onError,
       currentFieldValues,
       vTabBindings,
+      renderedForm,
     };
   },
 });

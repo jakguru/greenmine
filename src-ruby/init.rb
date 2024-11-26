@@ -56,21 +56,21 @@ Rails.application.configure do
   config.action_cable.mount_path = "/realtime"
 end
 
-Rails.application.config.after_initialize do
-  Rails.application.executor.wrap do
-    Thread.new do
-      ActiveSupport.on_load(:active_record) do
-        loop do
-          # Run the scheduled job check
-          FridayPlugin::ScheduledJobRunner.run_if_needed
+# Rails.application.config.after_initialize do
+#   Rails.application.executor.wrap do
+#     Thread.new do
+#       ActiveSupport.on_load(:active_record) do
+#         loop do
+#           # Run the scheduled job check
+#           FridayPlugin::ScheduledJobRunner.run_if_needed
 
-          # Sleep for 1 minute before checking again
-          sleep 60
-        rescue => e
-          Rails.logger.error("Error in Friday Scheduled Job Polling: #{e.message}")
-          sleep 1
-        end
-      end
-    end
-  end
-end
+#           # Sleep for 1 minute before checking again
+#           sleep 60
+#         rescue => e
+#           Rails.logger.error("Error in Friday Scheduled Job Polling: #{e.message}")
+#           sleep 1
+#         end
+#       end
+#     end
+#   end
+# end

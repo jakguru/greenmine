@@ -52,3 +52,6 @@ en:
   version_status_open: Open
   version_status_locked: Locked
   version_status_closed: Closed
+  label_active: Active
+  label_locked: Locked
+  label_registered: Registered

@@ -183,7 +183,17 @@ module FridayPlugin
                 }
               },
               defaultIssueQueryOptions: [{value: "", label: l(:label_none)}] + issue_query_options(@user),
-              defaultProjectQueryOptions: [{value: "", label: l(:label_none)}] + project_query_options(@user)
+              defaultProjectQueryOptions: [{value: "", label: l(:label_none)}] + project_query_options(@user),
+              userStatusOptions: (@user.status == User::STATUS_REGISTERED) ? [
+                {value: User::STATUS_ACTIVE, label: l(:label_active)},
+                {value: User::STATUS_LOCKED, label: l(:label_locked)},
+                {value: User::STATUS_REGISTERED, label: l(:label_registered)}
+              ] : [
+                {value: User::STATUS_ACTIVE, label: l(:label_active)},
+                {value: User::STATUS_LOCKED, label: l(:label_locked)}
+              ],
+              passwordMinLength: Setting.send(:password_min_length),
+              passwordRequiredCharClasses: Setting.send(:password_required_char_classes)
             }
           }
         end

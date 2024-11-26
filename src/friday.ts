@@ -832,6 +832,9 @@ export interface UserValuesProp {
   projects: SelectableListItem<number>[];
   roles: SelectableListItem<number>[];
   timezones: SelectableListItem<string>[];
+  userStatusOptions: SelectableListItem<number>[];
+  passwordMinLength: number;
+  passwordRequiredCharClasses: string[];
 }
 
 export interface Group extends Principal {

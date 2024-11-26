@@ -226,7 +226,7 @@ export const FridayForm = defineComponent({
       return false;
     },
   },
-  setup(props, { emit, slots }) {
+  setup(props, { emit, slots, expose }) {
     const api = inject<ApiService>("api");
     const action = computed(() => props.action);
     const method = computed(() => props.method);
@@ -592,6 +592,16 @@ export const FridayForm = defineComponent({
       });
       return ret;
     });
+    const setValue = (key: string, value: unknown) => {
+      formContext.value.setFieldValue(key, value);
+    };
+    const setValues = (values: Record<string, unknown>) => {
+      formContext.value.setValues(values);
+    };
+    expose({
+      setValue,
+      setValues,
+    });
     return () =>
       h(
         "form",
@@ -634,3 +644,5 @@ export const FridayForm = defineComponent({
       );
   },
 });
+
+export type FridayFormComponent = typeof FridayForm;

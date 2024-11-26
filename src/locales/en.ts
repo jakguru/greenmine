@@ -1029,11 +1029,11 @@ export default {
       max: "{label} is longer than the maximum allowed length.",
       min: "{label} is shorter than the minimum allowed length.",
       pattern: {
-        base: "{label} contains invalid characters.",
-        name: "{label} contains invalid characters.",
+        base: "{label} does not meet requirements.",
+        name: "{label} does not meet requirements.",
         invert: {
-          base: "{label} contains invalid characters.",
-          name: "{label} contains invalid characters.",
+          base: "{label} does not meet requirements.",
+          name: "{label} does not meet requirements.",
         },
       },
     },
