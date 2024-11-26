@@ -36,8 +36,9 @@ declare module "@jakguru/vueprint" {
     ) => void;
   }
 }
-export {};
 
 interface ImportMeta {
   readonly env: Record<string, string>;
 }
+
+export {};

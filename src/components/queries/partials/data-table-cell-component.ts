@@ -4,6 +4,7 @@ import { VChip } from "vuetify/components/VChip";
 import { VBtn } from "vuetify/components/VBtn";
 import { VIcon } from "vuetify/components/VIcon";
 import { VProgressLinear } from "vuetify/components/VProgressLinear";
+import { VAvatar } from "vuetify/components/VAvatar";
 import {
   formatDateTime,
   formatDateTimeAsUTC,
@@ -256,6 +257,12 @@ export const QueriesPartialDataTableCell = defineComponent({
             },
             [h(VIcon, "mdi-dots-vertical")],
           );
+        case "avatar":
+          return h(VAvatar, {
+            size: "30",
+            color: "grey",
+            image: value.value.value,
+          });
         case "identifier":
           return h("code", attrs.value, value.value.display);
         case "estimated_hours":

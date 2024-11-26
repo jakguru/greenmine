@@ -617,12 +617,6 @@ export interface WorkloadAllocation {
   daily_breakdown: { [date: string]: DailyBreakdown };
 }
 
-export interface User {
-  id: number;
-  firstname: string;
-  lastname: string;
-}
-
 export interface Release {
   id: number;
   name: string;
@@ -768,4 +762,64 @@ export interface RoleValuesProp {
   trackers: SelectableListItem<number>[];
   userVisibilities: SelectableListItem<string>[];
   activities: SelectableListItem<number>[];
+}
+export interface Principal {
+  admin: boolean;
+  auth_source_id: number | null;
+  avatar: string | null;
+  created_on: string;
+  firstname: string;
+  hashed_password: string;
+  id: number;
+  language: string;
+  last_login_on: string | null;
+  lastname: string;
+  login: string;
+  mail_notifications: string;
+  monday_person_id: string;
+  must_change_passwd: boolean;
+  password_changed_on: string | null;
+  salt: string | null;
+  status: number;
+  twofa_required: boolean;
+  twofa_scheme: string | null;
+  twofa_totp_key: string | null;
+  twofa_totp_last_used_at: string | null;
+  type: string;
+  updated_on: string | null;
+}
+
+export interface PrincipalMembership {
+  project: number;
+  roles: number[];
+}
+
+export interface User extends Principal {
+  type: "User";
+}
+
+export interface Group extends Principal {
+  auth_source_id: null;
+  firstname: "";
+  hashed_password: "";
+  language: "";
+  login: "";
+  mail_notifications: "";
+  monday_person_id: "";
+  type: "Group";
+  password_changed_on: null;
+  salt: null;
+  status: 1;
+  twofa_scheme: null;
+  twofa_totp_key: null;
+  twofa_totp_last_used_at: null;
+  name: string;
+  users: number[];
+  memberships: PrincipalMembership[];
+}
+
+export interface GroupValuesProp {
+  roles: SelectableListItem<number>[];
+  projects: SelectableListItem<number>[];
+  users: SelectableListItem<number>[];
 }

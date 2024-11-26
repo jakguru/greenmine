@@ -189,9 +189,39 @@ export default {
     "groups-group-id-memberships-new": { title: "" },
     "groups-id": { title: "" },
     "groups-id-autocomplete-for-user": { title: "" },
-    "groups-id-edit": { title: "" },
+    "groups-id-edit": {
+      title: "Manage Group",
+      content: {
+        fields: {
+          name: "Group Name",
+          twofa_required: "Two-factor authentication required",
+          avatar: "Avatar",
+          users: "Group Members",
+          memberships: "Group Projects",
+        },
+      },
+      onSave: {
+        success: "Group updated successfully",
+        error: "An error occurred while updating the group",
+      },
+    },
     "groups-id-users-new": { title: "" },
-    "groups-new": { title: "" },
+    "groups-new": {
+      title: "Create a Group",
+      content: {
+        fields: {
+          name: "Group Name",
+          twofa_required: "Two-factor authentication required",
+          avatar: "Avatar",
+          users: "Group Members",
+          memberships: "Group Projects",
+        },
+      },
+      onSave: {
+        success: "Group created successfully",
+        error: "An error occurred while creating the group",
+      },
+    },
     "imports-id": { title: "" },
     "imports-id-mapping": { title: "" },
     "imports-id-run": { title: "" },
@@ -894,6 +924,9 @@ export default {
       },
     },
     start: "Start",
+    openFilePicker: "Browse",
+    project: "Project",
+    roles: "Roles",
   },
   theme: {
     base: {

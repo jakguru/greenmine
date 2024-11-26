@@ -389,8 +389,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/:group_id/memberships",
     name: "groups-group-id-memberships",
-    // "component": () => import("@/pages/groups/group_id/memberships.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-group-id-memberships.title",
     },
@@ -398,8 +397,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/:group_id/memberships/:id",
     name: "groups-group-id-memberships-id",
-    // "component": () => import("@/pages/groups/group_id/memberships/id.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-group-id-memberships-id.title",
     },
@@ -407,8 +405,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/:group_id/memberships/:id/edit",
     name: "groups-group-id-memberships-id-edit",
-    // "component": () => import("@/pages/groups/group_id/memberships/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-group-id-memberships-id-edit.title",
     },
@@ -416,8 +413,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/:group_id/memberships/new",
     name: "groups-group-id-memberships-new",
-    // "component": () => import("@/pages/groups/group_id/memberships/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-group-id-memberships-new.title",
     },
@@ -425,8 +421,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/:id",
     name: "groups-id",
-    // "component": () => import("@/pages/groups/id.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-id.title",
     },
@@ -434,8 +429,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/:id/autocomplete_for_user",
     name: "groups-id-autocomplete-for-user",
-    // "component": () => import("@/pages/groups/id/autocomplete_for_user.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-id-autocomplete-for-user.title",
     },
@@ -443,8 +437,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/:id/edit",
     name: "groups-id-edit",
-    // "component": () => import("@/pages/groups/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-id-edit.title",
     },
@@ -452,8 +445,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/:id/users/new",
     name: "groups-id-users-new",
-    // "component": () => import("@/pages/groups/id/users/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-id-users-new.title",
     },
@@ -461,8 +453,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/groups/new",
     name: "groups-new",
-    // "component": () => import("@/pages/groups/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/groups/edit.vue"),
     meta: {
       title: "pages.groups-new.title",
     },
