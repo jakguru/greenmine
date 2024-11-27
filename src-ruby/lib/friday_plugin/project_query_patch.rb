@@ -10,7 +10,7 @@ module FridayPlugin
           if order_options
             order_options.scan(/cf_\d+/).uniq.each do |name|
               column = available_columns.detect { |c| c.name.to_s == name }
-              join = column && column.custom_field.join_for_order_statement
+              join = column&.custom_field&.join_for_order_statement
               if join
                 joins << join
               end

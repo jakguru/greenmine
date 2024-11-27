@@ -371,47 +371,45 @@ module FridayWorkflowsHelper
     edges.each do |edge|
       old_status_id = (edge[:source] == "start-node") ? 0 : edge[:source].sub("issue-status-", "").to_i
       new_status_id = (edge[:target] == "end-node") ? 0 : edge[:target].sub("issue-status-", "").to_i
-      unless edge[:data][:current].nil?
-        edge[:data][:current].each do |role_id, transitions|
-          if transitions[:always]
-            raw_workflow_transitions << {
-              tracker_id: tracker.id,
-              old_status_id: old_status_id,
-              new_status_id: new_status_id,
-              role_id: role_id,
-              assignee: 0,
-              author: 0,
-              type: "WorkflowTransition",
-              field_name: nil,
-              rule: nil
-            }
-          end
-          if transitions[:assignee]
-            raw_workflow_transitions << {
-              tracker_id: tracker.id,
-              old_status_id: old_status_id,
-              new_status_id: new_status_id,
-              role_id: role_id,
-              assignee: 1,
-              author: 0,
-              type: "WorkflowTransition",
-              field_name: nil,
-              rule: nil
-            }
-          end
-          if transitions[:author]
-            raw_workflow_transitions << {
-              tracker_id: tracker.id,
-              old_status_id: old_status_id,
-              new_status_id: new_status_id,
-              role_id: role_id,
-              assignee: 0,
-              author: 1,
-              type: "WorkflowTransition",
-              field_name: nil,
-              rule: nil
-            }
-          end
+      edge[:data][:current]&.each do |role_id, transitions|
+        if transitions[:always]
+          raw_workflow_transitions << {
+            tracker_id: tracker.id,
+            old_status_id: old_status_id,
+            new_status_id: new_status_id,
+            role_id: role_id,
+            assignee: 0,
+            author: 0,
+            type: "WorkflowTransition",
+            field_name: nil,
+            rule: nil
+          }
+        end
+        if transitions[:assignee]
+          raw_workflow_transitions << {
+            tracker_id: tracker.id,
+            old_status_id: old_status_id,
+            new_status_id: new_status_id,
+            role_id: role_id,
+            assignee: 1,
+            author: 0,
+            type: "WorkflowTransition",
+            field_name: nil,
+            rule: nil
+          }
+        end
+        if transitions[:author]
+          raw_workflow_transitions << {
+            tracker_id: tracker.id,
+            old_status_id: old_status_id,
+            new_status_id: new_status_id,
+            role_id: role_id,
+            assignee: 0,
+            author: 1,
+            type: "WorkflowTransition",
+            field_name: nil,
+            rule: nil
+          }
         end
       end
     end

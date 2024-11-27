@@ -11,9 +11,10 @@
       <v-divider />
       <v-breadcrumbs v-bind="breadcrumbsBindings" />
       <v-divider />
-      <v-tabs v-bind="vTabBindings" />
-      <v-divider />
+      <v-tabs v-if="isSelf === false" v-bind="vTabBindings" />
+      <v-divider v-if="isSelf === false" />
       <FridayForm
+        v-if="isSelf === false"
         v-bind="fridayFormBindings"
         ref="renderedForm"
         @success="onSuccess"
@@ -54,6 +55,14 @@
           </v-row>
         </template>
       </FridayForm>
+      <v-empty-state
+        v-else
+        :headline="$t('pages.users-id-edit.selfEditing.headline')"
+        :title="$t('pages.users-id-edit.selfEditing.title')"
+        :text="$t('pages.users-id-edit.selfEditing.text')"
+        :image="doNotDisturbImage"
+        class="my-5"
+      ></v-empty-state>
     </v-card>
   </v-container>
 </template>
@@ -63,6 +72,7 @@ import { defineComponent, computed, inject, ref, h } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
+import { VCombobox } from "vuetify/components/VCombobox";
 import { VSwitch } from "vuetify/components/VSwitch";
 import { VBtn } from "vuetify/components/VBtn";
 import {
@@ -77,9 +87,17 @@ import {
   useReloadAppData,
   cloneObject,
   checkObjectEquality,
+  useAppData,
 } from "@/utils/app";
-import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
+import {
+  Joi,
+  tlds,
+  getFormFieldValidator,
+  FridayForm,
+  FridayFormStructureField,
+} from "@/components/forms";
 import * as genPass from "generate-password-browser";
+import doNotDisturbImage from "@/assets/images/do-not-disturb.svg?url";
 
 import type { PropType } from "vue";
 import type {
@@ -135,8 +153,12 @@ export default defineComponent({
     const reloadRouteDataAction = useReloadRouteData(route, api, toast);
     const reloadAppDataAction = useReloadAppData(ls, api);
     const accentColor = useSystemAccentColor();
+    const appData = useAppData();
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const id = computed(() => props.id);
+    const isSelf = computed(
+      () => id.value === appData.value.identity.identity.id,
+    );
     const model = computed(() => props.model);
     const values = computed(() => props.values);
     const commmentsSortingOptions = computed(
@@ -171,10 +193,29 @@ export default defineComponent({
         label: t("labels.autoWatchOn.issue_contributed_to"),
       },
     ]);
-    const { t } = useI18n({ useScope: "global" });
-    const i18nPrefix = computed(() =>
-      id.value ? "pages.users-id-edit" : "pages.users-new",
+    const emailDomainsAllowed = computed(
+      () => values.value.emailDomainsAllowed,
     );
+    const emailDomainsDenied = computed(() => values.value.emailDomainsDenied);
+    const emailDomainsAllowedArray = computed(() =>
+      "string" === typeof emailDomainsAllowed.value
+        ? emailDomainsAllowed.value
+            .trim()
+            .split(",")
+            .map((v: string) => v.trim())
+            .filter((v: string) => v.length > 0)
+        : [],
+    );
+    const emailDomainsDeniedArray = computed(() =>
+      "string" === typeof emailDomainsDenied.value
+        ? emailDomainsDenied.value
+            .trim()
+            .split(",")
+            .map((v: string) => v.trim())
+            .filter((v: string) => v.length > 0)
+        : [],
+    );
+    const { t } = useI18n({ useScope: "global" });
     const breadcrumbsBindings = computed(() => ({
       items: [
         { title: t("pages.admin.title"), to: { name: "admin" } },
@@ -183,33 +224,33 @@ export default defineComponent({
           to: { name: "users" },
         },
         {
-          title: t(`${i18nPrefix.value}.title`),
+          title: t(`pages.users-id-edit.title`),
         },
       ],
     }));
     const tabs = computed(() => [
       {
-        text: t(`${i18nPrefix.value}.content.tabs.information`),
+        text: t(`pages.users-id-edit.content.tabs.information`),
         value: "information",
       },
       {
-        text: t(`${i18nPrefix.value}.content.tabs.authentication`),
+        text: t(`pages.users-id-edit.content.tabs.authentication`),
         value: "authentication",
       },
       {
-        text: t(`${i18nPrefix.value}.content.tabs.password`),
+        text: t(`pages.users-id-edit.content.tabs.password`),
         value: "password",
       },
       {
-        text: t(`${i18nPrefix.value}.content.tabs.notifications`),
+        text: t(`pages.users-id-edit.content.tabs.notifications`),
         value: "notifications",
       },
       {
-        text: t(`${i18nPrefix.value}.content.tabs.preferences`),
+        text: t(`pages.users-id-edit.content.tabs.preferences`),
         value: "preferences",
       },
       {
-        text: t(`${i18nPrefix.value}.content.tabs.memberships`),
+        text: t(`pages.users-id-edit.content.tabs.memberships`),
         value: "memberships",
       },
     ]);
@@ -232,11 +273,15 @@ export default defineComponent({
         }
       },
     }));
+    const currentFieldValues = ref<Record<string, unknown>>({});
     const modifyPayload = (payload: Record<string, unknown>) => {
       return {
         authenticity_token: formAuthenticityToken.value,
-        group: {
+        send_information: payload.send_information,
+        user: {
           ...payload,
+          // mail: (currentFieldValues.value.mails as Array<string>)[0],
+          send_information: undefined,
         },
       };
     };
@@ -244,7 +289,7 @@ export default defineComponent({
       reloadRouteDataAction.call();
       reloadAppDataAction.call();
       if (!toast) {
-        alert(t(`${i18nPrefix.value}.onSave.success`));
+        alert(t(`pages.users-id-edit.onSave.success`));
         return;
       } else {
         if (
@@ -261,7 +306,7 @@ export default defineComponent({
           });
         }
         toast.fire({
-          title: t(`${i18nPrefix.value}.onSave.success`),
+          title: t(`pages.users-id-edit.onSave.success`),
           icon: "success",
         });
         return;
@@ -272,11 +317,11 @@ export default defineComponent({
         console.error(payload);
       }
       if (!swal) {
-        alert(t(`${i18nPrefix.value}.onSave.error`));
+        alert(t(`pages.users-id-edit.onSave.error`));
         return;
       } else {
         swal.fire({
-          title: t(`${i18nPrefix.value}.onSave.error`),
+          title: t(`pages.users-id-edit.onSave.error`),
           icon: "error",
         });
         return;
@@ -319,19 +364,50 @@ export default defineComponent({
       return getFormFieldValidator(
         t,
         schema,
-        t(`${i18nPrefix.value}.content.fields.password`),
+        t(`pages.users-id-edit.content.fields.password`),
       );
     });
+    const emailAddressSchema = computed(() => {
+      let schema = Joi.string().required();
+      if (
+        emailDomainsAllowedArray.value.length > 0 ||
+        emailDomainsDeniedArray.value.length > 0
+      ) {
+        if (emailDomainsAllowedArray.value.length > 0) {
+          schema = schema.concat(
+            Joi.string().email({
+              tlds: { allow: emailDomainsAllowedArray.value },
+            }),
+          );
+        } else {
+          schema = schema.concat(
+            Joi.string().email({
+              tlds: { deny: emailDomainsDeniedArray.value },
+            }),
+          );
+        }
+      } else {
+        schema = schema.concat(Joi.string().email({ tlds: { allow: tlds } }));
+      }
+      return schema;
+    });
+    const mailsFieldValidator = computed(() =>
+      getFormFieldValidator(
+        t,
+        Joi.array().items(emailAddressSchema.value).min(1),
+        t(`pages.users-id-edit.content.fields.mails`),
+      ),
+    );
     const renderedForm = ref<FridayFormComponent | null>(null);
     const doGeneratePassword = () => {
       if (!renderedForm.value) {
         if (toast) {
           toast.fire({
-            title: t(`${i18nPrefix.value}.onGeneratePassword.error`),
+            title: t(`pages.users-id-edit.onGeneratePassword.error`),
             icon: "error",
           });
         } else {
-          alert(t(`${i18nPrefix.value}.onGeneratePassword.error`));
+          alert(t(`pages.users-id-edit.onGeneratePassword.error`));
         }
         return;
       }
@@ -346,7 +422,6 @@ export default defineComponent({
       renderedForm.value.setValue("password", generated);
       renderedForm.value.setValue("must_change_passwd", true);
     };
-    const currentFieldValues = ref<Record<string, unknown>>({});
     const formStructure = computed<FridayFormStructure>(() => {
       switch (tab.value) {
         case "information":
@@ -358,14 +433,14 @@ export default defineComponent({
                 fieldComponent: VTextField,
                 formKey: "firstname",
                 valueKey: "firstname",
-                label: t(`${i18nPrefix.value}.content.fields.firstname`),
+                label: t(`pages.users-id-edit.content.fields.firstname`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.firstname`),
+                  label: t(`pages.users-id-edit.content.fields.firstname`),
                 },
                 validator: getFormFieldValidator(
                   t,
                   Joi.string().required().max(255),
-                  t(`${i18nPrefix.value}.content.fields.firstname`),
+                  t(`pages.users-id-edit.content.fields.firstname`),
                 ),
               },
               {
@@ -374,14 +449,14 @@ export default defineComponent({
                 fieldComponent: VTextField,
                 formKey: "lastname",
                 valueKey: "lastname",
-                label: t(`${i18nPrefix.value}.content.fields.lastname`),
+                label: t(`pages.users-id-edit.content.fields.lastname`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.lastname`),
+                  label: t(`pages.users-id-edit.content.fields.lastname`),
                 },
                 validator: getFormFieldValidator(
                   t,
                   Joi.string().required().max(255),
-                  t(`${i18nPrefix.value}.content.fields.lastname`),
+                  t(`pages.users-id-edit.content.fields.lastname`),
                 ),
               },
             ],
@@ -391,9 +466,9 @@ export default defineComponent({
                 fieldComponent: VBase64EncodedImageField,
                 formKey: "avatar",
                 valueKey: "avatar",
-                label: t(`${i18nPrefix.value}.content.fields.avatar`),
+                label: t(`pages.users-id-edit.content.fields.avatar`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.avatar`),
+                  label: t(`pages.users-id-edit.content.fields.avatar`),
                   height: 200,
                   clearable: true,
                 },
@@ -409,14 +484,14 @@ export default defineComponent({
                 fieldComponent: VTextField,
                 formKey: "login",
                 valueKey: "login",
-                label: t(`${i18nPrefix.value}.content.fields.login`),
+                label: t(`pages.users-id-edit.content.fields.login`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.login`),
+                  label: t(`pages.users-id-edit.content.fields.login`),
                 },
                 validator: getFormFieldValidator(
                   t,
                   Joi.string().required().max(255),
-                  t(`${i18nPrefix.value}.content.fields.login`),
+                  t(`pages.users-id-edit.content.fields.login`),
                 ),
               },
             ],
@@ -427,17 +502,12 @@ export default defineComponent({
                 fieldComponent: VAutocomplete,
                 formKey: "status",
                 valueKey: "status",
-                label: t(`${i18nPrefix.value}.content.fields.status`),
+                label: t(`pages.users-id-edit.content.fields.status`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.status`),
+                  label: t(`pages.users-id-edit.content.fields.status`),
                   items: userStatusOptions.value,
                   itemTitle: "label",
                 },
-                validator: getFormFieldValidator(
-                  t,
-                  Joi.string().required().max(255),
-                  t(`${i18nPrefix.value}.content.fields.status`),
-                ),
               },
             ],
             [
@@ -447,9 +517,9 @@ export default defineComponent({
                 fieldComponent: VSwitch,
                 formKey: "admin",
                 valueKey: "admin",
-                label: t(`${i18nPrefix.value}.content.fields.admin`),
+                label: t(`pages.users-id-edit.content.fields.admin`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.admin`),
+                  label: t(`pages.users-id-edit.content.fields.admin`),
                 },
               },
             ],
@@ -463,9 +533,9 @@ export default defineComponent({
                 fieldComponent: VPasswordField,
                 formKey: "password",
                 valueKey: "password",
-                label: t(`${i18nPrefix.value}.content.fields.password`),
+                label: t(`pages.users-id-edit.content.fields.password`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.password`),
+                  label: t(`pages.users-id-edit.content.fields.password`),
                 },
                 validator: passwordFieldValidator.value,
               },
@@ -479,14 +549,14 @@ export default defineComponent({
                     height: "56px",
                     onClick: doGeneratePassword,
                   },
-                  `labels.generate`,
+                  t(`labels.generate`),
                 ),
                 formKey: "password_generator",
                 valueKey: "password_generator",
                 label: t(
-                  `${i18nPrefix.value}.content.fields.password_generator`,
+                  `pages.users-id-edit.content.fields.password_generator`,
                 ),
-              },
+              } as FridayFormStructureField,
             ],
             [
               {
@@ -496,11 +566,26 @@ export default defineComponent({
                 formKey: "must_change_passwd",
                 valueKey: "must_change_passwd",
                 label: t(
-                  `${i18nPrefix.value}.content.fields.must_change_passwd`,
+                  `pages.users-id-edit.content.fields.must_change_passwd`,
                 ),
                 bindings: {
                   label: t(
-                    `${i18nPrefix.value}.content.fields.must_change_passwd`,
+                    `pages.users-id-edit.content.fields.must_change_passwd`,
+                  ),
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VSwitch,
+                formKey: "send_information",
+                valueKey: "send_information",
+                label: t(`pages.users-id-edit.content.fields.send_information`),
+                bindings: {
+                  label: t(
+                    `pages.users-id-edit.content.fields.send_information`,
                   ),
                 },
               },
@@ -512,24 +597,37 @@ export default defineComponent({
               {
                 cols: 12,
                 md: 4,
+                fieldComponent: VCombobox,
+                formKey: "mails",
+                valueKey: "mails",
+                label: t(`pages.users-id-edit.content.fields.mails`),
+                bindings: {
+                  label: t(`pages.users-id-edit.content.fields.mails`),
+                  itemTitle: "label",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+                validator: mailsFieldValidator.value,
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
                 fieldComponent: VAutocomplete,
                 formKey: "mail_notification",
                 valueKey: "mail_notification",
                 label: t(
-                  `${i18nPrefix.value}.content.fields.mail_notification`,
+                  `pages.users-id-edit.content.fields.mail_notification`,
                 ),
                 bindings: {
                   label: t(
-                    `${i18nPrefix.value}.content.fields.mail_notification`,
+                    `pages.users-id-edit.content.fields.mail_notification`,
                   ),
                   items: mailNotificationOptions.value,
                   itemTitle: "label",
                 },
-                validator: getFormFieldValidator(
-                  t,
-                  Joi.string().required().max(255),
-                  t(`${i18nPrefix.value}.content.fields.mail_notification`),
-                ),
               },
             ],
             [
@@ -539,20 +637,15 @@ export default defineComponent({
                 fieldComponent: VAutocomplete,
                 formKey: "auto_watch_on",
                 valueKey: "auto_watch_on",
-                label: t(`${i18nPrefix.value}.content.fields.auto_watch_on`),
+                label: t(`pages.users-id-edit.content.fields.auto_watch_on`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.auto_watch_on`),
+                  label: t(`pages.users-id-edit.content.fields.auto_watch_on`),
                   items: autoWatchOnOptions.value,
                   itemTitle: "label",
                   multiple: true,
                   chips: true,
                   closableChips: true,
                 },
-                validator: getFormFieldValidator(
-                  t,
-                  Joi.string().required().max(255),
-                  t(`${i18nPrefix.value}.content.fields.auto_watch_on`),
-                ),
               },
             ],
             [
@@ -562,10 +655,10 @@ export default defineComponent({
                 fieldComponent: VSwitch,
                 formKey: "no_self_notified",
                 valueKey: "no_self_notified",
-                label: t(`${i18nPrefix.value}.content.fields.no_self_notified`),
+                label: t(`pages.users-id-edit.content.fields.no_self_notified`),
                 bindings: {
                   label: t(
-                    `${i18nPrefix.value}.content.fields.no_self_notified`,
+                    `pages.users-id-edit.content.fields.no_self_notified`,
                   ),
                   trueValue: "1",
                   falseValue: "0",
@@ -579,20 +672,13 @@ export default defineComponent({
               {
                 cols: 12,
                 md: 4,
-                fieldComponent: VAutocomplete,
-                formKey: "language",
-                valueKey: "language",
-                label: t(`${i18nPrefix.value}.content.fields.language`),
+                fieldComponent: VSwitch,
+                formKey: "hide_mail",
+                valueKey: "hide_mail",
+                label: t(`pages.users-id-edit.content.fields.hide_mail`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.language`),
-                  items: languages.value,
-                  itemTitle: "label",
+                  label: t(`pages.users-id-edit.content.fields.hide_mail`),
                 },
-                validator: getFormFieldValidator(
-                  t,
-                  Joi.string().required().max(255),
-                  t(`${i18nPrefix.value}.content.fields.language`),
-                ),
               },
             ],
             [
@@ -600,19 +686,103 @@ export default defineComponent({
                 cols: 12,
                 md: 4,
                 fieldComponent: VAutocomplete,
-                formKey: "timezone",
-                valueKey: "timezone",
-                label: t(`${i18nPrefix.value}.content.fields.timezone`),
+                formKey: "language",
+                valueKey: "language",
+                label: t(`pages.users-id-edit.content.fields.language`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.timezone`),
+                  label: t(`pages.users-id-edit.content.fields.language`),
+                  items: languages.value,
+                  itemTitle: "label",
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "time_zone",
+                valueKey: "time_zone",
+                label: t(`pages.users-id-edit.content.fields.timezone`),
+                bindings: {
+                  label: t(`pages.users-id-edit.content.fields.timezone`),
                   items: timezones.value,
                   itemTitle: "label",
                 },
-                validator: getFormFieldValidator(
-                  t,
-                  Joi.string().required().max(255),
-                  t(`${i18nPrefix.value}.content.fields.timezone`),
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "comments_sorting",
+                valueKey: "comments_sorting",
+                label: t(`pages.users-id-edit.content.fields.comments_sorting`),
+                bindings: {
+                  label: t(
+                    `pages.users-id-edit.content.fields.comments_sorting`,
+                  ),
+                  items: commmentsSortingOptions.value,
+                  itemTitle: "label",
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "history_default_tab",
+                valueKey: "history_default_tab",
+                label: t(
+                  `pages.users-id-edit.content.fields.history_default_tab`,
                 ),
+                bindings: {
+                  label: t(
+                    `pages.users-id-edit.content.fields.history_default_tab`,
+                  ),
+                  items: historyDefaultTabOptions.value,
+                  itemTitle: "label",
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "default_issue_query",
+                valueKey: "default_issue_query",
+                label: t(
+                  `pages.users-id-edit.content.fields.default_issue_query`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.users-id-edit.content.fields.default_issue_query`,
+                  ),
+                  items: defaultIssueQueryOptions.value,
+                  itemTitle: "label",
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "default_project_query",
+                valueKey: "default_project_query",
+                label: t(
+                  `pages.users-id-edit.content.fields.default_project_query`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.users-id-edit.content.fields.default_project_query`,
+                  ),
+                  items: defaultProjectQueryOptions.value,
+                  itemTitle: "label",
+                },
               },
             ],
           ];
@@ -624,9 +794,9 @@ export default defineComponent({
                 fieldComponent: VAutocomplete,
                 formKey: "groups",
                 valueKey: "groups",
-                label: t(`${i18nPrefix.value}.content.fields.groups`),
+                label: t(`pages.users-id-edit.content.fields.groups`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.groups`),
+                  label: t(`pages.users-id-edit.content.fields.groups`),
                   items: groups.value,
                   itemTitle: "label",
                   multiple: true,
@@ -641,9 +811,9 @@ export default defineComponent({
                 fieldComponent: VProjectMembershipField,
                 formKey: "memberships",
                 valueKey: "memberships",
-                label: t(`${i18nPrefix.value}.content.fields.memberships`),
+                label: t(`pages.users-id-edit.content.fields.memberships`),
                 bindings: {
-                  label: t(`${i18nPrefix.value}.content.fields.memberships`),
+                  label: t(`pages.users-id-edit.content.fields.memberships`),
                   roles: roles.value,
                   projects: projects.value,
                 },
@@ -702,6 +872,7 @@ export default defineComponent({
       },
     }));
     return {
+      isSelf,
       breadcrumbsBindings,
       fridayFormBindings,
       accentColor,
@@ -710,6 +881,7 @@ export default defineComponent({
       currentFieldValues,
       vTabBindings,
       renderedForm,
+      doNotDisturbImage,
     };
   },
 });

@@ -1,0 +1,15 @@
+default:
+  email_delivery:
+    delivery_method: :smtp
+    smtp_settings:
+      address: "smtp"
+      port: 1025
+  max_concurrent_ajax_uploads: 2
+  openid_authentication_store: :memory
+  avatar_server_url: https://www.gravatar.com
+  sudo_mode: false
+  sudo_mode_timeout: 15
+
+production:
+
+development:

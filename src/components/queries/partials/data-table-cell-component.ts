@@ -446,6 +446,19 @@ export const QueriesPartialDataTableCell = defineComponent({
           }
         case "UserQuery":
           switch (column.value.key) {
+            case "id":
+            case "login":
+              return h(
+                RouterLink,
+                {
+                  to: {
+                    name: "users-id-edit",
+                    params: { id: item.value.id },
+                  },
+                  ...attrs.value,
+                },
+                value.value.display,
+              );
             default:
               return toReturnByColumnKey.value;
           }

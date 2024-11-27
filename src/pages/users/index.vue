@@ -71,16 +71,13 @@ export default defineComponent({
     const getActionMenuItems = (
       customFields: Item[],
       onDone: () => void,
-      onFilterTo: () => void,
     ): ActionMenuItem[] => {
       if (customFields.length > 1) {
         return [
           {
             component: h(VListItem, {
-              title: t("userActionMenu.filterTo.title"),
-              appendIcon: "mdi-filter",
+              title: t("userActionMenu.none.title"),
               density: "compact",
-              onClick: () => onFilterTo(),
             }),
           },
         ];
@@ -95,14 +92,6 @@ export default defineComponent({
               name: "users-id-edit",
               params: { id: customFields[0].id },
             },
-          }),
-        },
-        {
-          component: h(VListItem, {
-            title: t("userActionMenu.filterTo.title"),
-            appendIcon: "mdi-filter",
-            density: "compact",
-            onClick: () => onFilterTo(),
           }),
         },
         {

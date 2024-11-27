@@ -40,22 +40,10 @@ module FridayPlugin
 
         def create
           if friday_request?
-            @user = User.new
-            @user.safe_attributes = params[:user]
-            if params[:user][:avatar].present?
-              @user.avatar = process_avatar(params[:user][:avatar])
-            end
-            users = User.where(id: params[:user][:users]).to_a
-            @user.users = users
-            if @user.save
-              syncronize_user_memberships(@user, params[:user][:memberships])
-              enqueue_realtime_updates
-              render json: {
-                id: @user.id
-              }, status: 201
-            else
-              render json: {errors: @user.errors.full_messages}, status: 422
-            end
+            @user = User.new(language: Setting.default_language,
+              mail_notification: Setting.default_notification_option,
+              admin: false)
+            render_save_response
           else
             redmine_base_create
           end
@@ -63,21 +51,7 @@ module FridayPlugin
 
         def update
           if friday_request?
-            @user.safe_attributes = params[:user]
-            if params[:user][:avatar].present?
-              @user.avatar = process_avatar(params[:user][:avatar])
-            end
-            users = User.where(id: params[:user][:users]).to_a
-            @user.users = users
-            if @user.save
-              syncronize_user_memberships(@user, params[:user][:memberships])
-              enqueue_realtime_updates
-              render json: {
-                id: @user.id
-              }, status: 201
-            else
-              render json: {errors: @user.errors.full_messages}, status: 422
-            end
+            render_save_response
           else
             redmine_base_update
           end
@@ -85,9 +59,7 @@ module FridayPlugin
 
         def destroy
           if friday_request?
-            if @user.builtin?
-              render json: {errors: l(:error_can_not_delete_builtin_user)}, status: 403
-            elsif @user.destroy
+            if @user.destroy
               enqueue_realtime_updates
               render json: {}
             else
@@ -141,7 +113,7 @@ module FridayPlugin
               gantt_zoom: @user.pref[:gantt_zoom],
               gantt_months: @user.pref[:gantt_months],
               notify_about_high_priority_issues: @user.pref[:notify_about_high_priority_issues],
-              comments_sorting: @user.pref[:comments_sorting],
+              comments_sorting: @user.pref.comments_sorting,
               warn_on_leaving_unsaved: @user.pref[:warn_on_leaving_unsaved],
               textarea_font: @user.pref[:textarea_font],
               recently_used_projects: @user.pref[:recently_used_projects],
@@ -182,8 +154,8 @@ module FridayPlugin
                   label: v.first
                 }
               },
-              defaultIssueQueryOptions: [{value: "", label: l(:label_none)}] + issue_query_options(@user),
-              defaultProjectQueryOptions: [{value: "", label: l(:label_none)}] + project_query_options(@user),
+              defaultIssueQueryOptions: [{value: nil, label: l(:label_none)}] + issue_query_options(@user),
+              defaultProjectQueryOptions: [{value: nil, label: l(:label_none)}] + project_query_options(@user),
               userStatusOptions: (@user.status == User::STATUS_REGISTERED) ? [
                 {value: User::STATUS_ACTIVE, label: l(:label_active)},
                 {value: User::STATUS_LOCKED, label: l(:label_locked)},
@@ -193,9 +165,44 @@ module FridayPlugin
                 {value: User::STATUS_LOCKED, label: l(:label_locked)}
               ],
               passwordMinLength: Setting.send(:password_min_length),
-              passwordRequiredCharClasses: Setting.send(:password_required_char_classes)
+              passwordRequiredCharClasses: Setting.send(:password_required_char_classes),
+              emailDomainsAllowed: Setting.send(:email_domains_allowed),
+              emailDomainsDenied: Setting.send(:email_domains_denied)
             }
           }
+        end
+
+        def render_save_response
+          @user.safe_attributes = params[:user]
+          @user.pref.safe_attributes = params[:user]
+          if params[:user][:mails].present?
+            @user.mail = params[:user][:mails].first
+          end
+          if params[:user].key?(:avatar)
+            @user.avatar = params[:user][:avatar].present? ? process_avatar(params[:user][:avatar]) : nil
+          end
+          if params[:user].key?(:groups)
+            @user.groups = if params[:user][:groups].empty?
+              []
+            else
+              Group.where(id: params[:user][:groups])
+            end
+          end
+          if @user.save && @user.pref.save
+            Mailer.deliver_account_information(@user, params[:user][:password]) if params[:send_information] && params[:user][:password].present?
+            if params[:user][:memberships].present?
+              syncronize_user_memberships(@user, params[:user][:memberships])
+            end
+            if params[:user][:mails].present?
+              syncronize_user_email_addresses(@user, params[:user][:mails])
+            end
+            enqueue_realtime_updates
+            render json: {
+              id: @user.id
+            }, status: 201
+          else
+            render json: {errors: @user.errors.full_messages + @user.pref.errors.full_messages}, status: 422
+          end
         end
 
         def enqueue_realtime_updates
@@ -249,6 +256,20 @@ module FridayPlugin
               existing_membership.role_ids = membership[:roles]
               existing_membership.save
             end
+          end
+        end
+
+        def syncronize_user_email_addresses(user, list_of_final_addresses)
+          existing = user.email_addresses
+          existing_addresses = existing.map(&:address)
+          to_add = list_of_final_addresses.reject { |email| existing_addresses.include?(email) }
+          to_remove = existing.reject { |email| list_of_final_addresses.include?(email.address) }
+          to_add.each do |email|
+            address = EmailAddress.new(user: user, is_default: false, address: email)
+            address.save
+          end
+          to_remove.each do |address|
+            address&.destroy
           end
         end
 

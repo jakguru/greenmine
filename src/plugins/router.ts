@@ -1860,7 +1860,7 @@ const routes: RouteRecordRaw[] = [
     name: "users-id",
     component: () => import("@/pages/users/edit.vue"),
     meta: {
-      title: "pages.users-id.title",
+      title: "pages.users-id-edit.title",
     },
   },
   {
@@ -1876,7 +1876,7 @@ const routes: RouteRecordRaw[] = [
     name: "users-user-id-email-addresses",
     component: () => import("@/pages/users/edit.vue"),
     meta: {
-      title: "pages.users-user-id-email-addresses.title",
+      title: "pages.users-id-edit.title",
     },
   },
   {
@@ -1884,7 +1884,7 @@ const routes: RouteRecordRaw[] = [
     name: "users-user-id-memberships",
     component: () => import("@/pages/users/edit.vue"),
     meta: {
-      title: "pages.users-user-id-memberships.title",
+      title: "pages.users-id-edit.title",
     },
   },
   {
@@ -1892,7 +1892,7 @@ const routes: RouteRecordRaw[] = [
     name: "users-user-id-memberships-id",
     component: () => import("@/pages/users/edit.vue"),
     meta: {
-      title: "pages.users-user-id-memberships-id.title",
+      title: "pages.users-id-edit.title",
     },
   },
   {
@@ -1900,7 +1900,7 @@ const routes: RouteRecordRaw[] = [
     name: "users-user-id-memberships-id-edit",
     component: () => import("@/pages/users/edit.vue"),
     meta: {
-      title: "pages.users-user-id-memberships-id-edit.title",
+      title: "pages.users-id-edit.title",
     },
   },
   {
@@ -1908,7 +1908,7 @@ const routes: RouteRecordRaw[] = [
     name: "users-user-id-memberships-new",
     component: () => import("@/pages/users/edit.vue"),
     meta: {
-      title: "pages.users-user-id-memberships-new.title",
+      title: "pages.users-id-edit.title",
     },
   },
   {
@@ -1932,8 +1932,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/users/new",
     name: "users-new",
-    // "component": () => import("@/pages/users/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/users/new.vue"),
     meta: {
       title: "pages.users-new.title",
     },

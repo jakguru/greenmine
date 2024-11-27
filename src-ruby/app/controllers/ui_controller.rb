@@ -58,6 +58,9 @@ class UiController < ApplicationController
         },
         GroupQuery: {
           operators: GroupQuery.operators_by_filter_type
+        },
+        UserQuery: {
+          operators: UserQuery.operators_by_filter_type
         }
       },
       settings: {

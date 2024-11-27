@@ -835,6 +835,8 @@ export interface UserValuesProp {
   userStatusOptions: SelectableListItem<number>[];
   passwordMinLength: number;
   passwordRequiredCharClasses: string[];
+  emailDomainsAllowed: string | null;
+  emailDomainsDenied: string | null;
 }
 
 export interface Group extends Principal {
