@@ -4,6 +4,8 @@ module FridayPlugin
   module ProjectQueryPatch
     def self.included(base)
       base.class_eval do
+        add_available_column(QueryColumn.new(:avatar))
+
         def joins_for_order_statement(order_options)
           joins = []
 

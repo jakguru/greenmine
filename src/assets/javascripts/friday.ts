@@ -20,6 +20,7 @@ import type {
   VueMainBootstrapOptions,
   VueClientBootstrapOptions,
 } from "@jakguru/vueprint/plugins";
+import type { App, Plugin } from "vue";
 
 const mainColors = {
   primary: "#0273EA",
@@ -229,4 +230,10 @@ createApp(FridayApp, {
   .use(VueMainBootstrap, vueprintMainPluginOptions)
   .use(VueClientBootstrap, vueprintClientPluginOptions)
   .use(head)
+  .use({
+    install: (app: App) => {
+      app.config.globalProperties.$actioncable = consumer;
+      app.provide("actioncable", consumer);
+    },
+  } as Plugin)
   .mount("#friday-app");

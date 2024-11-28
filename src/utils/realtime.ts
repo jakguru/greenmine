@@ -1,3 +1,4 @@
+import { inject } from "vue";
 import { appDebug } from "@/utils/app";
 import type { BusService } from "@jakguru/vueprint";
 import type Cable from "@rails/actioncable";
@@ -21,7 +22,7 @@ export interface RealtimeApplicationUpdateEventWithTabUUIDPayload {
 export interface RealtimeDisconnectedEventPayload {
   willAttemptReconnect: boolean;
 }
-
+// rtu_gitlab_instance_projects
 export const hookRealtime = (bus: BusService, consumer: Cable.Consumer) => {
   appDebug("Creating Realtime Subscriptions");
   consumer.subscriptions.create(
@@ -168,4 +169,8 @@ export const hookRealtime = (bus: BusService, consumer: Cable.Consumer) => {
       },
     },
   );
+};
+
+export const useActionCableConsumer = () => {
+  return inject<Cable.Consumer>("actioncable");
 };

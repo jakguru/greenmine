@@ -33,6 +33,66 @@ export default {
         },
       },
     },
+    "admin-integrations": {
+      title: "Integrations",
+      admin: { title: "Integrations" },
+    },
+    "admin-integrations-github": {
+      title: "GitHub Integrations",
+    },
+    "admin-integrations-gitlab": {
+      title: "GitLab Integrations",
+    },
+    "admin-integrations-gitlab-new": {
+      title: "Create a GitLab Integration",
+      content: {
+        fields: {
+          name: "Integration Name",
+          url: "Base URL",
+          api_token: "Access Token",
+          active: "Active",
+        },
+      },
+      onSave: {
+        success: "Integration created successfully",
+        error: "An error occurred while creating the integration",
+      },
+    },
+    "admin-integrations-gitlab-id": {
+      title: "Manage a GitLab Integration",
+      content: {
+        fields: {
+          name: "Integration Name",
+          url: "Base URL",
+          api_token: "Access Token",
+          active: "Active",
+        },
+      },
+      projects: {
+        title: "Gitlab Projects",
+        cta: "Fetch Projects",
+        onFetch: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
+      },
+      onSave: {
+        success: "Integration created successfully",
+        error: "An error occurred while creating the integration",
+      },
+    },
+    "admin-integrations-pagerduty": {
+      title: "PagerDuty Integrations",
+    },
+    "admin-integrations-sentry": {
+      title: "Sentry Integrations",
+    },
+    "admin-integrations-slack": {
+      title: "Slack Integrations",
+    },
+    "admin-integrations-webhooks": {
+      title: "Webhook Integrations",
+    },
     "admin-plugins": { title: "Integrated Plugins" },
     "admin-projects-context-menu": { title: "" },
     "admin-projects": { title: "Project Management" },
@@ -1024,6 +1084,9 @@ export default {
     autoWatchOn: {
       issue_created: "Issues Created by User",
       issue_contributed_to: "Issues Contributed to by User",
+    },
+    webhooks: {
+      title: "Webhooks",
     },
   },
   theme: {

@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, onMounted } from "vue";
+import { defineComponent, computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VAutocomplete } from "vuetify/components/VAutocomplete";
@@ -69,6 +69,7 @@ import {
   useSystemAccentColor,
   useReloadRouteData,
   useReloadAppData,
+  checkObjectEquality,
 } from "@/utils/app";
 import {
   Joi,
@@ -160,18 +161,18 @@ export default defineComponent({
         text: t("pages.settings.content.tabs.repositories"),
         value: "repositories",
       },
-      {
-        text: t("pages.settings.content.tabs.monday_com"),
-        value: "monday_com",
-      },
-      {
-        text: t("pages.settings.content.tabs.gitlab"),
-        value: "gitlab",
-      },
-      {
-        text: t("pages.settings.content.tabs.sentry"),
-        value: "sentry",
-      },
+      // {
+      //   text: t("pages.settings.content.tabs.monday_com"),
+      //   value: "monday_com",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.gitlab"),
+      //   value: "gitlab",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.sentry"),
+      //   value: "sentry",
+      // },
       {
         text: t("pages.settings.content.tabs.google_translate"),
         value: "google_translate",
@@ -180,14 +181,14 @@ export default defineComponent({
         text: t("pages.settings.content.tabs.chat_gpt"),
         value: "chat_gpt",
       },
-      {
-        text: t("pages.settings.content.tabs.slack"),
-        value: "slack",
-      },
-      {
-        text: t("pages.settings.content.tabs.pagerduty"),
-        value: "pagerduty",
-      },
+      // {
+      //   text: t("pages.settings.content.tabs.slack"),
+      //   value: "slack",
+      // },
+      // {
+      //   text: t("pages.settings.content.tabs.pagerduty"),
+      //   value: "pagerduty",
+      // },
     ]);
     const tab = computed({
       get: () => (route.query.tab as string | undefined) ?? "general",
@@ -1210,6 +1211,7 @@ export default defineComponent({
         })),
       ),
     );
+    const currentFieldValues = ref<Record<string, unknown>>({});
     const fridayFormBindings = computed(() => ({
       action: router.resolve({ name: "settings-edit" }).href,
       method: "post",
@@ -1217,6 +1219,40 @@ export default defineComponent({
       values: formValues.value,
       modifyPayload,
       validHttpStatus: 201,
+      "onUpdate:values": (values: Record<string, unknown>) => {
+        if (!checkObjectEquality(values, currentFieldValues.value)) {
+          currentFieldValues.value = values;
+        }
+      },
+      getFieldOverrides: (
+        _formKey: string,
+        _value: unknown,
+        _values: Record<string, unknown>,
+      ) => {
+        // switch (formKey) {
+        //   case "managed_group_ids":
+        //     if (values.all_users_managed === true) {
+        //       return { disabled: true, readonly: true };
+        //     }
+        //     break;
+        //   case "permissions_all_trackers":
+        //   case "permissions_tracker_ids":
+        //     return {
+        //       model: values,
+        //       disabled: !(values.permissions as string[]).includes(
+        //         "view_issues",
+        //       ),
+        //       readonly: !(values.permissions as string[]).includes(
+        //         "view_issues",
+        //       ),
+        //     };
+        //   case "permissions":
+        //     return {
+        //       model: values,
+        //     };
+        // }
+        return {};
+      },
     }));
     const onRtuApplication = () => {
       reloadRouteDataAction.call();

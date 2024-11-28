@@ -107,6 +107,10 @@ module FridayHelper
     render json: query_response(query, scope, klass, project, user, params, per_page_option)
   end
 
+  def render_blank
+    render template: "blank"
+  end
+
   private
 
   def make_creatable_list(klass, project, user)
@@ -297,6 +301,13 @@ module FridayHelper
         ret << {
           title: l(:label_user_new),
           url: new_user_path
+        }
+      end
+    elsif klass == GitlabsQuery
+      if user.admin
+        ret << {
+          title: l(:label_gitlab_new),
+          url: new_admin_integrations_gitlab_path
         }
       end
     end

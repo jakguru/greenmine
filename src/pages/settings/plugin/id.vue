@@ -67,11 +67,6 @@
           </v-row>
         </template>
       </FridayForm>
-      <v-divider />
-      <ul>
-        <li>TODO: Link Slack</li>
-        <li>TODO: Link PagerDuty</li>
-      </ul>
     </v-card>
   </v-container>
 </template>
@@ -171,205 +166,205 @@ export default defineComponent({
           },
         },
       ],
-      [
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VPasswordField,
-          formKey: "monday_access_token",
-          valueKey: "monday_access_token",
-          label: t("pages.settings-plugin-id.fields.monday_access_token"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.string().optional().allow(""),
-            t("pages.settings-plugin-id.fields.monday_access_token"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.monday_access_token"),
-            density: "compact",
-          },
-        },
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VTextField,
-          formKey: "monday_board_id",
-          valueKey: "monday_board_id",
-          label: t("pages.settings-plugin-id.fields.monday_board_id"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.string().optional().allow(""),
-            t("pages.settings-plugin-id.fields.monday_board_id"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.monday_board_id"),
-            density: "compact",
-          },
-        },
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VTextField,
-          formKey: "monday_group_id",
-          valueKey: "monday_group_id",
-          label: t("pages.settings-plugin-id.fields.monday_group_id"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.string().optional().allow(""),
-            t("pages.settings-plugin-id.fields.monday_group_id"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.monday_group_id"),
-            density: "compact",
-          },
-        },
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VSwitch,
-          formKey: "monday_enabled",
-          valueKey: "monday_enabled",
-          label: t("pages.settings-plugin-id.fields.monday_enabled"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.any().valid("0", "1"),
-            t("pages.settings-plugin-id.fields.monday_enabled"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.monday_enabled"),
-            density: "compact",
-            falseValue: "0",
-            trueValue: "1",
-          },
-        },
-      ],
-      [
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VTextField,
-          formKey: "gitlab_api_base_url",
-          valueKey: "gitlab_api_base_url",
-          label: t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.string().optional().allow(""),
-            t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
-            density: "compact",
-          },
-        },
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VPasswordField,
-          formKey: "gitlab_api_token",
-          valueKey: "gitlab_api_token",
-          label: t("pages.settings-plugin-id.fields.gitlab_api_token"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.string().optional().allow(""),
-            t("pages.settings-plugin-id.fields.gitlab_api_token"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.gitlab_api_token"),
-            density: "compact",
-          },
-        },
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VSwitch,
-          formKey: "gitlab_api_enabled",
-          valueKey: "gitlab_api_enabled",
-          label: t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.any().valid("0", "1"),
-            t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
-            density: "compact",
-            falseValue: "0",
-            trueValue: "1",
-          },
-        },
-      ],
-      [
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VTextField,
-          formKey: "sentry_api_base_url",
-          valueKey: "sentry_api_base_url",
-          label: t("pages.settings-plugin-id.fields.sentry_api_base_url"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.string().optional().allow(""),
-            t("pages.settings-plugin-id.fields.sentry_api_base_url"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.sentry_api_base_url"),
-            density: "compact",
-          },
-        },
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VPasswordField,
-          formKey: "sentry_api_token",
-          valueKey: "sentry_api_token",
-          label: t("pages.settings-plugin-id.fields.sentry_api_token"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.string().optional().allow(""),
-            t("pages.settings-plugin-id.fields.sentry_api_token"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.sentry_api_token"),
-            density: "compact",
-          },
-        },
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VTextField,
-          formKey: "sentry_api_organization",
-          valueKey: "sentry_api_organization",
-          label: t("pages.settings-plugin-id.fields.sentry_api_organization"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.string().optional().allow(""),
-            t("pages.settings-plugin-id.fields.sentry_api_organization"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.sentry_api_organization"),
-            density: "compact",
-          },
-        },
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VSwitch,
-          formKey: "sentry_api_enabled",
-          valueKey: "sentry_api_enabled",
-          label: t("pages.settings-plugin-id.fields.sentry_api_enabled"),
-          validator: getFormFieldValidator(
-            t,
-            Joi.any().valid("0", "1"),
-            t("pages.settings-plugin-id.fields.sentry_api_enabled"),
-          ),
-          bindings: {
-            label: t("pages.settings-plugin-id.fields.sentry_api_enabled"),
-            density: "compact",
-            falseValue: "0",
-            trueValue: "1",
-          },
-        },
-      ],
+      // [
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VPasswordField,
+      //     formKey: "monday_access_token",
+      //     valueKey: "monday_access_token",
+      //     label: t("pages.settings-plugin-id.fields.monday_access_token"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.string().optional().allow(""),
+      //       t("pages.settings-plugin-id.fields.monday_access_token"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.monday_access_token"),
+      //       density: "compact",
+      //     },
+      //   },
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VTextField,
+      //     formKey: "monday_board_id",
+      //     valueKey: "monday_board_id",
+      //     label: t("pages.settings-plugin-id.fields.monday_board_id"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.string().optional().allow(""),
+      //       t("pages.settings-plugin-id.fields.monday_board_id"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.monday_board_id"),
+      //       density: "compact",
+      //     },
+      //   },
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VTextField,
+      //     formKey: "monday_group_id",
+      //     valueKey: "monday_group_id",
+      //     label: t("pages.settings-plugin-id.fields.monday_group_id"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.string().optional().allow(""),
+      //       t("pages.settings-plugin-id.fields.monday_group_id"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.monday_group_id"),
+      //       density: "compact",
+      //     },
+      //   },
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VSwitch,
+      //     formKey: "monday_enabled",
+      //     valueKey: "monday_enabled",
+      //     label: t("pages.settings-plugin-id.fields.monday_enabled"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.any().valid("0", "1"),
+      //       t("pages.settings-plugin-id.fields.monday_enabled"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.monday_enabled"),
+      //       density: "compact",
+      //       falseValue: "0",
+      //       trueValue: "1",
+      //     },
+      //   },
+      // ],
+      // [
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VTextField,
+      //     formKey: "gitlab_api_base_url",
+      //     valueKey: "gitlab_api_base_url",
+      //     label: t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.string().optional().allow(""),
+      //       t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.gitlab_api_base_url"),
+      //       density: "compact",
+      //     },
+      //   },
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VPasswordField,
+      //     formKey: "gitlab_api_token",
+      //     valueKey: "gitlab_api_token",
+      //     label: t("pages.settings-plugin-id.fields.gitlab_api_token"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.string().optional().allow(""),
+      //       t("pages.settings-plugin-id.fields.gitlab_api_token"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.gitlab_api_token"),
+      //       density: "compact",
+      //     },
+      //   },
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VSwitch,
+      //     formKey: "gitlab_api_enabled",
+      //     valueKey: "gitlab_api_enabled",
+      //     label: t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.any().valid("0", "1"),
+      //       t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.gitlab_api_enabled"),
+      //       density: "compact",
+      //       falseValue: "0",
+      //       trueValue: "1",
+      //     },
+      //   },
+      // ],
+      // [
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VTextField,
+      //     formKey: "sentry_api_base_url",
+      //     valueKey: "sentry_api_base_url",
+      //     label: t("pages.settings-plugin-id.fields.sentry_api_base_url"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.string().optional().allow(""),
+      //       t("pages.settings-plugin-id.fields.sentry_api_base_url"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.sentry_api_base_url"),
+      //       density: "compact",
+      //     },
+      //   },
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VPasswordField,
+      //     formKey: "sentry_api_token",
+      //     valueKey: "sentry_api_token",
+      //     label: t("pages.settings-plugin-id.fields.sentry_api_token"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.string().optional().allow(""),
+      //       t("pages.settings-plugin-id.fields.sentry_api_token"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.sentry_api_token"),
+      //       density: "compact",
+      //     },
+      //   },
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VTextField,
+      //     formKey: "sentry_api_organization",
+      //     valueKey: "sentry_api_organization",
+      //     label: t("pages.settings-plugin-id.fields.sentry_api_organization"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.string().optional().allow(""),
+      //       t("pages.settings-plugin-id.fields.sentry_api_organization"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.sentry_api_organization"),
+      //       density: "compact",
+      //     },
+      //   },
+      //   {
+      //     cols: 12,
+      //     md: 3,
+      //     fieldComponent: VSwitch,
+      //     formKey: "sentry_api_enabled",
+      //     valueKey: "sentry_api_enabled",
+      //     label: t("pages.settings-plugin-id.fields.sentry_api_enabled"),
+      //     validator: getFormFieldValidator(
+      //       t,
+      //       Joi.any().valid("0", "1"),
+      //       t("pages.settings-plugin-id.fields.sentry_api_enabled"),
+      //     ),
+      //     bindings: {
+      //       label: t("pages.settings-plugin-id.fields.sentry_api_enabled"),
+      //       density: "compact",
+      //       falseValue: "0",
+      //       trueValue: "1",
+      //     },
+      //   },
+      // ],
       [
         {
           cols: 12,

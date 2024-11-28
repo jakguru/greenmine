@@ -1,9 +1,18 @@
 plugin_lib_dir = File.join(File.dirname(__FILE__), "lib", "friday_plugin")
 
+def command_available?(command)
+  system("command -v #{command} > /dev/null 2>&1")
+end
+
 Rails.autoloaders.main.push_dir plugin_lib_dir
 
 Rails.configuration.to_prepare do
   require_dependency "friday_plugin/news_patch"
+  require_dependency "friday_plugin/active_record_hooks"
+end
+
+ActiveSupport.on_load(:active_record) do
+  include FridayPlugin::ActiveRecordHooks
 end
 
 Redmine::Plugin.register :friday do
@@ -56,21 +65,21 @@ Rails.application.configure do
   config.action_cable.mount_path = "/realtime"
 end
 
-# Rails.application.config.after_initialize do
-#   Rails.application.executor.wrap do
-#     Thread.new do
-#       ActiveSupport.on_load(:active_record) do
-#         loop do
-#           # Run the scheduled job check
-#           FridayPlugin::ScheduledJobRunner.run_if_needed
-
-#           # Sleep for 1 minute before checking again
-#           sleep 60
-#         rescue => e
-#           Rails.logger.error("Error in Friday Scheduled Job Polling: #{e.message}")
-#           sleep 1
-#         end
-#       end
-#     end
-#   end
-# end
+Rails.application.config.after_initialize do
+  if ENV["REDMINE_ENABLE_CRONS"].present?
+    if command_available?("curl")
+      Rails.logger.info "Starting Schedule Job Polling"
+      Thread.new do
+        loop do
+          system("curl -s -X GET http://localhost:3000/crons/poll > /dev/null 2>&1")
+          sleep 60
+        rescue => e
+          Rails.logger.error("Error in Friday Scheduled Job Polling: #{e.message}")
+          sleep 1
+        end
+      end
+    else
+      Rails.logger.info "Cannot Start Schedule Job Polling"
+    end
+  end
+end

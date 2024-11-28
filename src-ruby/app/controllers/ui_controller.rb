@@ -2,6 +2,7 @@
 
 class UiController < ApplicationController
   unloadable
+  include FridayHelper
   include FridayCustomFieldHelper
 
   def get_app_data
@@ -61,6 +62,12 @@ class UiController < ApplicationController
         },
         UserQuery: {
           operators: UserQuery.operators_by_filter_type
+        },
+        GitlabsQuery: {
+          operators: GitlabsQuery.operators_by_filter_type
+        },
+        GitlabProjectsQuery: {
+          operators: GitlabProjectsQuery.operators_by_filter_type
         }
       },
       settings: {

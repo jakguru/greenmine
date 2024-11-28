@@ -15,6 +15,15 @@ en:
   field_custom_field: Custom Field
   field_related_model: Related Model
   field_avatar: Avatar
+  field_gitlabs: Gitlab Integration
+  field_project_ids: Associated Project(s)
+  field_gitlab_projects: Associated Gitlab Project(s)
+  field_project_gitlab: Associated Project(s)
+  field_gitlab_id: Gitlab Integration
+  field_gitlab_instance: Gitlab Integration
+  field_name_with_namespace: Namespaced Name
+  field_path: Path
+  field_path_with_namespace: Namespaced Path
   label_sprint_new: New Sprint
   label_backlog: Backlog
   field_monday_item_id: Monday Item ID
@@ -24,6 +33,7 @@ en:
   field_calculated_priority: Priority
   label_issue_priority_updated: Urgency updated
   label_issue_impact_updated: Impact updated
+  label_gitlab_new: New Gitlab Integration
   sprint_state_future: Future
   sprint_state_closed: Closed
   sprint_state_current: Current

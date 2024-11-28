@@ -1,7 +1,8 @@
 version: '3.8'
 services:
   redmine:
-    image: redmine
+    # image: redmine:5.1.4
+    build: .
     ports:
       - 8080:3000
     volumes: 
@@ -9,14 +10,18 @@ services:
       - ./plugins:/usr/src/redmine/plugins
       - ./configuration.yml:/usr/src/redmine/config/configuration.yml:rw
       - ./cable.yml:/usr/src/redmine/config/cable.yml:rw
+      - type: bind
+        source: ./docker-entrypoint.sh
+        target: /docker-entrypoint.sh
     environment:
       REDMINE_DB_MYSQL: db
       REDMINE_DB_PASSWORD: redmine
       REDMINE_SECRET_KEY_BASE: supersecretkey
       REDMINE_PLUGINS_MIGRATE: "1"
       REDIS_URL: redis://redis:6379/0
+      REDMINE_ENABLE_CRONS: "1"
   vanilla:
-    image: redmine
+    image: redmine:5.1.4
     restart: unless-stopped
     ports:
       - 8181:3000

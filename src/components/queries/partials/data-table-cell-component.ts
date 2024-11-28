@@ -493,6 +493,24 @@ export const QueriesPartialDataTableCell = defineComponent({
             default:
               return toReturnByColumnKey.value;
           }
+        case "GitlabsQuery":
+          switch (column.value.key) {
+            case "id":
+            case "name":
+              return h(
+                RouterLink,
+                {
+                  to: {
+                    name: "admin-integrations-gitlab-id",
+                    params: { id: item.value.id },
+                  },
+                  ...attrs.value,
+                },
+                value.value.display,
+              );
+            default:
+              return toReturnByColumnKey.value;
+          }
         default:
           return toReturnByColumnKey.value;
       }
@@ -537,6 +555,18 @@ export const QueriesPartialDataTableCell = defineComponent({
               ...attrs.value,
             },
             value.value.display,
+          );
+        case "GitlabInstance":
+          return h(
+            RouterLink,
+            {
+              to: {
+                name: "admin-integrations-gitlab-id",
+                params: { id: value.value.value.identifier },
+              },
+              ...attrs.value,
+            },
+            value.value.value.name,
           );
         case "IssueStatus":
           return h(IssueStatusChip, {

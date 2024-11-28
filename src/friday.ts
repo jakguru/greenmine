@@ -864,3 +864,10 @@ export interface GroupValuesProp {
   projects: SelectableListItem<number>[];
   users: SelectableListItem<number>[];
 }
+
+export interface Gitlab {
+  name: string;
+  url: string;
+  api_token: string;
+  active: boolean;
+}

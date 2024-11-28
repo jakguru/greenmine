@@ -10,7 +10,8 @@ RedmineApp::Application.routes.draw do
   get "ui/data/app", to: "ui#get_app_data"
   get "ui/data/project-by-id/:id", to: "ui#get_project_link_info_by_id"
   get "ui/actions/issues", to: "ui#get_actions_for_issues"
-  # get "admin/sidekiq", to: "sidekiq#stats"
+  get "crons/poll", to: "crons#poll"
+  get "admin/integrations", to: "admin#integrations"
   mount Sidekiq::Web => "admin/sidekiq"
 
   # Time Tracking
@@ -46,6 +47,18 @@ RedmineApp::Application.routes.draw do
       post "manage-enumerations", to: "custom_fields#create_enumeration"
       put "manage-enumerations/:enumeration_id", to: "custom_fields#update_enumeration"
       delete "manage-enumerations/:enumeration_id", to: "custom_fields#destroy_enumeration"
+    end
+  end
+
+  namespace :admin do
+    namespace :integrations do
+      # Gitlab Integration
+      resources :gitlab, controller: "gitlab", only: [:index, :show, :new, :edit, :create, :update, :destroy]
+      resources :gitlab do
+        member do
+          post "projects", to: "gitlab#enqueue_fetch_projects"
+        end
+      end
     end
   end
 end

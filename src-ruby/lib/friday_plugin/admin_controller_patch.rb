@@ -47,6 +47,14 @@ module FridayPlugin
             redmine_base_plugins
           end
         end
+
+        def integrations
+          if friday_request?
+            render json: {}
+          else
+            render_blank
+          end
+        end
       end
     end
   end

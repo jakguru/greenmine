@@ -14,6 +14,7 @@
             {{ title }}
           </v-toolbar-title>
         </v-toolbar>
+        <slot name="sub-header" />
         <v-toolbar tag="nav" color="transparent" density="compact">
           <QueriesTabs :query="query" :queries="queries" />
           <slot name="tabs" />

@@ -118,6 +118,78 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/admin/integrations",
+    name: "admin-integrations",
+    component: () => import("@/pages/admin/integrations/index.vue"),
+    meta: {
+      title: "pages.admin-integrations.title",
+    },
+  },
+  {
+    path: "/admin/integrations/github",
+    name: "admin-integrations-github",
+    component: () => import("@/pages/admin/integrations/github/index.vue"),
+    meta: {
+      title: "pages.admin-integrations-github.title",
+    },
+  },
+  {
+    path: "/admin/integrations/gitlab",
+    name: "admin-integrations-gitlab",
+    component: () => import("@/pages/admin/integrations/gitlab/index.vue"),
+    meta: {
+      title: "pages.admin-integrations-gitlab.title",
+    },
+  },
+  {
+    path: "/admin/integrations/gitlab/new",
+    name: "admin-integrations-gitlab-new",
+    component: () => import("@/pages/admin/integrations/gitlab/new.vue"),
+    meta: {
+      title: "pages.admin-integrations-gitlab-new.title",
+    },
+  },
+  {
+    path: "/admin/integrations/gitlab/:id",
+    name: "admin-integrations-gitlab-id",
+    component: () => import("@/pages/admin/integrations/gitlab/edit.vue"),
+    meta: {
+      title: "pages.admin-integrations-gitlab-new.title",
+    },
+  },
+  {
+    path: "/admin/integrations/pagerduty",
+    name: "admin-integrations-pagerduty",
+    component: () => import("@/pages/admin/integrations/pagerduty/index.vue"),
+    meta: {
+      title: "pages.admin-integrations-pagerduty.title",
+    },
+  },
+  {
+    path: "/admin/integrations/sentry",
+    name: "admin-integrations-sentry",
+    component: () => import("@/pages/admin/integrations/sentry/index.vue"),
+    meta: {
+      title: "pages.admin-integrations-sentry.title",
+    },
+  },
+  {
+    path: "/admin/integrations/slack",
+    name: "admin-integrations-slack",
+    component: () => import("@/pages/admin/integrations/slack/index.vue"),
+    meta: {
+      title: "pages.admin-integrations-slack.title",
+    },
+  },
+  {
+    path: "/admin/integrations/webhooks",
+    name: "admin-integrations-webhooks",
+    component: () => import("@/pages/admin/integrations/webhooks/index.vue"),
+    meta: {
+      title: "pages.admin-integrations-webhooks.title",
+    },
+  },
+  {
     path: "/admin/plugins",
     name: "admin-plugins",
     component: () => import("@/pages/admin/plugins.vue"),
@@ -137,8 +209,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/admin/projects",
     name: "admin-projects",
-    // "component": () => import("@/pages/admin/projects.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/index.vue"),
     meta: {
       title: "pages.admin-projects.title",
     },
