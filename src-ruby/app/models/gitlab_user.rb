@@ -20,6 +20,10 @@ class GitlabUser < ActiveRecord::Base
     users.first
   end
 
+  def redmine_user=(redmine_user_id)
+    set_redmine_user(redmine_user_id)
+  end
+
   def set_redmine_user(redmine_user_id)
     user_gitlab_user = UserGitlabUser.where(gitlab_user_id: self[:id]).first
     if user_gitlab_user.nil?

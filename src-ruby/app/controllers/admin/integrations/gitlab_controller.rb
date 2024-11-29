@@ -2,7 +2,7 @@ module Admin
   module Integrations
     class GitlabController < ApplicationController
       default_search_scope :gitlabs
-      before_action :find_gitlab, only: [:show, :edit, :update, :destroy, :show_project, :update_project_gitlab_project_association, :update_user_gitlab_user_association]
+      before_action :find_gitlab, only: [:show, :edit, :update, :destroy, :show_project, :handle_project_action, :update_project_gitlab_project_association, :update_user_gitlab_user_association]
       accept_atom_auth :index, :show
       accept_api_auth :index, :show, :create, :update, :destroy, :show_project
 
@@ -95,8 +95,7 @@ module Admin
       def update_project_gitlab_project_association
         @gitlab_project = GitlabProject.where(gitlab_id: @gitlab.id, project_id: params[:project_id]).first
         if friday_request?
-          @gitlab_project.projects = Project.where(id: params[:projects])
-          if @gitlab_project.save
+          if @gitlab_project.set_associated_projects(Project.where(id: params[:project_ids]))
             render json: {
               id: @gitlab_project.id
             }, status: 201
@@ -105,6 +104,17 @@ module Admin
           end
         else
           render_blank
+        end
+      end
+
+      def handle_project_action
+        @gitlab_project = GitlabProject.where(gitlab_id: @gitlab.id, project_id: params[:project_id]).first
+        case params[:action_to_perform]
+        when "install-webhooks"
+          InstallGitlabWebhooksJob.perform_async(@gitlab.id, @gitlab_project.id)
+          render json: {}, status: 202
+        else
+          render json: {}, status: 400
         end
       end
 

@@ -43,7 +43,6 @@ class FetchGitlabUsersJob
       gitlab_user.username = user.username
       gitlab_user.save!
     end
-    Rails.logger.info(gitlab_users_by_id.inspect)
     ActionCable.server.broadcast("rtu_gitlab_instance_users", {gitlab_instance_id: gitlab.id})
   end
 end

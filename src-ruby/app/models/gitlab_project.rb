@@ -19,11 +19,26 @@ class GitlabProject < ActiveRecord::Base
   end
 
   def projects=(projects)
-    self.projects.clear
-    projects.each do |project|
-      self.projects << project
+    set_associated_projects(projects)
+  end
+
+  def set_associated_projects(projects)
+    existing_projects = self.projects
+    # Remove any projects that are no longer associated
+    existing_projects.each do |project|
+      if !projects.any? { |p| p.id == project.id }
+        project_gitlab_project = ProjectGitlabProject.where(project_id: project.id, gitlab_project_id: self[:id]).first
+        project_gitlab_project.destroy
+      end
     end
-    self.projects.save
+    # Add any new projects
+    projects.each do |project|
+      if !existing_projects.any? { |p| p.id == project.id }
+        project_gitlab_project = ProjectGitlabProject.new(project_id: project.id, gitlab_project_id: self[:id])
+        project_gitlab_project.save
+      end
+    end
+    ActionCable.server.broadcast("rtu_project_gitlab_project", {gitlab_instance_id: gitlab_instance.id, gitlab_project_id: self[:id]})
   end
 
   def web_url

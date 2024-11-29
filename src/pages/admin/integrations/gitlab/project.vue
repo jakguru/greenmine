@@ -80,6 +80,32 @@
               }}
             </v-btn>
           </v-slide-group-item>
+          <v-slide-group-item>
+            <v-btn
+              variant="elevated"
+              color="light-blue-lighten-3"
+              size="x-small"
+              class="ma-2"
+              type="button"
+              height="24px"
+              style="position: relative; top: 1px"
+              :loading="enqueueingJobToInstallWebhooks"
+              @click="doEnqueueJobToInstallWebhooks"
+            >
+              <v-img
+                :src="iconWebhooks"
+                :aspect-ratio="1"
+                width="13"
+                height="13"
+                class="me-2"
+              />
+              {{
+                $t(
+                  "pages.admin-integrations-gitlab-id-project.content.enqueueJobToInstallWebhooks",
+                )
+              }}
+            </v-btn>
+          </v-slide-group-item>
         </v-slide-group>
       </v-toolbar>
       <v-divider />
@@ -159,36 +185,23 @@ import {
   onBeforeUnmount,
 } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import {
   useSystemAccentColor,
   useReloadRouteData,
-  useReloadAppData,
-  cloneObject,
   checkObjectEquality,
-  loadRouteData,
   useCopyToClipboard,
 } from "@/utils/app";
 import { useActionCableConsumer } from "@/utils/realtime";
-import { useRouteDataStore } from "@/stores/routeData";
 import iconGitlab from "@/assets/images/icon-gitlab.svg?url";
+import iconWebhooks from "@/assets/images/icon-webhooks.svg?url";
 
 import type { PropType } from "vue";
-import type {
-  SwalService,
-  ToastService,
-  LocalStorageService,
-  ApiService,
-  BusService,
-  BusEventCallbackSignatures,
-} from "@jakguru/vueprint";
+import type { ToastService, ApiService, BusService } from "@jakguru/vueprint";
 import type {
   GitlabProject,
   GitlabProjectValuesProp,
   QueryResponse,
-  QueryData,
-  QueryResponsePayload,
-  Item,
 } from "@/friday";
 import type Cable from "@rails/actioncable";
 
@@ -228,20 +241,18 @@ export default defineComponent({
   setup(props) {
     const { t } = useI18n({ useScope: "global" });
     const toast = inject<ToastService>("toast");
-    const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
+    const bus = inject<BusService>("bus");
     const route = useRoute();
-    const router = useRouter();
     const reloadRouteDataAction = useReloadRouteData(route, api, toast);
-    const reloadAppDataAction = useReloadAppData(ls, api);
     const accentColor = useSystemAccentColor();
     const copyToClipboard = useCopyToClipboard(
       t("messages.copiedToClipboard"),
       t("messages.failedToCopyToClipboard"),
     );
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
-    const id = computed(() => props.id);
     const parentName = computed(() => props.parentName);
+    const id = computed(() => props.id);
     const parentId = computed(() => props.parentId);
     const model = computed(() => props.model);
     const values = computed(() => props.values);
@@ -312,7 +323,73 @@ export default defineComponent({
       }
       saving.value = false;
     };
+    const enqueueingJobToInstallWebhooks = ref(false);
+    const doEnqueueJobToInstallWebhooks = async () => {
+      if (!api || !toast) {
+        return;
+      }
+      enqueueingJobToInstallWebhooks.value = true;
+      const { status } = await api.post(
+        `/admin/integrations/gitlab/${parentId.value}/projects/${model.value.project_id}/actions/install-webhooks`,
+        {
+          authenticity_token: formAuthenticityToken.value,
+        },
+      );
+      if (202 === status) {
+        toast.fire({
+          icon: "success",
+          title: t(
+            "pages.admin-integrations-gitlab-id-project.onEnqueueJobToInstallWebhooks.success",
+          ),
+        });
+      } else {
+        toast.fire({
+          icon: "error",
+          title: t(
+            "pages.admin-integrations-gitlab-id-project.onEnqueueJobToInstallWebhooks.error",
+          ),
+        });
+      }
+      enqueueingJobToInstallWebhooks.value = false;
+    };
 
+    const consumer = useActionCableConsumer();
+    const projectGitlabProjectSubscription = ref<
+      Cable.Subscription | undefined
+    >(undefined);
+    onMounted(() => {
+      if (consumer) {
+        if (projectGitlabProjectSubscription.value) {
+          projectGitlabProjectSubscription.value.unsubscribe();
+        }
+        projectGitlabProjectSubscription.value = consumer.subscriptions.create(
+          {
+            channel: "FridayPlugin::RealTimeUpdatesChannel",
+            room: "project_gitlab_project",
+          },
+          {
+            received: (data: {
+              gitlab_instance_id: number;
+              gitlab_project_id: number;
+              from?: string;
+            }) => {
+              if (
+                data.gitlab_instance_id === parentId.value &&
+                data.gitlab_project_id === id.value &&
+                (!data.from || bus?.uuid !== data.from)
+              ) {
+                reloadRouteDataAction.call();
+              }
+            },
+          },
+        );
+      }
+    });
+    onBeforeUnmount(() => {
+      if (projectGitlabProjectSubscription.value) {
+        projectGitlabProjectSubscription.value.unsubscribe();
+      }
+    });
     return {
       breadcrumbsBindings,
       accentColor,
@@ -323,6 +400,9 @@ export default defineComponent({
       dirty,
       saving,
       doSave,
+      iconWebhooks,
+      enqueueingJobToInstallWebhooks,
+      doEnqueueJobToInstallWebhooks,
     };
   },
 });

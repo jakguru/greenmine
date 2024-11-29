@@ -134,7 +134,7 @@
             :submitting="submitting"
             :dirty="dirty"
             filter-to-id-field="gitlab_project_id"
-            :get-action-items="() => []"
+            :get-action-items="getActionMenuItems"
             :parent="modelAsParent"
             @submit="onSubmit"
             @refresh="onRefresh"
@@ -259,10 +259,13 @@ import {
   watch,
   onMounted,
   onBeforeUnmount,
+  h,
 } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VSwitch } from "vuetify/components/VSwitch";
+import { VListItem } from "vuetify/components/VList";
+import { VImg } from "vuetify/components/VImg";
 import { VPasswordField } from "@/components/fields";
 import { useRoute, useRouter } from "vue-router";
 import { makeNewQueryPayloadFromQueryAndQueryPayload } from "@/friday";
@@ -290,6 +293,7 @@ import {
   QueriesPartialDataTable,
 } from "@/components/queries/partials";
 import { useRouteDataStore } from "@/stores/routeData";
+import iconWebhooks from "@/assets/images/icon-webhooks.svg?url";
 
 import type { PropType } from "vue";
 import type {
@@ -314,6 +318,7 @@ import type {
 } from "@/friday";
 import type { RealtimeModelEventPayload } from "@/utils/realtime";
 import type Cable from "@rails/actioncable";
+import type { ActionMenuItem } from "@/components/queries/partials/action-menu";
 
 export default defineComponent({
   name: "AdminIntegrationsGitlabEdit",
@@ -931,6 +936,132 @@ export default defineComponent({
       },
       { deep: true },
     );
+
+    const doInstallWebhooksForItems = async (items: Item[]) => {
+      if (!api || !toast) {
+        return;
+      }
+      const responses = await Promise.all(
+        items.map(async (item) => {
+          const { status } = await api.post(
+            `/admin/integrations/gitlab/${id.value}/projects/${item.entry.project_id.value.toString()}/actions/install-webhooks`,
+            {
+              authenticity_token: formAuthenticityToken.value,
+            },
+          );
+          return status === 202;
+        }),
+      );
+      if (responses.every((r) => r === true)) {
+        toast.fire({
+          title: t(
+            "pages.admin-integrations-gitlab-id.projects.onEnqueueJobToInstallWebhooks.success",
+          ),
+          icon: "success",
+        });
+      } else if (responses.some((r) => r === true) && responses.length > 1) {
+        toast.fire({
+          title: t(
+            "pages.admin-integrations-gitlab-id.projects.onEnqueueJobToInstallWebhooks.warning",
+          ),
+          icon: "warning",
+        });
+      } else {
+        toast.fire({
+          title: t(
+            "pages.admin-integrations-gitlab-id.projects.onEnqueueJobToInstallWebhooks.error",
+          ),
+          icon: "error",
+        });
+      }
+    };
+
+    const getActionMenuItems = (
+      gitlabProjects: Item[],
+      onDone: () => void,
+      onFilterTo: () => void,
+    ): ActionMenuItem[] => {
+      if (gitlabProjects.length > 1) {
+        return [
+          {
+            component: h(
+              VListItem,
+              {
+                title: t("gitlabProjectActionMenu.installWebhook.title"),
+                density: "compact",
+                onClick: async () => {
+                  await doInstallWebhooksForItems(gitlabProjects);
+                  onDone();
+                },
+              },
+              {
+                append: () =>
+                  h(VImg, {
+                    src: iconWebhooks,
+                    width: 22,
+                    height: 22,
+                    aspectRatio: 1,
+                  }),
+              },
+            ),
+          },
+          {
+            component: h(VListItem, {
+              title: t("actionMenu.filterTo.title"),
+              appendIcon: "mdi-filter",
+              density: "compact",
+              onClick: () => onFilterTo(),
+            }),
+          },
+        ];
+      }
+      return [
+        {
+          component: h(VListItem, {
+            title: t("labels.open"),
+            prependIcon: "mdi-open-in-app",
+            density: "compact",
+            to: {
+              name: "admin-integrations-gitlab-id-project-id",
+              params: {
+                id: id.value,
+                projectId: gitlabProjects[0].entry.project_id.value.toString(),
+              },
+            },
+          }),
+        },
+        {
+          component: h(
+            VListItem,
+            {
+              title: t("gitlabProjectActionMenu.installWebhook.title"),
+              density: "compact",
+              onClick: async () => {
+                await doInstallWebhooksForItems(gitlabProjects);
+                onDone();
+              },
+            },
+            {
+              append: () =>
+                h(VImg, {
+                  src: iconWebhooks,
+                  width: 22,
+                  height: 22,
+                  aspectRatio: 1,
+                }),
+            },
+          ),
+        },
+        {
+          component: h(VListItem, {
+            title: t("actionMenu.filterTo.title"),
+            appendIcon: "mdi-filter",
+            density: "compact",
+            onClick: () => onFilterTo(),
+          }),
+        },
+      ];
+    };
     return {
       breadcrumbsBindings,
       tab,
@@ -962,6 +1093,7 @@ export default defineComponent({
       usersSaving,
       doSaveUserGitlabUserAssociation,
       userGitlabUserModelValues,
+      getActionMenuItems,
     };
   },
 });

@@ -80,6 +80,11 @@ export default {
           success: "Job Enqueued Successfully",
           error: "An error occurred while enqueueing the job",
         },
+        onEnqueueJobToInstallWebhooks: {
+          success: "Job(s) Enqueued Successfully",
+          warning: "Some jobs failed to enqueue",
+          error: "An error occurred while enqueueing the job(s)",
+        },
       },
       users: {
         title: "Gitlab Users",
@@ -110,10 +115,15 @@ export default {
         openInGitlab: "Open in GitLab",
         copyGitHttpUrl: "Copy Git HTTP URL",
         copyGitSshUrl: "Copy Git SSH URL",
+        enqueueJobToInstallWebhooks: "Install Webhooks",
       },
       onSave: {
         success: "Project associations saved successfully",
         error: "An error occurred while saving the project associations",
+      },
+      onEnqueueJobToInstallWebhooks: {
+        success: "Job Enqueued Successfully",
+        error: "An error occurred while enqueueing the job",
       },
     },
     "admin-integrations-pagerduty": {
@@ -1660,6 +1670,13 @@ export default {
       title: "No Actions",
       text: "No actions are available",
     },
+    filterTo: {
+      title: "Filter",
+    },
+    delete: {
+      title: "Delete",
+      confirm: "Are you sure you want to delete this custom field?",
+    },
   },
   issueActionMenu: {
     edit: {
@@ -1742,6 +1759,11 @@ export default {
     delete: {
       title: "Delete",
       confirm: "Are you sure you want to delete this user?",
+    },
+  },
+  gitlabProjectActionMenu: {
+    installWebhook: {
+      title: "Install Webhook",
     },
   },
   messages: {
