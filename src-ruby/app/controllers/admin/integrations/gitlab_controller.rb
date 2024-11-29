@@ -2,9 +2,9 @@ module Admin
   module Integrations
     class GitlabController < ApplicationController
       default_search_scope :gitlabs
-      before_action :find_gitlab, only: [:show, :edit, :update, :destroy]
+      before_action :find_gitlab, only: [:show, :edit, :update, :destroy, :show_project, :update_project_gitlab_project_association, :update_user_gitlab_user_association]
       accept_atom_auth :index, :show
-      accept_api_auth :index, :show, :create, :update, :destroy
+      accept_api_auth :index, :show, :create, :update, :destroy, :show_project
 
       rescue_from Query::StatementInvalid, with: :query_statement_invalid
       rescue_from Query::QueryError, with: :query_error
@@ -54,9 +54,73 @@ module Admin
         render_save_response
       end
 
+      def destroy
+        @gitlab.destroy
+        render json: {}, status: 200
+      end
+
       def enqueue_fetch_projects
         FetchGitlabProjectsJob.perform_async(params[:id])
         render json: {}, status: 202
+      end
+
+      def enqueue_fetch_users
+        FetchGitlabUsersJob.perform_async(params[:id])
+        render json: {}, status: 202
+      end
+
+      def show_project
+        @gitlab_project = GitlabProject.where(gitlab_id: @gitlab.id, project_id: params[:project_id]).first
+        if friday_request?
+          render json: {
+            id: @gitlab_project.id,
+            parentName: @gitlab.name,
+            parentId: @gitlab.id,
+            model: @gitlab_project.attributes.merge({
+              web_url: @gitlab_project.web_url,
+              git_http_url: @gitlab_project.git_http_url,
+              git_ssh_url: @gitlab_project.git_ssh_url,
+              projects: @gitlab_project.projects.map(&:id),
+              remote_info: @gitlab_project.remote_info
+            }),
+            values: {
+              projects: get_project_nested_items(Project.all)
+            }
+          }
+        else
+          render_blank
+        end
+      end
+
+      def update_project_gitlab_project_association
+        @gitlab_project = GitlabProject.where(gitlab_id: @gitlab.id, project_id: params[:project_id]).first
+        if friday_request?
+          @gitlab_project.projects = Project.where(id: params[:projects])
+          if @gitlab_project.save
+            render json: {
+              id: @gitlab_project.id
+            }, status: 201
+          else
+            render json: {errors: @gitlab_project.errors.full_messages}, status: 422
+          end
+        else
+          render_blank
+        end
+      end
+
+      def update_user_gitlab_user_association
+        @gitlab_user = GitlabUser.where(gitlab_id: @gitlab.id, user_id: params[:gitlab_user_id]).first
+        if friday_request?
+          if @gitlab_user.set_redmine_user(params[:redmine_user_id])
+            render json: {
+              id: @gitlab_user.id
+            }, status: 201
+          else
+            render json: {errors: @gitlab_user.errors.full_messages}, status: 422
+          end
+        else
+          render_blank
+        end
       end
 
       private
@@ -74,8 +138,23 @@ module Admin
         render json: {
           formAuthenticityToken: form_authenticity_token,
           id: @gitlab.id,
-          model: @gitlab,
-          projects: projects
+          model: @gitlab.attributes.merge({
+            users: @gitlab.gitlab_users.map { |gitlab_user|
+              gitlab_user.attributes.merge({
+                redmine_user: gitlab_user.redmine_user,
+                redmine_user_id: gitlab_user.redmine_user.nil? ? nil : gitlab_user.redmine_user.id
+              })
+            }
+          }),
+          projects: projects,
+          values: {
+            users: [{value: nil, label: l(:label_none)}] + User.active.sorted.collect { |user|
+              {
+                value: user.id,
+                label: user.name
+              }
+            }
+          }
         }
       end
 

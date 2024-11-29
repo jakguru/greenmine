@@ -207,6 +207,10 @@ export const QueriesPartialDataTableCell = defineComponent({
       >,
       required: true,
     },
+    parent: {
+      type: Object as PropType<Item | undefined>,
+      default: undefined,
+    },
   },
   setup(props) {
     const { t } = useI18n({ useScope: "global" });
@@ -234,6 +238,7 @@ export const QueriesPartialDataTableCell = defineComponent({
     const value = computed(() => props.value);
     const item = computed(() => props.item);
     const menuGenerator = computed(() => props.menuGenerator);
+    const parent = computed(() => props.parent);
     const attrs = computed(() => ({
       "friday-type": value.value ? value.value.type : "unknown",
       "friday-column": column.value.key,
@@ -507,6 +512,43 @@ export const QueriesPartialDataTableCell = defineComponent({
                   ...attrs.value,
                 },
                 value.value.display,
+              );
+            default:
+              return toReturnByColumnKey.value;
+          }
+        case "GitlabProjectsQuery":
+          switch (column.value.key) {
+            case "project_id":
+              if (!parent.value) {
+                return toReturnByColumnKey.value;
+              } else {
+                return h(
+                  RouterLink,
+                  {
+                    to: {
+                      name: "admin-integrations-gitlab-id-project-id",
+                      params: {
+                        id: parent.value.id,
+                        projectId: value.value.value,
+                      },
+                    },
+                    ...attrs.value,
+                  },
+                  value.value.display,
+                );
+              }
+            case "web_url":
+              return h(
+                "a",
+                {
+                  href: value.value.value,
+                  target: "_blank",
+                  ...attrs.value,
+                },
+                [
+                  h(VIcon, { size: "small", class: "me-2" }, "mdi-open-in-new"),
+                  value.value.display,
+                ],
               );
             default:
               return toReturnByColumnKey.value;

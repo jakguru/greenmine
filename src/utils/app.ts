@@ -4,6 +4,7 @@ import { i18n } from "@/plugins/i18n";
 import { useAppDataStore } from "@/stores/appData";
 import { useRouteDataStore } from "@/stores/routeData";
 import { useTheme } from "vuetify";
+import useClipboard from "vue-clipboard3";
 import type Joi from "joi";
 
 import {
@@ -304,4 +305,36 @@ export const getCsrfObject = () => {
     return {};
   }
   return { [param]: token };
+};
+
+export const useCopyToClipboard = (
+  onSuccess?: string | undefined,
+  onError?: string | undefined,
+) => {
+  const { toClipboard } = useClipboard();
+  const toast = inject<ToastService>("toast");
+  const doCopy = (what: string) => {
+    toClipboard(what)
+      .then(() => {
+        if (toast && onSuccess) {
+          toast.fire({
+            icon: "success",
+            title: onSuccess,
+          });
+        } else if (!toast && onSuccess) {
+          alert(onSuccess);
+        }
+      })
+      .catch(() => {
+        if (toast && onError) {
+          toast.fire({
+            icon: "error",
+            title: onError,
+          });
+        } else if (!toast && onError) {
+          alert(onError);
+        }
+      });
+  };
+  return doCopy;
 };

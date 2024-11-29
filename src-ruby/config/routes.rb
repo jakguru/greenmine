@@ -57,8 +57,17 @@ RedmineApp::Application.routes.draw do
       resources :gitlab do
         member do
           post "projects", to: "gitlab#enqueue_fetch_projects"
+          get "projects/:project_id", to: "gitlab#show_project"
+          put "projects/:project_id", to: "gitlab#update_project_gitlab_project_association"
+          post "users", to: "gitlab#enqueue_fetch_users"
+          put "users", to: "gitlab#update_user_gitlab_user_association"
         end
       end
     end
+  end
+
+  # Webhooks
+  namespace :webhooks do
+    match "gitlab", to: "gitlab#handle", via: [:get, :post, :put, :patch, :delete, :head]
   end
 end

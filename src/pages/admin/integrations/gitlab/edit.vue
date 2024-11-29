@@ -13,16 +13,69 @@
       <v-divider />
       <v-breadcrumbs v-bind="breadcrumbsBindings" />
       <v-divider />
-      <FridayForm
-        v-bind="fridayFormBindings"
-        ref="renderedForm"
-        @success="onSuccess"
-        @error="onError"
-      >
-        <template #afterRows="{ isLoading, submit, reset }">
-          <v-row>
-            <v-col cols="12">
-              <div class="d-flex w-100 justify-end">
+      <v-tabs v-bind="vTabBindings" />
+      <v-divider />
+      <template v-if="tab === 'projects'">
+        <v-container fluid>
+          <v-toolbar color="transparent">
+            <v-slide-group show-arrows class="mx-2">
+              <v-slide-group-item v-if="showFiltersMenu">
+                <QueriesPartialFilters
+                  v-model:model-value="value"
+                  :dirty="dirty"
+                  :submitting="submitting"
+                  @submit="onSubmit"
+                />
+              </v-slide-group-item>
+              <v-slide-group-item v-if="showColumnsMenu">
+                <QueriesPartialColumns
+                  v-model:model-value="value"
+                  :dirty="dirty"
+                  :submitting="submitting"
+                  @submit="onSubmit"
+                />
+              </v-slide-group-item>
+              <v-slide-group-item v-if="showSortingMenu">
+                <QueriesPartialSorting
+                  v-model:model-value="value"
+                  :dirty="dirty"
+                  :submitting="submitting"
+                  @submit="onSubmit"
+                />
+              </v-slide-group-item>
+              <v-slide-group-item v-if="showGroupingsMenu">
+                <QueriesPartialGroupings
+                  v-model:model-value="value"
+                  :dirty="dirty"
+                  :submitting="submitting"
+                  @submit="onSubmit"
+                />
+              </v-slide-group-item>
+              <v-slide-group-item v-if="showAdditional">
+                <QueriesPartialOptions
+                  v-model:model-value="value"
+                  :dirty="dirty"
+                  :submitting="submitting"
+                  @submit="onSubmit"
+                />
+              </v-slide-group-item>
+              <v-slide-group-item>
+                <v-btn
+                  variant="elevated"
+                  :color="accentColor"
+                  size="x-small"
+                  class="ma-2"
+                  type="submit"
+                  height="24px"
+                  :disabled="!dirty"
+                  :loading="submitting"
+                  style="position: relative; top: 1px"
+                >
+                  <v-icon class="me-2">mdi-check</v-icon>
+                  {{ $t("labels.apply") }}
+                </v-btn>
+              </v-slide-group-item>
+              <v-slide-group-item>
                 <v-btn
                   variant="elevated"
                   :color="accentColor"
@@ -30,154 +83,169 @@
                   class="ma-2"
                   type="button"
                   height="24px"
-                  :loading="isLoading"
-                  @click="reset"
+                  :loading="submitting"
+                  :disabled="!dirty"
+                  style="position: relative; top: 1px"
+                  @click="onReset"
                 >
                   <v-icon class="me-2">mdi-restore</v-icon>
                   {{ $t("labels.reset") }}
                 </v-btn>
+              </v-slide-group-item>
+              <v-slide-group-item>
                 <v-btn
                   variant="elevated"
                   :color="accentColor"
                   size="x-small"
-                  class="ma-2 me-0"
+                  class="ma-2"
                   type="button"
                   height="24px"
-                  :loading="isLoading"
-                  @click="submit"
+                  :loading="submitting"
+                  style="position: relative; top: 1px"
+                  @click="onRefresh"
                 >
-                  <v-icon class="me-2">mdi-check</v-icon>
-                  {{ $t("labels.save") }}
+                  <v-icon class="me-2">mdi-refresh</v-icon>
+                  {{ $t("labels.refresh") }}
                 </v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </template>
-      </FridayForm>
-      <v-divider />
-      <v-list-item
-        :title="$t('pages.admin-integrations-gitlab-id.projects.title')"
-      >
-        <template #append>
-          <v-btn
-            variant="elevated"
-            :color="accentColor"
-            @click="doFetchProjects"
-          >
-            <span
-              v-text="$t('pages.admin-integrations-gitlab-id.projects.cta')"
-            />
-          </v-btn>
-        </template>
-      </v-list-item>
-      <v-divider />
-      <v-container fluid>
-        <v-toolbar color="transparent">
-          <v-slide-group show-arrows class="mx-2">
-            <v-slide-group-item v-if="showFiltersMenu">
-              <QueriesPartialFilters
-                v-model:model-value="value"
-                :dirty="dirty"
-                :submitting="submitting"
-                @submit="onSubmit"
-              />
-            </v-slide-group-item>
-            <v-slide-group-item v-if="showColumnsMenu">
-              <QueriesPartialColumns
-                v-model:model-value="value"
-                :dirty="dirty"
-                :submitting="submitting"
-                @submit="onSubmit"
-              />
-            </v-slide-group-item>
-            <v-slide-group-item v-if="showSortingMenu">
-              <QueriesPartialSorting
-                v-model:model-value="value"
-                :dirty="dirty"
-                :submitting="submitting"
-                @submit="onSubmit"
-              />
-            </v-slide-group-item>
-            <v-slide-group-item v-if="showGroupingsMenu">
-              <QueriesPartialGroupings
-                v-model:model-value="value"
-                :dirty="dirty"
-                :submitting="submitting"
-                @submit="onSubmit"
-              />
-            </v-slide-group-item>
-            <v-slide-group-item v-if="showAdditional">
-              <QueriesPartialOptions
-                v-model:model-value="value"
-                :dirty="dirty"
-                :submitting="submitting"
-                @submit="onSubmit"
-              />
-            </v-slide-group-item>
-            <v-slide-group-item>
-              <v-btn
-                variant="elevated"
-                :color="accentColor"
-                size="x-small"
-                class="ma-2"
-                type="submit"
-                height="24px"
-                :disabled="!dirty"
-                :loading="submitting"
-                style="position: relative; top: 1px"
-              >
-                <v-icon class="me-2">mdi-check</v-icon>
-                {{ $t("labels.apply") }}
-              </v-btn>
-            </v-slide-group-item>
-            <v-slide-group-item>
-              <v-btn
-                variant="elevated"
-                :color="accentColor"
-                size="x-small"
-                class="ma-2"
-                type="button"
-                height="24px"
-                :loading="submitting"
-                :disabled="!dirty"
-                style="position: relative; top: 1px"
-                @click="onReset"
-              >
-                <v-icon class="me-2">mdi-restore</v-icon>
-                {{ $t("labels.reset") }}
-              </v-btn>
-            </v-slide-group-item>
-            <v-slide-group-item>
-              <v-btn
-                variant="elevated"
-                :color="accentColor"
-                size="x-small"
-                class="ma-2"
-                type="button"
-                height="24px"
-                :loading="submitting"
-                style="position: relative; top: 1px"
-                @click="onRefresh"
-              >
-                <v-icon class="me-2">mdi-refresh</v-icon>
-                {{ $t("labels.refresh") }}
-              </v-btn>
-            </v-slide-group-item>
-          </v-slide-group>
-        </v-toolbar>
-        <QueriesPartialDataTable
-          v-model:model-value="value"
-          v-model:payload-value="payloadValue"
-          :query="query"
-          :payload="payload"
-          :submitting="submitting"
-          :dirty="dirty"
-          filter-to-id-field="gitlab_project_id"
-          :get-action-items="() => []"
-          @submit="onSubmit"
-          @refresh="onRefresh"
-        />
-      </v-container>
+              </v-slide-group-item>
+              <v-slide-group-item>
+                <v-btn
+                  variant="elevated"
+                  :color="accentColor"
+                  size="x-small"
+                  class="ma-2"
+                  type="button"
+                  height="24px"
+                  :loading="submitting"
+                  style="position: relative; top: 1px"
+                  @click="doFetchProjects"
+                >
+                  <v-icon class="me-2">mdi-cloud-sync</v-icon>
+                  {{ $t("pages.admin-integrations-gitlab-id.projects.cta") }}
+                </v-btn>
+              </v-slide-group-item>
+            </v-slide-group>
+          </v-toolbar>
+          <QueriesPartialDataTable
+            v-model:model-value="value"
+            v-model:payload-value="payloadValue"
+            :query="query"
+            :payload="payload"
+            :submitting="submitting"
+            :dirty="dirty"
+            filter-to-id-field="gitlab_project_id"
+            :get-action-items="() => []"
+            :parent="modelAsParent"
+            @submit="onSubmit"
+            @refresh="onRefresh"
+          />
+        </v-container>
+      </template>
+      <template v-else-if="tab === 'users'">
+        <v-container fluid>
+          <v-toolbar color="transparent">
+            <v-slide-group show-arrows class="mx-2">
+              <v-slide-group-item>
+                <v-btn
+                  variant="elevated"
+                  :color="accentColor"
+                  size="x-small"
+                  class="ma-2"
+                  type="button"
+                  height="24px"
+                  :loading="submitting"
+                  style="position: relative; top: 1px"
+                  @click="doFetchUsers"
+                >
+                  <v-icon class="me-2">mdi-cloud-sync</v-icon>
+                  {{ $t("pages.admin-integrations-gitlab-id.users.cta") }}
+                </v-btn>
+              </v-slide-group-item>
+            </v-slide-group>
+          </v-toolbar>
+          <v-table>
+            <thead>
+              <tr>
+                <th>{{ $t("labels.name") }}</th>
+                <th>{{ $t("labels.username") }}</th>
+                <th>{{ $t("labels.localUser") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in model.users" :key="user.user_id">
+                <td width="25%">{{ user.name }}</td>
+                <td width="25%">
+                  <a :href="`${model.url}/${user.username}`" target="_blank">
+                    @{{ user.username }}
+                  </a>
+                </td>
+                <td width="50%">
+                  <v-autocomplete
+                    v-model:model-value="
+                      userGitlabUserModelValues[user.user_id.toString()]
+                    "
+                    :items="userValues"
+                    :loading="usersSaving.includes(user.user_id)"
+                    :clearable="!usersSaving.includes(user.user_id)"
+                    :disabled="usersSaving.includes(user.user_id)"
+                    :hide-details="true"
+                    item-title="label"
+                    density="compact"
+                  />
+                </td>
+              </tr>
+              <tr v-if="model.users.length === 0">
+                <td colspan="3" class="text-center">
+                  {{ $t("labels.noData") }}
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-container>
+      </template>
+      <template v-else>
+        <FridayForm
+          v-bind="fridayFormBindings"
+          ref="renderedForm"
+          @success="onSuccess"
+          @error="onError"
+        >
+          <template #afterRows="{ isLoading, submit, reset }">
+            <v-row>
+              <v-col cols="12">
+                <div class="d-flex w-100 justify-end">
+                  <v-btn
+                    variant="elevated"
+                    :color="accentColor"
+                    size="x-small"
+                    class="ma-2"
+                    type="button"
+                    height="24px"
+                    :loading="isLoading"
+                    @click="reset"
+                  >
+                    <v-icon class="me-2">mdi-restore</v-icon>
+                    {{ $t("labels.reset") }}
+                  </v-btn>
+                  <v-btn
+                    variant="elevated"
+                    :color="accentColor"
+                    size="x-small"
+                    class="ma-2 me-0"
+                    type="button"
+                    height="24px"
+                    :loading="isLoading"
+                    @click="submit"
+                  >
+                    <v-icon class="me-2">mdi-check</v-icon>
+                    {{ $t("labels.save") }}
+                  </v-btn>
+                </div>
+              </v-col>
+            </v-row>
+          </template>
+        </FridayForm>
+      </template>
     </v-card>
   </v-container>
 </template>
@@ -238,9 +306,11 @@ import type {
 } from "@jakguru/vueprint";
 import type {
   Gitlab,
+  GitlabValuesProp,
   QueryResponse,
   QueryData,
   QueryResponsePayload,
+  Item,
 } from "@/friday";
 import type { RealtimeModelEventPayload } from "@/utils/realtime";
 import type Cable from "@rails/actioncable";
@@ -273,6 +343,10 @@ export default defineComponent({
       type: Object as PropType<QueryResponse>,
       required: true,
     },
+    values: {
+      type: Object as PropType<GitlabValuesProp>,
+      required: true,
+    },
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
@@ -288,6 +362,25 @@ export default defineComponent({
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const id = computed(() => props.id);
     const model = computed(() => props.model);
+    const values = computed(() => props.values);
+    const userValues = computed(() => values.value.users);
+    const modelAsParent = computed<Item>(() => ({
+      id: id.value ? Number(id.value) : 0,
+      entry: Object.assign(
+        {},
+        ...Object.keys(model.value).map((k) => ({
+          [k]: {
+            type: "String",
+            display: model.value[k as keyof Gitlab].toString(),
+            value: model.value[k as keyof Gitlab],
+          },
+        })),
+      ),
+      level: 0,
+      group_name: null,
+      group_count: null,
+      group_totals: {},
+    }));
     const { t } = useI18n({ useScope: "global" });
     const breadcrumbsBindings = computed(() => ({
       items: [
@@ -304,6 +397,41 @@ export default defineComponent({
           title: t(`pages.admin-integrations-gitlab-id.title`),
         },
       ],
+    }));
+    const tabs = computed(() =>
+      [
+        {
+          text: t("pages.admin-integrations-gitlab-id.tabs.integration"),
+          value: "integration",
+        },
+        {
+          text: t("pages.admin-integrations-gitlab-id.tabs.projects"),
+          value: "projects",
+        },
+        {
+          text: t("pages.admin-integrations-gitlab-id.tabs.users"),
+          value: "users",
+        },
+      ].filter((v) => "undefined" !== typeof v),
+    );
+    const tab = computed({
+      get: () => (route.query.tab as string | undefined) ?? "integration",
+      set: (v: string) => {
+        router.push({ query: Object.assign({}, route.query, { tab: v }) });
+      },
+    });
+    const vTabBindings = computed(() => ({
+      modelValue: tab.value,
+      items: tabs.value,
+      density: "compact" as const,
+      mandatory: true,
+      showArrows: true,
+      sliderColor: "accent",
+      "onUpdate:modelValue": (v: unknown) => {
+        if (typeof v === "string") {
+          tab.value = v;
+        }
+      },
     }));
     const modifyPayload = (payload: Record<string, unknown>) => {
       return {
@@ -375,6 +503,8 @@ export default defineComponent({
             t(`pages.admin-integrations-gitlab-id.content.fields.name`),
           ),
         },
+      ],
+      [
         {
           cols: 12,
           md: 3,
@@ -407,6 +537,8 @@ export default defineComponent({
             t(`pages.admin-integrations-gitlab-id.content.fields.url`),
           ),
         },
+      ],
+      [
         {
           cols: 12,
           md: 3,
@@ -433,6 +565,8 @@ export default defineComponent({
             t(`pages.admin-integrations-gitlab-id.content.fields.url`),
           ),
         },
+      ],
+      [
         {
           cols: 12,
           md: 3,
@@ -539,7 +673,7 @@ export default defineComponent({
       submitting.value = true;
       router
         // @ts-expect-error the query object's type is correct, but the router's type is not
-        .push({ ...route, query: { ...payload } })
+        .push({ ...route, query: { tab: tab.value, ...payload } })
         .catch((e) => {
           console.warn(e);
           // noop
@@ -649,21 +783,63 @@ export default defineComponent({
         });
       }
     };
+    const doFetchUsers = async () => {
+      if (!api) {
+        return;
+      }
+      const { status } = await api.post(
+        `/admin/integrations/gitlab/${id.value}/users`,
+      );
+      if (status !== 202) {
+        toast?.fire({
+          title: t("pages.admin-integrations-gitlab-id.users.onFetch.error"),
+          icon: "error",
+        });
+      } else {
+        toast?.fire({
+          title: t("pages.admin-integrations-gitlab-id.users.onFetch.success"),
+          icon: "success",
+        });
+      }
+    };
     const consumer = useActionCableConsumer();
-    const subscription = ref<Cable.Subscription | undefined>(undefined);
+    const projectsSubscription = ref<Cable.Subscription | undefined>(undefined);
+    const usersSubscription = ref<Cable.Subscription | undefined>(undefined);
     onMounted(() => {
       if (consumer) {
-        if (subscription.value) {
-          subscription.value.unsubscribe();
+        if (projectsSubscription.value) {
+          projectsSubscription.value.unsubscribe();
         }
-        subscription.value = consumer.subscriptions.create(
+        if (usersSubscription.value) {
+          usersSubscription.value.unsubscribe();
+        }
+        projectsSubscription.value = consumer.subscriptions.create(
           {
             channel: "FridayPlugin::RealTimeUpdatesChannel",
             room: "gitlab_instance_projects",
           },
           {
-            received: (data: { gitlab_instance_id: number }) => {
-              if (data.gitlab_instance_id === id.value) {
+            received: (data: { gitlab_instance_id: number; from?: string }) => {
+              if (
+                data.gitlab_instance_id === id.value &&
+                (!data.from || bus?.uuid !== data.from)
+              ) {
+                onRefresh();
+              }
+            },
+          },
+        );
+        usersSubscription.value = consumer.subscriptions.create(
+          {
+            channel: "FridayPlugin::RealTimeUpdatesChannel",
+            room: "gitlab_instance_users",
+          },
+          {
+            received: (data: { gitlab_instance_id: number; from?: string }) => {
+              if (
+                data.gitlab_instance_id === id.value &&
+                (!data.from || bus?.uuid !== data.from)
+              ) {
                 onRefresh();
               }
             },
@@ -672,14 +848,96 @@ export default defineComponent({
       }
     });
     onBeforeUnmount(() => {
-      if (subscription.value) {
-        subscription.value.unsubscribe();
+      if (projectsSubscription.value) {
+        projectsSubscription.value.unsubscribe();
+      }
+      if (usersSubscription.value) {
+        usersSubscription.value.unsubscribe();
       }
     });
+    const userGitlabUserModelValues = ref<Record<string, number | null>>({});
+    watch(
+      () => model.value.users,
+      (users) => {
+        users.forEach((user) => {
+          userGitlabUserModelValues.value[user.user_id.toString()] =
+            user.redmine_user_id;
+        });
+      },
+      { immediate: true, deep: true },
+    );
+    const usersSaving = ref<number[]>([]);
+    const usersSavingAbortControllersByUserId = ref<
+      Record<string, AbortController>
+    >({});
+    const doSaveUserGitlabUserAssociation = async (
+      gitlabUserId: number,
+      redmineUserId: number | null,
+    ) => {
+      if (!api) {
+        return;
+      }
+      if (usersSavingAbortControllersByUserId.value[gitlabUserId]) {
+        usersSavingAbortControllersByUserId.value[gitlabUserId].abort();
+      }
+      usersSavingAbortControllersByUserId.value[gitlabUserId] =
+        new AbortController();
+      if (!usersSaving.value.includes(gitlabUserId)) {
+        usersSaving.value.push(gitlabUserId);
+      }
+      try {
+        const { status } = await api.put(
+          `/admin/integrations/gitlab/${id.value}/users`,
+          {
+            authenticity_token: formAuthenticityToken.value,
+            gitlab_user_id: gitlabUserId,
+            redmine_user_id: redmineUserId,
+          },
+          {
+            signal:
+              usersSavingAbortControllersByUserId.value[gitlabUserId].signal,
+          },
+        );
+        if (201 !== status) {
+          toast?.fire({
+            title: t("pages.admin-integrations-gitlab-id.users.onSave.error"),
+            icon: "error",
+          });
+          userGitlabUserModelValues.value[gitlabUserId.toString()] =
+            model.value.users.find((u) => u.user_id === gitlabUserId)
+              ?.redmine_user_id ?? null;
+        } else {
+          await onRefresh();
+        }
+      } catch {
+        // noop
+      }
+      const gitlabUserIdSavingIndex = usersSaving.value.indexOf(gitlabUserId);
+      if (gitlabUserIdSavingIndex !== -1) {
+        usersSaving.value.splice(gitlabUserIdSavingIndex, 1);
+      }
+    };
+    watch(
+      () => userGitlabUserModelValues.value,
+      (vals) => {
+        const differences = Object.keys(vals).filter(
+          (k) =>
+            model.value.users.find((u) => u.user_id === Number(k))
+              ?.redmine_user_id !== vals[k as string],
+        );
+        differences.forEach((k) => {
+          doSaveUserGitlabUserAssociation(Number(k), vals[k as string]);
+        });
+      },
+      { deep: true },
+    );
     return {
       breadcrumbsBindings,
+      tab,
+      vTabBindings,
       fridayFormBindings,
       accentColor,
+      modelAsParent,
       onSuccess,
       onError,
       currentFieldValues,
@@ -699,6 +957,11 @@ export default defineComponent({
       showGroupingsMenu,
       showAdditional,
       doFetchProjects,
+      doFetchUsers,
+      userValues,
+      usersSaving,
+      doSaveUserGitlabUserAssociation,
+      userGitlabUserModelValues,
     };
   },
 });

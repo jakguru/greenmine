@@ -66,6 +66,7 @@
         :value="value"
         :column="column"
         :menu-generator="handleInTableContextMenuEvent"
+        :parent="parent"
       />
     </template>
     <template #expanded-row="{ columns, item }">
@@ -203,6 +204,10 @@ export default defineComponent({
     filterToIdField: {
       type: String as PropType<string>,
       default: "id",
+    },
+    parent: {
+      type: Object as PropType<Item | undefined>,
+      default: undefined,
     },
   },
   emits: [

@@ -4,9 +4,8 @@ class GitlabInstance < ActiveRecord::Base
   self.table_name = "gitlabs"
   include Redmine::SafeAttributes
   # Associations
-  has_many :project_gitlabs, dependent: :destroy
-  has_many :projects, through: :project_gitlabs
-  has_many :gitlab_projects, dependent: :destroy
+  has_many :gitlab_projects, dependent: :destroy, class_name: "GitlabProject", foreign_key: "gitlab_id"
+  has_many :gitlab_users, dependent: :destroy, class_name: "GitlabUser", foreign_key: "gitlab_id"
 
   # Validations
   validates :name, presence: true

@@ -41,3 +41,7 @@ body {
 .no-wrap {
   white-space: nowrap;
 }
+
+div:where(.swal2-container) {
+  z-index: 5000;
+}

@@ -111,6 +111,30 @@ module FridayHelper
     render template: "blank"
   end
 
+  def get_project_nested_items(projects)
+    result = []
+    if projects.any?
+      ancestors = []
+      projects.sort_by(&:lft).each do |project|
+        # Remove ancestors that are no longer part of the current project's hierarchy
+        while ancestors.any? && !project.is_descendant_of?(ancestors.last)
+          ancestors.pop
+        end
+
+        # Create label with '>' symbols to indicate depth level
+        depth_indicator = ">" * ancestors.size
+        label = "#{depth_indicator} #{project.name}".strip
+
+        # Add the project to the result array as a hash with value and label
+        result << {value: project.id, label: label}
+
+        # Add the current project to ancestors stack
+        ancestors << project
+      end
+    end
+    result
+  end
+
   private
 
   def make_creatable_list(klass, project, user)

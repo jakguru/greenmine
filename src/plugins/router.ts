@@ -158,6 +158,14 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/admin/integrations/gitlab/:id/projects/:projectId",
+    name: "admin-integrations-gitlab-id-project-id",
+    component: () => import("@/pages/admin/integrations/gitlab/project.vue"),
+    meta: {
+      title: "pages.admin-integrations-gitlab-id-project-id.title",
+    },
+  },
+  {
     path: "/admin/integrations/pagerduty",
     name: "admin-integrations-pagerduty",
     component: () => import("@/pages/admin/integrations/pagerduty/index.vue"),

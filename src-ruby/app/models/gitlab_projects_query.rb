@@ -7,7 +7,10 @@ class GitlabProjectsQuery < Query
     QueryColumn.new(:name_with_namespace, sortable: "#{GitlabProject.table_name}.name_with_namespace"),
     QueryColumn.new(:path, sortable: "#{GitlabProject.table_name}.path"),
     QueryColumn.new(:path_with_namespace, sortable: "#{GitlabProject.table_name}.path_with_namespace"),
-    QueryColumn.new(:gitlab_instance, sortable: "#{GitlabInstance.table_name}.id")
+    QueryColumn.new(:gitlab_instance, sortable: "#{GitlabInstance.table_name}.id"),
+    QueryColumn.new(:web_url),
+    QueryColumn.new(:git_http_url),
+    QueryColumn.new(:git_ssh_url)
   ]
 
   def initialize(attributes = nil, *args)
@@ -40,7 +43,7 @@ class GitlabProjectsQuery < Query
   end
 
   def base_scope
-    GitlabProject.where(statement)
+    GitlabProject.preload(:gitlab_instance).where(statement)
   end
 
   def results_scope(options = {})

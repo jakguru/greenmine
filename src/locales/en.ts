@@ -68,17 +68,52 @@ export default {
           active: "Active",
         },
       },
+      tabs: {
+        integration: "Integration",
+        projects: "Projects",
+        users: "Users",
+      },
       projects: {
         title: "Gitlab Projects",
-        cta: "Fetch Projects",
+        cta: "Sync Projects",
         onFetch: {
           success: "Job Enqueued Successfully",
           error: "An error occurred while enqueueing the job",
         },
       },
+      users: {
+        title: "Gitlab Users",
+        cta: "Sync Users",
+        onFetch: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
+        onSave: {
+          error: "An error occurred while saving the user association",
+        },
+      },
       onSave: {
         success: "Integration created successfully",
         error: "An error occurred while creating the integration",
+      },
+    },
+    "admin-integrations-gitlab-id-project": {
+      title: "Manage GitLab Project",
+      content: {
+        associatedProjects: "Associated Projects",
+        associatedProjectsTable: {
+          headers: {
+            name: "Project Name",
+            isAssociated: "Associated",
+          },
+        },
+        openInGitlab: "Open in GitLab",
+        copyGitHttpUrl: "Copy Git HTTP URL",
+        copyGitSshUrl: "Copy Git SSH URL",
+      },
+      onSave: {
+        success: "Project associations saved successfully",
+        error: "An error occurred while saving the project associations",
       },
     },
     "admin-integrations-pagerduty": {
@@ -1088,6 +1123,9 @@ export default {
     webhooks: {
       title: "Webhooks",
     },
+    name: "Name",
+    username: "Username",
+    localUser: "Application User",
   },
   theme: {
     base: {
@@ -1705,5 +1743,9 @@ export default {
       title: "Delete",
       confirm: "Are you sure you want to delete this user?",
     },
+  },
+  messages: {
+    copiedToClipboard: "Copied to clipboard",
+    failedToCopyToClipboard: "Failed to copy to clipboard",
   },
 };

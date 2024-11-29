@@ -1,67 +1,70 @@
 en:
-  field_id: ID
-  field_impact: Impact
-  field_priority: Urgency
-  field_sprint: Sprint
-  field_sprints: Sprint(s)
-  field_time_tracking: Time Tracking
-  field_issues: Issues
-  field_end_date: End Date
-  field_state: State
-  field_progress: Progress
-  field_total_estimated_work: Total Estimated Work
-  field_total_time_logged: Total Time Logged
-  field_position: Position
-  field_custom_field: Custom Field
-  field_related_model: Related Model
+  cf_type_document_category_custom_field_new: New Document Category Custom Field
+  cf_type_document_category_custom_field: Document Category
+  cf_type_document_custom_field_new: New Document Custom Field
+  cf_type_document_custom_field: Document
+  cf_type_group_custom_field_new: New Group Custom Field
+  cf_type_group_custom_field: Group
+  cf_type_issue_custom_field_new: New Issue Custom Field
+  cf_type_issue_custom_field: Issue
+  cf_type_issue_impact_custom_field_new: New Issue Impact Custom Field
+  cf_type_issue_impact_custom_field: Issue Impact
+  cf_type_issue_priority_custom_field_new: New Issue Urgency Custom Field
+  cf_type_issue_priority_custom_field: Issue Urgency
+  cf_type_project_custom_field_new: New Project Custom Field
+  cf_type_project_custom_field: Project
+  cf_type_time_entry_activity_custom_field_new: New Time Entry Activity Custom Field
+  cf_type_time_entry_activity_custom_field: Time Entry Activity
+  cf_type_time_entry_custom_field_new: New Time Entry Custom Field
+  cf_type_time_entry_custom_field: Time Entry
+  cf_type_user_custom_field_new: New User Custom Field
+  cf_type_user_custom_field: User
+  cf_type_version_custom_field_new: New Version Custom Field
+  cf_type_version_custom_field: Version
   field_avatar: Avatar
-  field_gitlabs: Gitlab Integration
-  field_project_ids: Associated Project(s)
-  field_gitlab_projects: Associated Gitlab Project(s)
-  field_project_gitlab: Associated Project(s)
+  field_calculated_priority: Priority
+  field_custom_field: Custom Field
+  field_end_date: End Date
+  field_git_http_url: Repository HTTP URL
+  field_git_ssh_url: Repository Git URL
   field_gitlab_id: Gitlab Integration
   field_gitlab_instance: Gitlab Integration
-  field_name_with_namespace: Namespaced Name
-  field_path: Path
-  field_path_with_namespace: Namespaced Path
-  label_sprint_new: New Sprint
-  label_backlog: Backlog
+  field_gitlab_projects: Associated Gitlab Project(s)
+  field_gitlabs: Gitlab Integration
+  field_id: ID
+  field_impact: Impact
+  field_issues: Issues
   field_monday_item_id: Monday Item ID
-  state_open: Open
-  state_closed: Closed
-  state_new: New
-  field_calculated_priority: Priority
-  label_issue_priority_updated: Urgency updated
-  label_issue_impact_updated: Impact updated
-  label_gitlab_new: New Gitlab Integration
-  sprint_state_future: Future
-  sprint_state_closed: Closed
-  sprint_state_current: Current
-  cf_type_document_category_custom_field: Document Category
-  cf_type_document_custom_field: Document
-  cf_type_group_custom_field: Group
-  cf_type_issue_custom_field: Issue
-  cf_type_issue_priority_custom_field: Issue Urgency
-  cf_type_issue_impact_custom_field: Issue Impact
-  cf_type_project_custom_field: Project
-  cf_type_time_entry_activity_custom_field: Time Entry Activity
-  cf_type_time_entry_custom_field: Time Entry
-  cf_type_user_custom_field: User
-  cf_type_version_custom_field: Version
-  cf_type_document_category_custom_field_new: New Document Category Custom Field
-  cf_type_document_custom_field_new: New Document Custom Field
-  cf_type_group_custom_field_new: New Group Custom Field
-  cf_type_issue_custom_field_new: New Issue Custom Field
-  cf_type_issue_priority_custom_field_new: New Issue Urgency Custom Field
-  cf_type_issue_impact_custom_field_new: New Issue Impact Custom Field
-  cf_type_project_custom_field_new: New Project Custom Field
-  cf_type_time_entry_activity_custom_field_new: New Time Entry Activity Custom Field
-  cf_type_time_entry_custom_field_new: New Time Entry Custom Field
-  cf_type_user_custom_field_new: New User Custom Field
-  cf_type_version_custom_field_new: New Version Custom Field
-  version_status_open: Open
-  version_status_locked: Locked
-  version_status_closed: Closed
+  field_name_with_namespace: Namespaced Name
+  field_path_with_namespace: Namespaced Path
+  field_path: Path
+  field_position: Position
+  field_priority: Urgency
+  field_progress: Progress
+  field_project_gitlab: Associated Project(s)
+  field_project_ids: Associated Project(s)
+  field_related_model: Related Model
+  field_sprint: Sprint
+  field_sprints: Sprint(s)
+  field_state: State
+  field_time_tracking: Time Tracking
+  field_total_estimated_work: Total Estimated Work
+  field_total_time_logged: Total Time Logged
+  field_web_url: Gitlab URL
   label_active: Active
+  label_backlog: Backlog
+  label_gitlab_new: New Gitlab Integration
+  label_issue_impact_updated: Impact updated
+  label_issue_priority_updated: Urgency updated
   label_locked: Locked
   label_registered: Registered
+  label_sprint_new: New Sprint
+  sprint_state_closed: Closed
+  sprint_state_current: Current
+  sprint_state_future: Future
+  state_closed: Closed
+  state_new: New
+  state_open: Open
+  version_status_closed: Closed
+  version_status_locked: Locked
+  version_status_open: Open

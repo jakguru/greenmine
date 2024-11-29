@@ -151,6 +151,7 @@
           :dirty="dirty"
           :get-action-items="getActionItems"
           :filter-to-id-field="filterToIdField"
+          :parent="parent"
           @submit="onSubmit"
           @refresh="onRefresh"
         >
@@ -205,6 +206,7 @@ import type {
   DefinedQuery,
   Permissions,
   Createable,
+  Item,
 } from "@/friday";
 import type { GetActionItemsMethod } from "./partials/action-menu";
 
@@ -258,6 +260,10 @@ export default defineComponent({
     },
     parentBus: {
       type: Object as PropType<TinyEmitter | undefined>,
+      default: undefined,
+    },
+    parent: {
+      type: Object as PropType<Item | undefined>,
       default: undefined,
     },
   },

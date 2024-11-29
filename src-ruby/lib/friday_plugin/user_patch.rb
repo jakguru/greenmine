@@ -5,6 +5,8 @@ module FridayPlugin
     def self.included(base)
       base.send(:include, InstanceMethods)
       base.class_eval do
+        has_many :user_gitlab_users, class_name: "UserGitlabUser", foreign_key: "user_id"
+        has_many :gitlab_users, through: :user_gitlab_projects
         alias_method :redmine_base_allowed_to, :allowed_to?
         safe_attributes "avatar"
         def allowed_to?(action, context, options = {}, &block)
