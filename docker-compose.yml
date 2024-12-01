@@ -20,6 +20,7 @@ services:
       REDMINE_PLUGINS_MIGRATE: "1"
       REDIS_URL: redis://redis:6379/0
       REDMINE_ENABLE_CRONS: "1"
+      VITE_BASE_URL: http://127.0.0.1:8111
   vanilla:
     image: redmine:5.1.4
     restart: unless-stopped

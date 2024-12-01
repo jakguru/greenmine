@@ -68,3 +68,7 @@ en:
   version_status_closed: Closed
   version_status_locked: Locked
   version_status_open: Open
+  label_status_active: Active
+  label_status_closed: Closed
+  label_status_archived: Archived
+  label_status_scheduled_for_deletion: Scheduled for Deletion

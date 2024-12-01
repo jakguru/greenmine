@@ -10,10 +10,17 @@
     <%= csrf_meta_tag %>
     <%= favicon %>
     <%= action_cable_meta_tag %>
+    <% unless ENV['VITE_BASE_URL'].present? %>
     <link rel="stylesheet" href="/plugin_assets/friday/stylesheets/friday.css">
+    <% end %>
   </head>
   <body>
     <div id="friday-app"></div>
+    <% if ENV['VITE_BASE_URL'].present? %>
+      <script type="module" src="<%= ENV['VITE_BASE_URL'] %>/plugin_assets/friday/@vite/client"></script>
+      <script type="module" src="<%= ENV['VITE_BASE_URL'] %>/plugin_assets/friday/assets/javascripts/friday.ts"></script>
+    <% else %>
     <script type="module" src="/plugin_assets/friday/javascripts/friday.js"></script>
+    <% end %>
   </body>
 </html>

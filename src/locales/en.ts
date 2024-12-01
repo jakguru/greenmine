@@ -482,7 +482,14 @@ export default {
     "projects-project-id-wiki-index": { title: "" },
     "projects-project-id-wiki-new": { title: "" },
     "projects-autocomplete": { title: "" },
-    "projects-new": { title: "" },
+    "projects-new": {
+      title: "Create a Project",
+      content: {},
+      onSave: {
+        success: "Project created successfully",
+        error: "An error occurred while creating the project",
+      },
+    },
     queries: { title: "" },
     "queries-id-edit": { title: "" },
     "queries-filter": { title: "" },

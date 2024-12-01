@@ -50,6 +50,8 @@ Redmine::Plugin.register :friday do
 
   permission :assign_to_sprint, require: :member
   permission :unassign_from_sprint, require: :member
+  permission :view_associated_gitlab_projects, public: true, read: true
+  permission :manage_associated_gitlab_projects, {projects: :settings}, require: :member
 end
 
 if ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")

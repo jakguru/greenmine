@@ -1646,8 +1646,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/new",
     name: "projects-new",
-    // "component": () => import("@/pages/projects/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/new.vue"),
     meta: {
       title: "pages.projects-new.title",
     },

@@ -41,33 +41,35 @@
             </tr>
           </tbody>
           <tfoot>
-            <th>
-              <v-autocomplete
-                v-model="toAdd.project"
-                :items="remainingProjects"
-                item-title="label"
-                hide-details
-              />
-            </th>
-            <th>
-              <v-autocomplete
-                v-model="toAdd.roles"
-                :items="roles"
-                item-title="label"
-                hide-details
-                multiple
-                chips
-                closable-chips
-              />
-            </th>
-            <th width="40" class="text-center">
-              <v-btn
-                icon="mdi-plus"
-                color="accent"
-                size="x-small"
-                @click="doAdd"
-              />
-            </th>
+            <tr>
+              <th>
+                <v-autocomplete
+                  v-model="toAdd.project"
+                  :items="remainingProjects"
+                  item-title="label"
+                  hide-details
+                />
+              </th>
+              <th>
+                <v-autocomplete
+                  v-model="toAdd.roles"
+                  :items="roles"
+                  item-title="label"
+                  hide-details
+                  multiple
+                  chips
+                  closable-chips
+                />
+              </th>
+              <th width="40" class="text-center">
+                <v-btn
+                  icon="mdi-plus"
+                  color="accent"
+                  size="x-small"
+                  @click="doAdd"
+                />
+              </th>
+            </tr>
           </tfoot>
         </v-table>
       </div>

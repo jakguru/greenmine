@@ -23,7 +23,7 @@ const nodemonConfig = {
   ext: "ts,mts,json,env,scss,vue,md,yml,rb,erb,Gemfile",
   ignore: ["node_modules"],
   exec: "npx jiti bin/noop.ts",
-  delay: "2500",
+  delay: "250",
 };
 
 let subprocess: Subprocess | undefined;
@@ -53,47 +53,43 @@ process
     cleanup().finally(() => process.exit(255));
   });
 
-const doStart = async (force: boolean = false) => {
-  if (subprocess && !force) {
-    return;
-  }
-  if (abortController) {
-    if (abortController.signal.aborted) {
-      return;
-    }
-    abortController.abort();
-  }
-  abortController = new AbortController();
-  if (!abortController.signal.aborted) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  if (!abortController.signal.aborted) {
-    subprocess = execa(
-      "npx",
-      ["vite", "build", "--mode", "development", "--watch"],
-      {
-        cwd,
-        stdio: "inherit",
-        reject: false,
-        cancelSignal: abortController.signal,
-        env: {
-          ...(env as Record<string, string>),
-          NODE_TLS_REJECT_UNAUTHORIZED: "1",
-        },
-      },
-    );
-    subprocess.on("exit", (code) => {
-      if (code === 0) {
-        console.log(color.green("Server process exited successfully"));
-      } else if (null !== code) {
-        console.log(
-          color.red(`Server process exited with an error code: ${code}`),
-        );
-      } else {
-        console.log(color.red("Server process was killed"));
-      }
-    });
-  }
+const doStart = async (_force: boolean = false) => {
+  // if (subprocess && !force) {
+  //   return;
+  // }
+  // if (abortController) {
+  //   if (abortController.signal.aborted) {
+  //     return;
+  //   }
+  //   abortController.abort();
+  // }
+  // abortController = new AbortController();
+  // if (!abortController.signal.aborted) {
+  //   await new Promise((resolve) => setTimeout(resolve, 500));
+  // }
+  // if (!abortController.signal.aborted) {
+  //   subprocess = execa("npx", ["vite", "--mode", "development"], {
+  //     cwd,
+  //     stdio: "inherit",
+  //     reject: false,
+  //     cancelSignal: abortController.signal,
+  //     env: {
+  //       ...(env as Record<string, string>),
+  //       NODE_TLS_REJECT_UNAUTHORIZED: "1",
+  //     },
+  //   });
+  //   subprocess.on("exit", (code) => {
+  //     if (code === 0) {
+  //       console.log(color.green("Server process exited successfully"));
+  //     } else if (null !== code) {
+  //       console.log(
+  //         color.red(`Server process exited with an error code: ${code}`),
+  //       );
+  //     } else {
+  //       console.log(color.red("Server process was killed"));
+  //     }
+  //   });
+  // }
 };
 
 const doRestart = async (needsSubProcessRestart: boolean) => {

@@ -1062,3 +1062,141 @@ export interface GitlabProjectGroupAccess {
 export interface GitlabProjectValuesProp {
   projects: SelectableListItem<number>[];
 }
+
+export interface ProjectMember {
+  id: number;
+  roles: number[];
+}
+
+export interface ProjectEnumeration {
+  custom_field_values: Record<string, string | null>;
+  active: boolean;
+}
+
+export interface ProjectModel {
+  id: number | null;
+  name: string;
+  description: string | null;
+  homepage: string;
+  is_public: boolean;
+  parent_id: number | null;
+  created_on: string | null;
+  updated_on: string | null;
+  identifier: string | null;
+  status: number;
+  lft: number | null;
+  rgt: number | null;
+  inherit_members: boolean;
+  default_version_id: number | null;
+  default_assigned_to_id: number | null;
+  default_issue_query_id: number | null;
+  avatar: string | null;
+  banner: string | null;
+  custom_field_values: Record<string, string | null>;
+  enabled_module_names: string[];
+  tracker_ids: number[];
+  issue_custom_field_ids: number[];
+  gitlab_projects: number[];
+  eumerations: Record<string, ProjectEnumeration>;
+}
+
+export interface ProjectIssueCategory {
+  assigned_to_id: number | null;
+  id: number;
+  name: string;
+  project_id: number;
+}
+
+export interface ProjectVersion {
+  id: number;
+  project_id: number;
+  name: string;
+  description: string | null;
+  effective_date: string | null;
+  created_on: string;
+  updated_on: string | null;
+  wiki_page_title: string | null;
+  status: "open" | "locked" | "closed";
+  sharing: "none" | "descendants" | "hierarchy" | "tree" | "system";
+}
+
+export interface ProjectRepository {
+  id: number;
+  project_id: number;
+  url: string;
+  login: string;
+  password: string;
+  root_url: string;
+  type: string;
+  path_encoding: string;
+  log_encoding: string;
+  extra_info: string;
+  identifier: string;
+  is_default: boolean;
+  created_on: string;
+}
+
+export interface ProjectCustomField {
+  default_value: string | boolean | number | null;
+  description: string;
+  editable: boolean;
+  field_format: string;
+  format_store: any;
+  id: number;
+  is_filter: boolean;
+  is_for_all: boolean;
+  is_required: boolean;
+  max_length: number | null;
+  min_length: number | null;
+  multiple: boolean;
+  name: string;
+  position: number;
+  possible_values: string[] | number[] | null;
+  regexp: string | null;
+  searchable: boolean;
+  visible: boolean;
+}
+
+export interface ProjectValuesPropMember extends SelectableListItem<number> {
+  kind: "user" | "group";
+}
+
+export interface ProjectValuesActivity extends SelectableListItem<number> {
+  is_system: boolean;
+}
+
+export interface ProjectValuesStatus extends SelectableListItem<number> {
+  disabled?: boolean;
+}
+
+export interface ProjectValuesProp {
+  identifierMaxLength: number;
+  members: ProjectValuesPropMember[];
+  modules: SelectableListItem<string>[];
+  trackers: SelectableListItem<number>[];
+  activities: ProjectValuesActivity[];
+  versions: SelectableListItem<number>[];
+  assignees: SelectableListItem<number>[];
+  queries: SelectableListItem<number>[];
+  gitlabProjects: SelectableListItem<number>[];
+  parents: SelectableListItem<number>[];
+  issueCustomFields: IssueCustomField[];
+  statuses: ProjectValuesStatus[];
+  roles: SelectableListItem<number>[];
+}
+
+export interface ProjectPermissions {
+  add_project: boolean;
+  edit_project: boolean;
+  close_project: boolean;
+  delete_project: boolean;
+  select_project_publicity: boolean;
+  select_project_modules: boolean;
+  manage_members: boolean;
+  manage_versions: boolean;
+  add_subprojects: boolean;
+  manage_public_queries: boolean;
+  save_queries: boolean;
+  view_associated_gitlab_projects: boolean;
+  manage_associated_gitlab_projects: boolean;
+}

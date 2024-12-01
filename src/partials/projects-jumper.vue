@@ -24,7 +24,7 @@
       }}</v-list-subheader>
       <v-list-item
         v-for="(project, i) in recent"
-        :key="i.toString()"
+        :key="`recent-${i}-${project.title}`"
         v-bind="project"
       />
       <v-list-subheader v-if="appData.projects.bookmarked.length > 0">{{
@@ -32,7 +32,7 @@
       }}</v-list-subheader>
       <v-list-item
         v-for="(project, i) in bookmarked"
-        :key="i.toString()"
+        :key="`bookmarked-${i}-${project.title}`"
         v-bind="project"
       />
       <v-list-subheader v-if="appData.projects.active.length > 0">{{
@@ -40,7 +40,7 @@
       }}</v-list-subheader>
       <v-list-item
         v-for="(project, i) in active"
-        :key="i.toString()"
+        :key="`active-${i}-${project.title}`"
         v-bind="project"
       />
       <v-divider v-if="hasSomeProject" />

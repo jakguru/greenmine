@@ -8,8 +8,8 @@ import {
   isImageFile,
   isFontFile,
 } from "./dev/changeFileNameVitePlugin.mjs";
-import { restartRedmineAfterBuild } from "./dev/restartRedmineAfterBuild.mjs";
-import { copyRubyFilesAfterBuild } from "./dev/copyRubyFilesAfterBuild.mjs";
+// import { restartRedmineAfterBuild } from "./dev/restartRedmineAfterBuild.mjs";
+// import { copyRubyFilesAfterBuild } from "./dev/copyRubyFilesAfterBuild.mjs";
 import UnheadVite from "@unhead/addons/vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
@@ -37,8 +37,8 @@ export default defineConfig(async ({ mode }) => {
           configFile: "./assets/stylesheets/vuetify.scss",
         },
       }),
-      copyRubyFilesAfterBuild(),
-      restartRedmineAfterBuild(),
+      // copyRubyFilesAfterBuild(),
+      // restartRedmineAfterBuild(),
       UnheadVite(),
     ],
     define: {
@@ -51,6 +51,7 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     build: {
+      manifest: true,
       outDir: resolve(__dirname, "plugins", "friday"),
       chunkSizeWarningLimit: 1024 * 10,
       emptyOutDir: true,
@@ -119,6 +120,22 @@ export default defineConfig(async ({ mode }) => {
     },
     ssr: {
       noExternal: ["@jakguru/vueprint"],
+    },
+    optimizeDeps: {
+      exclude: ["fsevents", "@nuxt/kit"],
+    },
+    server: {
+      host: "0.0.0.0",
+      port: 8111,
+      strictPort: true,
+      origin: "http://127.0.0.1:8111",
+    },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: "modern-compiler",
+        },
+      },
     },
   } as UserConfig;
 });
