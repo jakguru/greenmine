@@ -1001,8 +1001,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:id",
     name: "projects-id",
-    // "component": () => import("@/pages/projects/id.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/show.vue"),
     meta: {
       title: "pages.projects-id.title",
     },
@@ -1248,12 +1247,21 @@ const routes: RouteRecordRaw[] = [
     component: fourOhFour,
   },
   {
-    path: "/projects/:id/settings(/:tab)",
+    path: "/projects/:id/settings",
+    name: "projects-id-settings",
+    // "component": () => import("@/pages/projects/id/settings(/tab).vue")
+    component: fourOhFour,
+    meta: {
+      title: "pages.projects-id-settings.title",
+    },
+  },
+  {
+    path: "/projects/:id/settings/:tab",
     name: "projects-id-settings-tab",
     // "component": () => import("@/pages/projects/id/settings(/tab).vue")
     component: fourOhFour,
     meta: {
-      title: "pages.projects-id-settings-tab.title",
+      title: "pages.projects-id-settings.title",
     },
   },
   {

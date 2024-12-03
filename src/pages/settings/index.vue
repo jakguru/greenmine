@@ -70,6 +70,7 @@ import {
   useReloadRouteData,
   useReloadAppData,
   checkObjectEquality,
+  useOnError,
 } from "@/utils/app";
 import {
   Joi,
@@ -93,7 +94,6 @@ import type {
   FridayFormStructureField,
 } from "@/components/forms";
 import type {
-  SwalService,
   ToastService,
   LocalStorageService,
   ApiService,
@@ -119,7 +119,6 @@ export default defineComponent({
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
-    const swal = inject<SwalService>("swal");
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
     const bus = inject<BusService>("bus");
@@ -247,21 +246,7 @@ export default defineComponent({
         return;
       }
     };
-    const onError = (_status: number, payload: unknown) => {
-      if (payload instanceof Error) {
-        console.error(payload);
-      }
-      if (!swal) {
-        alert(t("pages.settings.onSave.error"));
-        return;
-      } else {
-        swal.fire({
-          title: t("pages.settings.onSave.error"),
-          icon: "error",
-        });
-        return;
-      }
-    };
+    const onError = useOnError("pages.settings");
     const makeFridayFormFieldFor = (
       key: keyof SettingsPayloadSettings,
       options: {

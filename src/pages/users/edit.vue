@@ -88,6 +88,7 @@ import {
   cloneObject,
   checkObjectEquality,
   useAppData,
+  useOnError,
 } from "@/utils/app";
 import {
   Joi,
@@ -105,7 +106,6 @@ import type {
   FridayFormComponent,
 } from "@/components/forms";
 import type {
-  SwalService,
   ToastService,
   LocalStorageService,
   ApiService,
@@ -145,7 +145,6 @@ export default defineComponent({
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
-    const swal = inject<SwalService>("swal");
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
     const route = useRoute();
@@ -312,21 +311,7 @@ export default defineComponent({
         return;
       }
     };
-    const onError = (_status: number, payload: unknown) => {
-      if (payload instanceof Error) {
-        console.error(payload);
-      }
-      if (!swal) {
-        alert(t(`pages.users-id-edit.onSave.error`));
-        return;
-      } else {
-        swal.fire({
-          title: t(`pages.users-id-edit.onSave.error`),
-          icon: "error",
-        });
-        return;
-      }
-    };
+    const onError = useOnError("pages.users-id-edit");
     const passwordFieldValidator = computed(() => {
       let schema = Joi.string().required().min(Number(passwordMinLength.value));
       if (passwordRequiredCharClasses.value.includes("uppercase")) {

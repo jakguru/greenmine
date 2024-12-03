@@ -1140,7 +1140,19 @@ export interface ProjectCustomField {
   default_value: string | boolean | number | null;
   description: string;
   editable: boolean;
-  field_format: string;
+  field_format:
+    | "attachment"
+    | "bool"
+    | "date"
+    | "enumeration"
+    | "float"
+    | "int"
+    | "link"
+    | "list"
+    | "string"
+    | "text"
+    | "user"
+    | "version";
   format_store: any;
   id: number;
   is_filter: boolean;
@@ -1155,6 +1167,7 @@ export interface ProjectCustomField {
   regexp: string | null;
   searchable: boolean;
   visible: boolean;
+  enumerations: EnumerableValue[];
 }
 
 export interface ProjectValuesPropMember extends SelectableListItem<number> {
@@ -1167,6 +1180,13 @@ export interface ProjectValuesActivity extends SelectableListItem<number> {
 
 export interface ProjectValuesStatus extends SelectableListItem<number> {
   disabled?: boolean;
+  color: string;
+  icon: string;
+}
+
+export interface ProjectValuesRole extends SelectableListItem<number> {
+  assignable: boolean;
+  external: boolean;
 }
 
 export interface ProjectValuesProp {
@@ -1182,7 +1202,7 @@ export interface ProjectValuesProp {
   parents: SelectableListItem<number>[];
   issueCustomFields: IssueCustomField[];
   statuses: ProjectValuesStatus[];
-  roles: SelectableListItem<number>[];
+  roles: ProjectValuesRole[];
 }
 
 export interface ProjectPermissions {
@@ -1200,3 +1220,33 @@ export interface ProjectPermissions {
   view_associated_gitlab_projects: boolean;
   manage_associated_gitlab_projects: boolean;
 }
+
+export interface News {
+  id: number;
+  title: string;
+  summary: string;
+  description: string;
+  created_on: string;
+  comments_count: number;
+  project: Project;
+  author: Author;
+}
+
+export interface Author {
+  id: number;
+  login: string;
+  firstname: string;
+  lastname: string;
+}
+
+// export interface ProjectModelForShow extends ProjectModel {
+//   principalsByRole: Record<string, Principal[]>;
+//   subprojects: ProjectModel[];
+//   news: News[];
+//   trackers: Tracker[];
+//   openIssuesByTracker: Record<string, number>;
+//   totalIssuesByTracker: Record<string, number>;
+//   totalHours: number | null;
+//   totalEstimatedHours: number | null;
+//   gitlabProjects: GitlabProject[];
+// }

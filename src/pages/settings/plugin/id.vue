@@ -80,19 +80,18 @@ import { VTextField } from "vuetify/components/VTextField";
 import { VSwitch } from "vuetify/components/VSwitch";
 import { VPasswordField } from "@/components/fields";
 import { useRoute } from "vue-router";
-import { useSystemAccentColor, useReloadRouteData } from "@/utils/app";
+import {
+  useSystemAccentColor,
+  useReloadRouteData,
+  useOnError,
+} from "@/utils/app";
 
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 
 import type { PropType } from "vue";
 import type { PluginData } from "@/redmine";
 import type { FridayFormStructure } from "@/components/forms";
-import type {
-  ApiService,
-  SwalService,
-  ToastService,
-  BusService,
-} from "@jakguru/vueprint";
+import type { ApiService, ToastService, BusService } from "@jakguru/vueprint";
 
 export default defineComponent({
   name: "SettingsPluginId",
@@ -110,7 +109,6 @@ export default defineComponent({
   setup(props) {
     const api = inject<ApiService>("api");
     const toast = inject<ToastService>("toast");
-    const swal = inject<SwalService>("swal");
     const bus = inject<BusService>("bus");
     const route = useRoute();
     const accentColor = useSystemAccentColor();
@@ -504,21 +502,7 @@ export default defineComponent({
         return;
       }
     };
-    const onError = (_status: number, payload: unknown) => {
-      if (payload instanceof Error) {
-        console.error(payload);
-      }
-      if (!swal) {
-        alert(t("pages.settings-plugin-id.onSave.error"));
-        return;
-      } else {
-        swal.fire({
-          title: t("pages.settings-plugin-id.onSave.error"),
-          icon: "error",
-        });
-        return;
-      }
-    };
+    const onError = useOnError("pages.settings-plugin-id");
     return {
       breadcrumbsBindings,
       isFriday,

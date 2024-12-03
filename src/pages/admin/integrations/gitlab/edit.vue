@@ -276,6 +276,7 @@ import {
   cloneObject,
   checkObjectEquality,
   loadRouteData,
+  useOnError,
 } from "@/utils/app";
 import { useActionCableConsumer } from "@/utils/realtime";
 import {
@@ -301,7 +302,6 @@ import type {
   FridayFormComponent,
 } from "@/components/forms";
 import type {
-  SwalService,
   ToastService,
   LocalStorageService,
   ApiService,
@@ -355,7 +355,6 @@ export default defineComponent({
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
-    const swal = inject<SwalService>("swal");
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
     const bus = inject<BusService>("bus");
@@ -473,21 +472,7 @@ export default defineComponent({
         return;
       }
     };
-    const onError = (_status: number, payload: unknown) => {
-      if (payload instanceof Error) {
-        console.error(payload);
-      }
-      if (!swal) {
-        alert(t(`pages.admin-integrations-gitlab-id.onSave.error`));
-        return;
-      } else {
-        swal.fire({
-          title: t(`pages.admin-integrations-gitlab-id.onSave.error`),
-          icon: "error",
-        });
-        return;
-      }
-    };
+    const onError = useOnError("pages.admin-integrations-gitlab-id");
     const renderedForm = ref<FridayFormComponent | null>(null);
     const currentFieldValues = ref<Record<string, unknown>>({});
     const formStructure = computed<FridayFormStructure>(() => [

@@ -12,6 +12,8 @@ RedmineApp::Application.routes.draw do
   get "ui/actions/issues", to: "ui#get_actions_for_issues"
   get "crons/poll", to: "crons#poll"
   get "admin/integrations", to: "admin#integrations"
+  get "users/:id/avatar", to: "ui#get_user_avatar"
+  get "groups/:id/avatar", to: "ui#get_group_avatar"
   mount Sidekiq::Web => "admin/sidekiq"
 
   # Time Tracking

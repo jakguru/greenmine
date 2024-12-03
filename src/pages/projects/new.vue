@@ -59,7 +59,11 @@ import { defineComponent, computed, inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { VSwitch } from "vuetify/components/VSwitch";
-import { VMarkdownField } from "@/components/fields";
+import {
+  VMarkdownField,
+  VRedmineCustomField,
+  VBase64EncodedImageField,
+} from "@/components/fields";
 import { useRoute, useRouter } from "vue-router";
 import {
   useSystemAccentColor,
@@ -67,13 +71,9 @@ import {
   useReloadAppData,
   cloneObject,
   checkObjectEquality,
+  useOnError,
 } from "@/utils/app";
-import {
-  Joi,
-  getFormFieldValidator,
-  FridayForm,
-  tlds,
-} from "@/components/forms";
+import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 
 import type { PropType } from "vue";
 import type {
@@ -81,7 +81,6 @@ import type {
   FridayFormComponent,
 } from "@/components/forms";
 import type {
-  SwalService,
   ToastService,
   LocalStorageService,
   ApiService,
@@ -147,7 +146,6 @@ export default defineComponent({
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
-    const swal = inject<SwalService>("swal");
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
     const route = useRoute();
@@ -157,12 +155,14 @@ export default defineComponent({
     const accentColor = useSystemAccentColor();
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const id = computed(() => props.id);
+    const customFields = computed(() => props.customFields);
     const model = computed(() => props.model);
     const values = computed(() => props.values);
     const identifierMaxLength = computed(
       () => values.value.identifierMaxLength,
     );
     const parents = computed(() => values.value.parents);
+    const modules = computed(() => values.value.modules);
     const { t } = useI18n({ useScope: "global" });
     const breadcrumbsBindings = computed(() => ({
       items: [
@@ -172,6 +172,22 @@ export default defineComponent({
         },
       ],
     }));
+    const parentId = computed({
+      get: () => {
+        return model.value.parent_id;
+      },
+      set: (value: number | null) => {
+        router.push({
+          name: route.name,
+          params: route.params,
+          query: Object.assign({}, route.query, {
+            project: Object.assign({}, route.query.project, {
+              parent_id: value,
+            }),
+          }),
+        });
+      },
+    });
     const modifyPayload = (payload: Record<string, unknown>) => {
       return {
         authenticity_token: formAuthenticityToken.value,
@@ -191,12 +207,13 @@ export default defineComponent({
           "object" === typeof payload &&
           null !== payload &&
           "id" in payload &&
-          payload.id !== id.value
+          payload.id !== id.value &&
+          "identifier" in payload
         ) {
           router.push({
-            name: "projects-id",
+            name: "projects-id-settings",
             params: {
-              id: (payload.id as number).toString(),
+              id: (payload.identifier as string).toString(),
             },
           });
         }
@@ -207,21 +224,7 @@ export default defineComponent({
         return;
       }
     };
-    const onError = (_status: number, payload: unknown) => {
-      if (payload instanceof Error) {
-        console.error(payload);
-      }
-      if (!swal) {
-        alert(t(`pages.projects-new.onSave.error`));
-        return;
-      } else {
-        swal.fire({
-          title: t(`pages.projects-new.onSave.error`),
-          icon: "error",
-        });
-        return;
-      }
-    };
+    const onError = useOnError("pages.projects-new");
     const renderedForm = ref<FridayFormComponent | null>(null);
     const currentFieldValues = ref<Record<string, unknown>>({});
     const identifierFieldValidator = computed(() =>
@@ -237,6 +240,20 @@ export default defineComponent({
           }),
         t(`pages.users-id-edit.content.fields.mail`),
       ),
+    );
+    const customFieldsForFormStructure = computed(() =>
+      [...customFields.value].map((f) => [
+        {
+          cols: 12,
+          fieldComponent: VRedmineCustomField,
+          formKey: `custom_field_values.${f.id}`,
+          valueKey: `custom_field_values_${f.id}`,
+          label: f.name,
+          bindings: {
+            fieldConfiguration: f,
+          },
+        },
+      ]),
     );
     const formStructure = computed<FridayFormStructure>(() => [
       [
@@ -286,6 +303,34 @@ export default defineComponent({
       [
         {
           cols: 12,
+          md: 4,
+          fieldComponent: VBase64EncodedImageField,
+          formKey: "avatar",
+          valueKey: "avatar",
+          label: t(`pages.projects-new.content.fields.avatar`),
+          bindings: {
+            label: t(`pages.projects-new.content.fields.avatar`),
+            height: 200,
+            clearable: true,
+          },
+        },
+        {
+          cols: 12,
+          md: 8,
+          fieldComponent: VBase64EncodedImageField,
+          formKey: "banner",
+          valueKey: "banner",
+          label: t(`pages.projects-new.content.fields.banner`),
+          bindings: {
+            label: t(`pages.projects-new.content.fields.banner`),
+            height: 200,
+            clearable: true,
+          },
+        },
+      ],
+      [
+        {
+          cols: 12,
           md: 9,
           fieldComponent: VTextField,
           formKey: "homepage",
@@ -294,6 +339,11 @@ export default defineComponent({
           bindings: {
             label: t(`pages.projects-new.content.fields.homepage`),
           },
+          validator: getFormFieldValidator(
+            t,
+            Joi.string().uri().allow("", null),
+            t(`pages.projects-new.content.fields.homepage`),
+          ),
         },
         {
           cols: 12,
@@ -333,6 +383,23 @@ export default defineComponent({
           },
         },
       ],
+      [
+        {
+          cols: 12,
+          fieldComponent: VAutocomplete,
+          formKey: "enabled_module_names",
+          valueKey: "enabled_module_names",
+          label: t(`pages.projects-new.content.fields.enabled_module_names`),
+          bindings: {
+            label: t(`pages.projects-new.content.fields.enabled_module_names`),
+            items: modules.value,
+            itemTitle: "label",
+            multiple: true,
+            chips: true,
+            closableChips: true,
+          },
+        },
+      ],
     ]);
     const formValues = computed<Record<string, unknown>>(() =>
       cloneObject(model.value as any as Record<string, unknown>),
@@ -364,6 +431,11 @@ export default defineComponent({
         if (!checkObjectEquality(values, currentFieldValues.value)) {
           currentFieldValues.value = values;
         }
+        const valuesParentId = values.parent_id ? values.parent_id : null;
+        const parentIdValue = parentId.value ? parentId.value : null;
+        if (valuesParentId !== parentIdValue) {
+          parentId.value = valuesParentId as number;
+        }
       },
     }));
     return {
@@ -374,6 +446,7 @@ export default defineComponent({
       onError,
       currentFieldValues,
       renderedForm,
+      customFieldsForFormStructure,
     };
   },
 });

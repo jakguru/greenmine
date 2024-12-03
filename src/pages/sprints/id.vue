@@ -240,6 +240,7 @@ import {
   cloneObject,
   checkObjectEquality,
   loadRouteData,
+  useOnError,
 } from "@/utils/app";
 import { VTextField } from "vuetify/components/VTextField";
 import { SprintBurndown, SprintCapacity } from "@/components/charts/sprint";
@@ -258,7 +259,6 @@ import { useGetActionMenuItems } from "@/components/queries/utils/issues";
 
 import type { PropType } from "vue";
 import type {
-  SwalService,
   ToastService,
   ApiService,
   BusService,
@@ -353,7 +353,6 @@ export default defineComponent({
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
-    const swal = inject<SwalService>("swal");
     const api = inject<ApiService>("api");
     const bus = inject<BusService>("bus");
     const route = useRoute();
@@ -416,21 +415,7 @@ export default defineComponent({
         return;
       }
     };
-    const onError = (_status: number, payload: unknown) => {
-      if (payload instanceof Error) {
-        console.error(payload);
-      }
-      if (!swal) {
-        alert(t("pages.sprints-id.onSave.error"));
-        return;
-      } else {
-        swal.fire({
-          title: t("pages.sprints-id.onSave.error"),
-          icon: "error",
-        });
-        return;
-      }
-    };
+    const onError = useOnError("pages.sprints-id");
     onMounted(() => {
       useHead({
         title: t("pages.sprints-id.specificTitle", {

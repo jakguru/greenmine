@@ -74,13 +74,13 @@ import {
   useReloadAppData,
   cloneObject,
   checkObjectEquality,
+  useOnError,
 } from "@/utils/app";
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 
 import type { PropType } from "vue";
 import type { FridayFormStructure } from "@/components/forms";
 import type {
-  SwalService,
   ToastService,
   LocalStorageService,
   ApiService,
@@ -120,7 +120,6 @@ export default defineComponent({
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
-    const swal = inject<SwalService>("swal");
     const ls = inject<LocalStorageService>("ls");
     const api = inject<ApiService>("api");
     const route = useRoute();
@@ -186,21 +185,7 @@ export default defineComponent({
         return;
       }
     };
-    const onError = (_status: number, payload: unknown) => {
-      if (payload instanceof Error) {
-        console.error(payload);
-      }
-      if (!swal) {
-        alert(t(`${i18nPrefix.value}.onSave.error`));
-        return;
-      } else {
-        swal.fire({
-          title: t(`${i18nPrefix.value}.onSave.error`),
-          icon: "error",
-        });
-        return;
-      }
-    };
+    const onError = useOnError(i18nPrefix.value);
     const currentFieldValues = ref<Record<string, unknown>>({});
     const formStructure = computed<FridayFormStructure>(() => {
       return [

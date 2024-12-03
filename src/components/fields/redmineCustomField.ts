@@ -1,5 +1,12 @@
-import { defineComponent, computed, h, ref } from "vue";
-import type { PropType } from "vue";
+import { defineComponent, computed, h } from "vue";
+
+import { VTextField } from "vuetify/components/VTextField";
+import { VTextarea } from "vuetify/components";
+import { VSwitch } from "vuetify/components/VSwitch";
+import { VFileInput } from "vuetify/components/VFileInput";
+import { VAutocomplete } from "vuetify/components";
+
+import type { PropType, Component } from "vue";
 import type { ProjectCustomField } from "@/friday";
 
 export const VRedmineCustomField = defineComponent({
@@ -13,39 +20,11 @@ export const VRedmineCustomField = defineComponent({
       type: String as PropType<"default" | "comfortable" | "compact">,
       default: "default",
     },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    error: {
-      type: Boolean,
-      default: false,
-    },
-    errorMessages: {
-      type: [String, Array] as PropType<string | string[]>,
-      default: () => [],
-    },
-    focused: {
-      type: Boolean,
-      default: false,
-    },
-    hideDetails: {
-      type: Boolean,
-      default: false,
-    },
-    hideSpinButtons: {
-      type: Boolean,
-      default: false,
-    },
-    hint: {
-      type: String as PropType<string | undefined>,
-      default: undefined,
+    fieldConfiguration: {
+      type: Object as PropType<ProjectCustomField>,
+      required: true,
     },
     id: {
-      type: String as PropType<string | undefined>,
-      default: undefined,
-    },
-    label: {
       type: String as PropType<string | undefined>,
       default: undefined,
     },
@@ -61,20 +40,10 @@ export const VRedmineCustomField = defineComponent({
       type: [String, Number] as PropType<string | number | undefined>,
       default: undefined,
     },
-    messages: {
-      type: [String, Array] as PropType<string | string[]>,
-      default: () => [],
-    },
-    minWidth: {
-      type: [String, Number] as PropType<string | number | undefined>,
-      default: undefined,
-    },
     modelValue: {
-      type: [String, Number, Boolean, Object, Array] as PropType<any | any[]>,
-      required: true,
-    },
-    name: {
-      type: String as PropType<string | undefined>,
+      type: [String, Number, Boolean, Object, Array] as PropType<
+        any | any[] | undefined
+      >,
       default: undefined,
     },
     persistentHint: {
@@ -88,10 +57,6 @@ export const VRedmineCustomField = defineComponent({
     readonly: {
       type: Boolean,
       default: false,
-    },
-    rules: {
-      type: Array as PropType<any[] | undefined>,
-      default: undefined,
     },
     theme: {
       type: String as PropType<string | undefined>,
@@ -153,5 +118,123 @@ export const VRedmineCustomField = defineComponent({
       type: Function as PropType<() => void>,
       default: undefined,
     },
+  },
+  setup(props) {
+    const fieldConfiguration = computed(() => props.fieldConfiguration);
+    const component = computed<Component>(() => {
+      switch (fieldConfiguration.value.field_format) {
+        case "attachment":
+          return VFileInput;
+        case "enumeration":
+        case "list":
+        case "user":
+        case "version":
+          return VAutocomplete;
+        case "bool":
+          return VSwitch;
+        case "text":
+          return VTextarea;
+        case "string":
+        case "int":
+        case "float":
+        case "link":
+        case "date":
+        default:
+          return VTextField;
+      }
+    });
+    const fieldFormatOptions = computed(() => {
+      switch (fieldConfiguration.value.field_format) {
+        case "attachment":
+          return {};
+        case "enumeration":
+          return {
+            items: [...fieldConfiguration.value.enumerations]
+              .sort((a, b) => a.position - b.position)
+              .map((item) => ({
+                value: item.id,
+                label: item.name,
+                disabled: !item.active,
+              })),
+            multiple: fieldConfiguration.value.multiple,
+          };
+        case "list":
+          return {
+            items: [...fieldConfiguration.value.possible_values!].map(
+              (item) => ({
+                value: item,
+                label: item,
+              }),
+            ),
+            multiple: fieldConfiguration.value.multiple,
+          };
+        case "user":
+        case "version":
+          return {
+            items: [...fieldConfiguration.value.enumerations]
+              .sort((a, b) => a.position - b.position)
+              .map((item) => ({
+                value: item.id,
+                label: item.name,
+                disabled: !item.active,
+              })),
+            multiple: fieldConfiguration.value.multiple,
+          };
+        case "bool":
+          return {
+            trueValue: "1",
+            falseValue: "0",
+          };
+        case "text":
+          return {};
+        case "string":
+          return {};
+        case "int":
+          return {
+            type: "number",
+            steps: 1,
+          };
+        case "float":
+          return {
+            type: "number",
+            steps: "any",
+          };
+        case "link":
+          return {
+            type: "url",
+          };
+        case "date":
+          return {
+            type: "date",
+          };
+        default:
+          return {};
+      }
+    });
+    const bindings = computed(() => ({
+      ...fieldFormatOptions.value,
+      appendIcon: props.appendIcon,
+      density: props.density,
+      id: props.id,
+      loading: props.loading,
+      maxErrors: props.maxErrors,
+      maxWidth: props.maxWidth,
+      modelValue: props.modelValue,
+      persistentHint: props.persistentHint,
+      prependIcon: props.prependIcon,
+      readonly: props.readonly,
+      theme: props.theme,
+      validateOn: props.validateOn,
+      validationValue: props.validationValue,
+      variant: props.variant,
+      width: props.width,
+      onChange: props.onChange,
+      onFocus: props.onFocus,
+      onBlur: props.onBlur,
+      onInput: props.onInput,
+      label: fieldConfiguration.value.name,
+      hint: fieldConfiguration.value.description,
+    }));
+    return () => h(component.value, bindings.value);
   },
 });

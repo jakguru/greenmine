@@ -94,6 +94,17 @@ export default defineComponent({
         },
         {
           component: h(VListItem, {
+            title: t("labels.settings.open"),
+            prependIcon: "mdi-cog",
+            density: "compact",
+            to: {
+              name: "projects-id-settings",
+              params: { id: projects[0].id },
+            },
+          }),
+        },
+        {
+          component: h(VListItem, {
             title: t("issueActionMenu.filterTo.title"),
             appendIcon: "mdi-filter",
             density: "compact",

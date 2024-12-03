@@ -5,12 +5,13 @@ import { useAppDataStore } from "@/stores/appData";
 import { useRouteDataStore } from "@/stores/routeData";
 import { useTheme } from "vuetify";
 import useClipboard from "vue-clipboard3";
-import type Joi from "joi";
+import Joi from "joi";
 
 import {
   ApiService,
   LocalStorageService,
   ToastService,
+  SwalService,
 } from "@jakguru/vueprint";
 import type { RouteLocationNormalizedGeneric } from "vue-router";
 import type { Ref, ComputedRef } from "vue";
@@ -337,4 +338,42 @@ export const useCopyToClipboard = (
       });
   };
   return doCopy;
+};
+
+const parsableErrorPayloadSchema = Joi.object({
+  errors: Joi.array().items(Joi.string()).required().min(1),
+});
+
+const isParsableErrorPayload = (payload: unknown): boolean => {
+  return matchesSchema(payload, parsableErrorPayloadSchema);
+};
+
+export const useOnError = (pagePrefix: string) => {
+  const swal = inject<SwalService>("swal");
+  const { t } = i18n.global;
+  const onError = (_status: number, payload: unknown) => {
+    if (payload instanceof Error) {
+      console.error(payload);
+    }
+    let message: string | undefined;
+    if (isParsableErrorPayload(payload)) {
+      message = (payload as { errors: string[] }).errors[0];
+    }
+    if (!swal) {
+      if (message) {
+        alert(`${t(`${pagePrefix}.onSave.error`)}:\n${message}`);
+      } else {
+        alert(t(`${pagePrefix}.onSave.error`));
+      }
+      return;
+    } else {
+      swal.fire({
+        title: t(`${pagePrefix}.onSave.error`),
+        text: message,
+        icon: "error",
+      });
+      return;
+    }
+  };
+  return onError;
 };

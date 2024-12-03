@@ -7,6 +7,9 @@ module FridayPlugin
         alias_method :redmine_base_index, :index
         alias_method :redmine_base_new, :new
         alias_method :redmine_base_show, :show
+        alias_method :redmine_base_settings, :settings
+        alias_method :redmine_base_create, :create
+        alias_method :redmine_base_update, :update
 
         def index
           retrieve_default_query
@@ -23,6 +26,7 @@ module FridayPlugin
         def new
           if friday_request?
             @project = Project.new
+            @project.safe_attributes = params[:project]
             render_project_response
           else
             redmine_base_new
@@ -31,13 +35,71 @@ module FridayPlugin
 
         def show
           if friday_request?
-            render_project_response
+            principals_by_role = @project.principals_by_role
+            subprojects = @project.children.visible.to_a
+            news = @project.news.limit(5).includes(:author, :project).reorder("#{News.table_name}.created_on DESC").to_a
+            with_subprojects = Setting.display_subprojects_issues?
+            trackers = @project.rolled_up_trackers(with_subprojects).visible
+            cond = @project.project_condition(with_subprojects)
+            open_issues_by_tracker = Issue.visible.open.where(cond).group(:tracker).count
+            total_issues_by_tracker = Issue.visible.where(cond).group(:tracker).count
+            total_hours = nil
+            total_estimated_hours = nil
+            if User.current.allowed_to_view_all_time_entries?(@project)
+              total_hours = TimeEntry.visible.where(cond).sum(:hours).to_f
+              total_estimated_hours = Issue.visible.where(cond).sum(:estimated_hours).to_f
+            end
+            gitlab_projects = @project.gitlab_projects
+            parents = []
+            project = @project
+            while project.parent
+              parents << project.parent
+              project = project.parent
+            end
+
+            render_project_response({
+              principalsByRole: principals_by_role,
+              subprojects: subprojects,
+              news: news,
+              trackers: trackers,
+              openIssuesByTracker: open_issues_by_tracker,
+              totalIssuesByTracker: total_issues_by_tracker,
+              totalHours: total_hours,
+              totalEstimatedHours: total_estimated_hours,
+              gitlabProjects: gitlab_projects,
+              parents: parents.reverse
+            })
           else
             redmine_base_show
           end
         end
 
-        def render_project_response
+        def settings
+          if friday_request?
+            render_project_response
+          else
+            redmine_base_settings
+          end
+        end
+
+        def create
+          if friday_request?
+            @project = Project.new
+            render_project_save_response(true)
+          else
+            redmine_base_create
+          end
+        end
+
+        def update
+          if friday_request?
+            render_project_save_response
+          else
+            redmine_base_update
+          end
+        end
+
+        def render_project_response(additional = {})
           custom_field_values = {}
           @project.visible_custom_field_values.each do |cfv|
             id = cfv.custom_field.id
@@ -57,6 +119,7 @@ module FridayPlugin
               kind: "group"
             }
           }
+          assignees = get_project_default_assigned_to_options(@project)
           versions = get_project_default_version_options(@project)
           eumerations = {}
           @project.activities(true).each do |activity|
@@ -89,7 +152,22 @@ module FridayPlugin
             issueCategories: @project.issue_categories,
             versions: versions,
             repositories: @project.repositories,
-            customFields: @project.visible_custom_field_values.map(&:custom_field),
+            customFields: @project.visible_custom_field_values.map(&:custom_field).map { |cf|
+              case cf.field_format
+              when "user"
+                cf.attributes.merge({
+                  enumerations: get_enumerations_for_project_custom_user_field(cf)
+                })
+              when "version"
+                cf.attributes.merge({
+                  enumerations: get_enumerations_for_project_custom_versions_field(cf)
+                })
+              else
+                cf.attributes.merge({
+                  enumerations: cf.enumerations.collect { |v| {id: v.id, name: v.name, is_default: nil, position: v.position, active: v.active} }
+                })
+              end
+            },
             values: {
               identifierMaxLength: Project::IDENTIFIER_MAX_LENGTH,
               members: users + groups,
@@ -118,7 +196,7 @@ module FridayPlugin
                   label: version.name
                 }
               },
-              assignees: get_project_default_assigned_to_options(@project),
+              assignees: assignees,
               queries: get_project_default_issue_query_options(@project),
               gitlabProjects: GitlabProject.preload(:gitlab_instance).map { |gitlab_project|
                 {
@@ -136,15 +214,17 @@ module FridayPlugin
               },
               issueCustomFields: IssueCustomField.sorted.to_a,
               statuses: [
-                {value: Project::STATUS_ACTIVE, label: l(:label_status_active)},
-                {value: Project::STATUS_CLOSED, label: l(:label_status_closed)},
-                {value: Project::STATUS_ARCHIVED, label: l(:label_status_archived)},
-                {value: Project::STATUS_SCHEDULED_FOR_DELETION, label: l(:label_status_scheduled_for_deletion), disabled: true}
+                {value: Project::STATUS_ACTIVE, color: "success", icon: "mdi-folder-play", label: l(:label_status_active)},
+                {value: Project::STATUS_CLOSED, color: "info", icon: "mdi-folder", label: l(:label_status_closed)},
+                {value: Project::STATUS_ARCHIVED, color: "warning", icon: "mdi-folder-lock", label: l(:label_status_archived)},
+                {value: Project::STATUS_SCHEDULED_FOR_DELETION, color: "error", icon: "mdi-folder-remove", label: l(:label_status_scheduled_for_deletion), disabled: true}
               ],
               roles: Role.givable.map { |role|
                 {
                   value: role.id,
-                  label: role.name
+                  label: role.name,
+                  assignable: role.assignable,
+                  external: role.is_external
                 }
               }
             },
@@ -163,7 +243,24 @@ module FridayPlugin
               view_associated_gitlab_projects: User.current.allowed_to?(:view_associated_gitlab_projects, @project),
               manage_associated_gitlab_projects: User.current.allowed_to?(:manage_associated_gitlab_projects, @project)
             }
-          }
+          }.merge(additional)
+        end
+
+        def render_project_save_response(creating = false)
+          @project.safe_attributes = params[:project]
+          if @project.save
+            if creating && !User.current.admin?
+              @project.add_default_member(User.current)
+            end
+            render json: {
+              id: @project.id,
+              identifier: @project.identifier
+            }, status: :created
+          else
+            render json: {
+              errors: @project.errors.full_messages
+            }, status: :unprocessable_entity
+          end
         end
 
         def get_project_default_version_options(project)
@@ -194,6 +291,38 @@ module FridayPlugin
             options << {value: id, label: name}
           end
           options
+        end
+
+        def get_enumerations_for_project_custom_user_field(custom_field)
+          enumerations = @project.members
+          if custom_field[:format_store][:user_role].present?
+            enumerations = enumerations.select { |member| member.roles.any? { |role| role.id == custom_field[:format_store][:user_role].to_i } }
+          end
+          enumerations.map { |member|
+            {
+              id: member.id,
+              name: member.name,
+              is_default: false,
+              position: 1,
+              active: true
+            }
+          }
+        end
+
+        def get_enumerations_for_project_custom_versions_field(custom_field)
+          enumerations = @project.shared_versions
+          if custom_field[:format_store][:version_status].present?
+            enumerations = enumerations.select { |version| version.status == custom_field[:format_store][:version_status] }
+          end
+          enumerations.map { |version|
+            {
+              id: version.id,
+              name: version.name,
+              is_default: false,
+              position: 1,
+              active: true
+            }
+          }
         end
       end
     end

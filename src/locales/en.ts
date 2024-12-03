@@ -484,7 +484,20 @@ export default {
     "projects-autocomplete": { title: "" },
     "projects-new": {
       title: "Create a Project",
-      content: {},
+      content: {
+        fields: {
+          avatar: "Avatar",
+          banner: "Banner",
+          name: "Project Name",
+          identifier: "Project Identifier",
+          description: "Description",
+          homepage: "Homepage",
+          is_public: "Public",
+          parent_id: "Parent Project",
+          inherit_members: "Inherit Members",
+          enabled_module_names: "Enabled Modules",
+        },
+      },
       onSave: {
         success: "Project created successfully",
         error: "An error occurred while creating the project",
@@ -1060,6 +1073,7 @@ export default {
     settings: {
       browser: "Local Settings",
       application: "{name} Administration",
+      open: "Settings",
     },
     clearAll: "Clear All",
     save: "Save",

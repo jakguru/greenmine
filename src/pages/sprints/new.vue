@@ -61,12 +61,12 @@ import { defineComponent, computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { VTextField } from "vuetify/components/VTextField";
 import { useRouter } from "vue-router";
-import { useSystemAccentColor } from "@/utils/app";
+import { useSystemAccentColor, useOnError } from "@/utils/app";
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 
 import type { PropType } from "vue";
 import type { FridayFormStructure } from "@/components/forms";
-import type { SwalService, ToastService } from "@jakguru/vueprint";
+import type { ToastService } from "@jakguru/vueprint";
 
 export default defineComponent({
   name: "SprintsNew",
@@ -79,7 +79,6 @@ export default defineComponent({
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
-    const swal = inject<SwalService>("swal");
     const router = useRouter();
     const accentColor = useSystemAccentColor();
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
@@ -111,21 +110,7 @@ export default defineComponent({
         return;
       }
     };
-    const onError = (_status: number, payload: unknown) => {
-      if (payload instanceof Error) {
-        console.error(payload);
-      }
-      if (!swal) {
-        alert(t("pages.sprints-new.onSave.error"));
-        return;
-      } else {
-        swal.fire({
-          title: t("pages.sprints-new.onSave.error"),
-          icon: "error",
-        });
-        return;
-      }
-    };
+    const onError = useOnError("pages.sprints-new");
     const formStructure = computed<FridayFormStructure>(() => {
       return [
         [
