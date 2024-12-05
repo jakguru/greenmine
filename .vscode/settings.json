@@ -13,6 +13,8 @@
   "[ruby]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "testdouble.vscode-standard-ruby",
-    "standardRuby.autofix": true
-  }
+  },
+  "standardRuby.autofix": true,
+  "standardRuby.commandPath": "${userHome}/.rbenv/shims/standardrb",
+  "standardRuby.mode": "enableViaGemfile"
 }

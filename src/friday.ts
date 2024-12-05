@@ -748,6 +748,23 @@ export interface Role {
   users_visibility: string;
 }
 
+export interface PrincipalRole {
+  all_roles_managed: boolean;
+  assignable: boolean;
+  builtin: number;
+  default_time_entry_activity_id: number | null;
+  id: number;
+  issues_visibility: string;
+  managed_role_ids: number[];
+  name: string;
+  permissions: string[];
+  position: number;
+  settings: Record<string, any>;
+  time_entries_visibility: string;
+  users_visibility: string;
+  is_external: boolean;
+}
+
 export interface Permission extends SelectableListItem<string> {
   module: string | null;
   group: string;
@@ -787,6 +804,7 @@ export interface Principal {
   twofa_totp_last_used_at: string | null;
   type: string;
   updated_on: string | null;
+  name: string;
 }
 
 export interface PrincipalMembership {
@@ -1220,6 +1238,11 @@ export interface ProjectPermissions {
   view_associated_gitlab_projects: boolean;
   manage_associated_gitlab_projects: boolean;
   view_time_entries: boolean;
+  view_issues: boolean;
+  view_files: boolean;
+  manage_files: boolean;
+  view_documents: boolean;
+  add_documents: boolean;
 }
 
 export interface News {
@@ -1255,6 +1278,30 @@ export interface ProjectWikiPageLink {
   title: string;
   url: string;
   parent: number | null;
+}
+
+export interface ProjectDocumentLink {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  attachment: File;
+}
+
+export interface File {
+  author_id: number;
+  container_id: number;
+  container_type: string;
+  content_type: string;
+  created_on: string;
+  description: string;
+  digest: string;
+  disk_directory: string;
+  disk_filename: string;
+  downloads: number;
+  filename: string;
+  filesize: number;
+  id: number;
 }
 
 // export interface ProjectModelForShow extends ProjectModel {

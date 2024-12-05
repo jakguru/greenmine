@@ -70,7 +70,7 @@
       <v-divider />
       <v-sheet v-bind="projectHeroBindings">
         <div class="top">
-          <v-avatar size="150" :color="accentColor">
+          <v-avatar size="150" :color="accentColor" class="elevation-5">
             <v-img :src="avatarSource" />
           </v-avatar>
         </div>
@@ -128,13 +128,17 @@
               <v-container>
                 <v-row v-if="model.description">
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
-                      <v-label class="mx-2 project-card-label">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
+                      <v-label class="mx-2 project-card-label rounded-lg">
                         <small>{{
                           $t(`pages.projects-id.content.description`)
                         }}</small>
                       </v-label>
-                      <v-card-text>
+                      <v-card-text class="bg-background">
                         <RenderMarkdown
                           v-if="model.description"
                           :raw="model.description"
@@ -149,7 +153,11 @@
                   "
                 >
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
                       <v-label class="mx-2 project-card-label">
                         <small>{{
                           $t(`pages.projects-id.content.issueSummaryByTracker`)
@@ -169,7 +177,11 @@
                   "
                 >
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
                       <v-label class="mx-2 project-card-label">
                         <small>{{
                           $t(`pages.projects-id.content.issueSummaryByStatus`)
@@ -183,33 +195,159 @@
                     </v-card>
                   </v-col>
                 </v-row>
+                <v-row
+                  v-if="
+                    hasModule('time_tracking') &&
+                    currentUserCan('view_time_entries')
+                  "
+                >
+                  <v-col cols="12">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
+                      <v-label class="mx-2 project-card-label">
+                        <small>{{
+                          $t(`pages.projects-id.content.timeSummaryChart`)
+                        }}</small>
+                      </v-label>
+                      <v-card-text>
+                        This is where the project's estimated & spent time will
+                        be shown visually including sprint demarkations
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
               </v-container>
             </v-col>
             <v-col cols="12" sm="6" md="3" xl="2" order-md="1">
               <v-container>
                 <v-row>
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
                       <v-label class="mx-2 project-card-label">
                         <small>{{
                           $t(`pages.projects-id.content.members`)
                         }}</small>
                       </v-label>
-                      <v-card-text>
-                        This is where the project's members will be shown
-                      </v-card-text>
+                      <v-list class="bg-transparent">
+                        <template
+                          v-for="mr in membershipsToShow"
+                          :key="`memberships-role-${mr.role.id}`"
+                        >
+                          <v-list-subheader>
+                            <strong>{{ mr.role.name }}</strong>
+                          </v-list-subheader>
+                          <v-slide-group show-arrows class="mx-2">
+                            <v-slide-group-item
+                              v-for="p in mr.principals"
+                              :key="`memberships-role-${mr.role.id}-principal-${p.id}`"
+                            >
+                              <div class="py-2 px-1">
+                                <v-menu open-on-hover :offset="[0, -20]">
+                                  <template #activator="{ props }">
+                                    <v-badge
+                                      location="bottom end"
+                                      :offset-x="5"
+                                      :offset-y="5"
+                                      :icon="
+                                        p.type === 'group'
+                                          ? 'mdi-account-group'
+                                          : 'mdi-account'
+                                      "
+                                      :color="
+                                        p.type === 'group'
+                                          ? 'primary'
+                                          : 'secondary'
+                                      "
+                                    >
+                                      <v-btn
+                                        icon
+                                        v-bind="props"
+                                        :color="accentColor"
+                                        size="small"
+                                      >
+                                        <v-avatar :color="accentColor">
+                                          <v-img
+                                            :src="avatarUrlForPrincipal(p)"
+                                          />
+                                        </v-avatar>
+                                      </v-btn>
+                                    </v-badge>
+                                  </template>
+                                  <v-card
+                                    :color="surfaceColor"
+                                    width="275"
+                                    min-height="50"
+                                  >
+                                    <v-sheet
+                                      color="transparent"
+                                      class="d-flex w-100 justify-center align-center"
+                                      height="150"
+                                    >
+                                      <v-avatar :color="accentColor" size="100">
+                                        <v-img
+                                          :src="avatarUrlForPrincipal(p)"
+                                        />
+                                      </v-avatar>
+                                    </v-sheet>
+                                    <v-list-item :title="p.name">
+                                      <template
+                                        v-if="'user' === p.type"
+                                        #append
+                                      >
+                                        <v-btn
+                                          variant="elevated"
+                                          :color="accentColor"
+                                          size="x-small"
+                                          height="24px"
+                                          :to="{
+                                            name: 'users-id',
+                                            params: { id: p.id },
+                                          }"
+                                          :exact="true"
+                                        >
+                                          <span>{{
+                                            $t(
+                                              "pages.projects-id.content.viewProfile",
+                                            )
+                                          }}</span>
+                                        </v-btn>
+                                      </template>
+                                    </v-list-item>
+                                  </v-card>
+                                </v-menu>
+                              </div>
+                            </v-slide-group-item>
+                          </v-slide-group>
+                        </template>
+                      </v-list>
                     </v-card>
                   </v-col>
                 </v-row>
-                <v-row v-if="subprojects.length">
+                <v-row
+                  v-if="subprojects.length || currentUserCan('add_subprojects')"
+                >
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
                       <v-label class="mx-2 project-card-label">
                         <small>{{
                           $t(`pages.projects-id.content.subprojects`)
                         }}</small>
                       </v-label>
-                      <v-list class="bg-transparent pb-0">
+                      <v-list
+                        v-if="subprojects.length"
+                        class="bg-transparent pb-0"
+                      >
                         <v-list-item
                           v-for="sp in subprojects"
                           :key="`subproject-${sp.identifier}`"
@@ -230,12 +368,38 @@
                           </template>
                         </v-list-item>
                       </v-list>
+                      <v-divider
+                        v-if="
+                          subprojects.length &&
+                          currentUserCan('add_subprojects')
+                        "
+                      />
+                      <v-card-actions v-if="currentUserCan('add_subprojects')">
+                        <v-spacer />
+                        <v-btn
+                          variant="elevated"
+                          :color="accentColor"
+                          size="x-small"
+                          height="24px"
+                          :to="{
+                            name: 'projects-new',
+                            query: { parent_id: model.id },
+                          }"
+                          :exact="true"
+                        >
+                          <span>{{ $t("pages.projects-id.content.new") }}</span>
+                        </v-btn>
+                      </v-card-actions>
                     </v-card>
                   </v-col>
                 </v-row>
                 <v-row v-if="gitlabProjects.length">
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
                       <v-label class="mx-2 project-card-label">
                         <small>{{
                           $t(`pages.projects-id.content.gitlabProjects`)
@@ -270,22 +434,108 @@
                   "
                 >
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
                       <v-label class="mx-2 project-card-label">
                         <small>{{
                           $t(`pages.projects-id.content.timeSummary`)
                         }}</small>
                       </v-label>
-                      <v-card-text>
-                        This is where the project's time tracking summary will
-                        be shown
-                      </v-card-text>
+                      <v-list class="bg-transparent pb-0">
+                        <v-list-item
+                          v-if="
+                            'number' === typeof totalEstimatedHours &&
+                            totalEstimatedHours > 0
+                          "
+                          :title="
+                            $t(
+                              'pages.projects-id.content.timeSummaryPart.estimated',
+                            )
+                          "
+                        >
+                          <template #append>
+                            <v-chip label color="info" size="small">
+                              {{ formatDuration(totalEstimatedHours) }}
+                            </v-chip>
+                          </template>
+                        </v-list-item>
+                        <v-list-item
+                          v-if="'number' === typeof totalHours"
+                          :title="
+                            $t(
+                              'pages.projects-id.content.timeSummaryPart.spent',
+                            )
+                          "
+                        >
+                          <template #append>
+                            <v-chip label color="info" size="small">
+                              {{ formatDuration(totalHours) }}
+                            </v-chip>
+                          </template>
+                        </v-list-item>
+                      </v-list>
+                      <v-divider />
+                      <v-card-actions>
+                        <v-spacer />
+                        <v-btn
+                          variant="elevated"
+                          :color="accentColor"
+                          size="x-small"
+                          height="24px"
+                          :to="{
+                            name: 'projects-project-id-time-entries-new',
+                            params: { project_id: model.identifier },
+                          }"
+                          :exact="true"
+                        >
+                          <span>{{
+                            $t("pages.projects-id.content.logTime")
+                          }}</span>
+                        </v-btn>
+                        <v-btn
+                          variant="elevated"
+                          :color="accentColor"
+                          size="x-small"
+                          height="24px"
+                          :to="{
+                            name: 'projects-project-id-time-entries',
+                            params: { project_id: model.identifier },
+                          }"
+                          :exact="true"
+                        >
+                          <span>{{
+                            $t("pages.projects-id.content.details")
+                          }}</span>
+                        </v-btn>
+                        <v-btn
+                          variant="elevated"
+                          :color="accentColor"
+                          size="x-small"
+                          height="24px"
+                          :to="{
+                            name: 'projects-project-id-time-entries-report',
+                            params: { project_id: model.identifier },
+                          }"
+                          :exact="true"
+                        >
+                          <span>{{
+                            $t("pages.projects-id.content.report")
+                          }}</span>
+                        </v-btn>
+                      </v-card-actions>
                     </v-card>
                   </v-col>
                 </v-row>
                 <v-row v-if="hasModule('news') && news.length">
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
                       <v-label class="mx-2 project-card-label">
                         <small>{{
                           $t(`pages.projects-id.content.news`)
@@ -323,7 +573,11 @@
                 </v-row>
                 <v-row v-if="hasModule('wiki') && topLevelWikiPages.length">
                   <v-col cols="12">
-                    <v-card variant="outlined" class="overflow-y-visible">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
                       <v-label class="mx-2 project-card-label">
                         <small>{{
                           $t(`pages.projects-id.content.wikiPages`)
@@ -340,6 +594,176 @@
                     </v-card>
                   </v-col>
                 </v-row>
+                <v-row
+                  v-if="
+                    hasModule('documents') &&
+                    documents.length &&
+                    currentUserCan('view_documents')
+                  "
+                >
+                  <v-col cols="12">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
+                      <v-label class="mx-2 project-card-label">
+                        <small>{{
+                          $t(`pages.projects-id.content.documents`)
+                        }}</small>
+                      </v-label>
+                      <v-list class="bg-transparent pb-0">
+                        <template
+                          v-for="(docs, cat) in documentsByCategory"
+                          :key="`doc-cat-${cat}`"
+                        >
+                          <v-list-subheader>{{ cat }}</v-list-subheader>
+                          <v-list-item
+                            v-for="f in docs"
+                            :key="`file-${f.id}`"
+                            :title="f.title"
+                            :subtitle="f.description"
+                          >
+                            <template #append>
+                              <v-btn
+                                :icon="true"
+                                variant="elevated"
+                                :color="accentColor"
+                                size="24px"
+                                :to="{
+                                  name: 'documents-id',
+                                  params: { id: f.id },
+                                }"
+                                :exact="true"
+                                class="me-2"
+                              >
+                                <v-icon size="13">mdi-file-find</v-icon>
+                              </v-btn>
+                              <v-btn
+                                :icon="true"
+                                variant="elevated"
+                                :color="accentColor"
+                                size="24px"
+                                :href="`/attachments/download/${f.attachment.id}/${f.attachment.filename}`"
+                                target="_blank"
+                              >
+                                <v-icon size="13">mdi-download</v-icon>
+                              </v-btn>
+                            </template>
+                          </v-list-item>
+                        </template>
+                      </v-list>
+                      <v-divider v-if="currentUserCan('add_documents')" />
+                      <v-card-actions v-if="currentUserCan('add_documents')">
+                        <v-spacer />
+                        <v-btn
+                          variant="elevated"
+                          :color="accentColor"
+                          size="x-small"
+                          height="24px"
+                          class="me-2"
+                          :to="{
+                            name: 'projects-project-id-files-new',
+                            params: { project_id: model.identifier },
+                          }"
+                          :exact="true"
+                        >
+                          <span>{{ $t("pages.projects-id.content.new") }}</span>
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                <v-row
+                  v-if="
+                    hasModule('files') &&
+                    currentUserCan('view_files') &&
+                    files.length
+                  "
+                >
+                  <v-col cols="12">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
+                      <v-label class="mx-2 project-card-label">
+                        <small>{{
+                          $t(`pages.projects-id.content.files`)
+                        }}</small>
+                      </v-label>
+                      <v-list class="bg-transparent pb-0">
+                        <v-list-item
+                          v-for="f in [...files].slice(0, 5)"
+                          :key="`file-${f.id}`"
+                          :title="f.filename"
+                          :subtitle="f.digest"
+                        >
+                          <template #append>
+                            <v-btn
+                              :icon="true"
+                              variant="elevated"
+                              :color="accentColor"
+                              size="24px"
+                              :to="{
+                                name: 'attachments-id',
+                                params: { id: f.id },
+                              }"
+                              :exact="true"
+                              class="me-2"
+                            >
+                              <v-icon size="13">mdi-file-find</v-icon>
+                            </v-btn>
+                            <v-btn
+                              :icon="true"
+                              variant="elevated"
+                              :color="accentColor"
+                              size="24px"
+                              :href="`/attachments/download/${f.id}`"
+                              target="_blank"
+                            >
+                              <v-icon size="13">mdi-download</v-icon>
+                            </v-btn>
+                          </template>
+                        </v-list-item>
+                      </v-list>
+                      <v-divider />
+                      <v-card-actions>
+                        <v-spacer />
+                        <v-btn
+                          v-if="currentUserCan('manage_files')"
+                          variant="elevated"
+                          :color="accentColor"
+                          size="x-small"
+                          height="24px"
+                          class="me-2"
+                          :to="{
+                            name: 'projects-project-id-files-new',
+                            params: { project_id: model.identifier },
+                          }"
+                          :exact="true"
+                        >
+                          <span>{{ $t("pages.projects-id.content.new") }}</span>
+                        </v-btn>
+                        <v-btn
+                          variant="elevated"
+                          :color="accentColor"
+                          size="x-small"
+                          height="24px"
+                          :to="{
+                            name: 'projects-project-id-files',
+                            params: { project_id: model.identifier },
+                          }"
+                          :exact="true"
+                        >
+                          <span>{{
+                            $t("pages.projects-id.content.allFiles")
+                          }}</span>
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-col>
+                </v-row>
               </v-container>
             </v-col>
           </v-row>
@@ -350,14 +774,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject } from "vue";
-import { useI18n } from "vue-i18n";
-import { useRoute, useRouter } from "vue-router";
 import {
+  defineComponent,
+  computed,
+  // inject
+} from "vue";
+import { useI18n } from "vue-i18n";
+// import { useRoute, useRouter } from "vue-router";
+import {
+  useSystemSurfaceColor,
   useSystemAccentColor,
-  useReloadRouteData,
-  useReloadAppData,
+  // useReloadRouteData,
+  // useReloadAppData,
 } from "@/utils/app";
+import { formatDuration } from "@/utils/formatting";
 import iconGitlab from "@/assets/images/icon-gitlab.svg?url";
 import defaultProjectAvatar from "@/assets/images/default-project-avatar.svg?url";
 import defaultProjectBanner from "@/assets/images/default-project-banner.jpg?url";
@@ -365,11 +795,11 @@ import { RenderMarkdown } from "@/components/rendering";
 import { NewsPreview } from "@/components/news";
 
 import type { PropType } from "vue";
-import type {
-  ToastService,
-  LocalStorageService,
-  ApiService,
-} from "@jakguru/vueprint";
+// import type {
+// ToastService,
+// LocalStorageService,
+// ApiService,
+// } from "@jakguru/vueprint";
 import type {
   ProjectModel,
   ProjectMember,
@@ -385,6 +815,9 @@ import type {
   GitlabProject,
   FridayMenuItem,
   ProjectWikiPageLink,
+  PrincipalRole,
+  ProjectDocumentLink,
+  File,
 } from "@/friday";
 
 export default defineComponent({
@@ -439,7 +872,12 @@ export default defineComponent({
       required: true,
     },
     principalsByRole: {
-      type: Object as PropType<Record<string, Principal[]>>,
+      type: Array as PropType<
+        Array<{
+          role: PrincipalRole;
+          principals: Principal[];
+        }>
+      >,
       required: true,
     },
     subprojects: {
@@ -482,15 +920,24 @@ export default defineComponent({
       type: Array as PropType<ProjectWikiPageLink[]>,
       required: true,
     },
+    documents: {
+      type: Array as PropType<ProjectDocumentLink[]>,
+      required: true,
+    },
+    files: {
+      type: Array as PropType<File[]>,
+      required: true,
+    },
   },
   setup(props) {
-    const toast = inject<ToastService>("toast");
-    const ls = inject<LocalStorageService>("ls");
-    const api = inject<ApiService>("api");
-    const route = useRoute();
-    const router = useRouter();
-    const reloadRouteDataAction = useReloadRouteData(route, api, toast);
-    const reloadAppDataAction = useReloadAppData(ls, api);
+    // const toast = inject<ToastService>("toast");
+    // const ls = inject<LocalStorageService>("ls");
+    // const api = inject<ApiService>("api");
+    // const route = useRoute();
+    // const router = useRouter();
+    // const reloadRouteDataAction = useReloadRouteData(route, api, toast);
+    // const reloadAppDataAction = useReloadAppData(ls, api);
+    const surfaceColor = useSystemSurfaceColor();
     const accentColor = useSystemAccentColor();
     const model = computed(() => props.model);
     const values = computed(() => props.values);
@@ -540,14 +987,11 @@ export default defineComponent({
       const url = new URL(u);
       return url.hostname;
     });
-    const roles = computed(() => values.value.roles);
     const principalsByRole = computed(() => props.principalsByRole);
     const membershipsToShow = computed(() =>
-      Object.keys(principalsByRole.value)
-        .map((roleName: string) => {
-          const role = roles.value.find((r) => r.label === roleName);
-          const principals = principalsByRole.value[roleName];
-          if (!role || !role.assignable || role.external) return undefined;
+      [...principalsByRole.value]
+        .map(({ role, principals }) => {
+          if (!role.assignable || role.is_external) return undefined;
           return {
             role,
             principals,
@@ -564,8 +1008,29 @@ export default defineComponent({
     const topLevelWikiPages = computed(() =>
       wiki.value.filter((w) => !w.parent),
     );
+    const avatarUrlForPrincipal = (principal: Principal) => {
+      if ("group" === principal.type) {
+        return `/groups/${principal.id}/avatar`;
+      } else {
+        return `/users/${principal.id}/avatar`;
+      }
+    };
+    const documents = computed(() => props.documents);
+    const documentsByCategory = computed(() =>
+      documents.value.reduce(
+        (acc, doc) => {
+          if (!acc[doc.category]) {
+            acc[doc.category] = [];
+          }
+          acc[doc.category].push(doc);
+          return acc;
+        },
+        {} as Record<string, ProjectDocumentLink[]>,
+      ),
+    );
     return {
       breadcrumbsBindings,
+      surfaceColor,
       accentColor,
       projectHeroBindings,
       defaultProjectAvatar,
@@ -578,6 +1043,9 @@ export default defineComponent({
       currentUserCan,
       topLevelWikiPages,
       iconGitlab,
+      avatarUrlForPrincipal,
+      formatDuration,
+      documentsByCategory,
     };
   },
 });

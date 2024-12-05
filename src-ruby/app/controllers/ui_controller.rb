@@ -219,34 +219,13 @@ class UiController < ApplicationController
     user = User.find(params[:id])
     if user.present?
       if user.avatar.present?
-        # strip the base64 prefix from the avatar data
-        avatar_parts = user.avatar.split(",")
-        avatar_data = avatar_parts[1]
-        avatar_type = avatar_parts[0].split(";")[0].split(":")[1]
-        send_data Base64.decode64(avatar_data), type: avatar_type, disposition: "inline"
+        send_base64_avatar(user.avatar)
       else
-        # make a simple svg avatar with the user's initials if they don't have an avatar
         initials = user.name.split.map(&:first).join.upcase
-        svg = Nokogiri::XML::Builder.new do |xml|
-          xml.svg xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: "24", height: "24" do
-            xml.rect x: "0", y: "0", width: "24", height: "24", fill: "none"
-            xml.text x: "50%", y: "50%", dy: "0.35em", "text-anchor": "middle", "font-family": "Arial", "font-size": "12", fill: "white" do
-              xml.text_ initials
-            end
-          end
-        end
-        send_data svg.to_xml, type: "image/svg+xml", disposition: "inline"
+        send_svg_avatar(initials)
       end
     else
-      svg = Nokogiri::XML::Builder.new do |xml|
-        xml.svg xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: "24", height: "24" do
-          xml.rect x: "0", y: "0", width: "24", height: "24", fill: "none"
-          xml.text x: "50%", y: "50%", dy: "0.35em", "text-anchor": "middle", "font-family": "Arial", "font-size": "12", fill: "white" do
-            xml.text_ "?"
-          end
-        end
-      end
-      send_data svg.to_xml, type: "image/svg+xml", disposition: "inline"
+      send_svg_avatar("?")
     end
   end
 
@@ -254,34 +233,13 @@ class UiController < ApplicationController
     group = Group.find(params[:id])
     if group.present?
       if group.avatar.present?
-        # strip the base64 prefix from the avatar data
-        avatar_parts = group.avatar.split(",")
-        avatar_data = avatar_parts[1]
-        avatar_type = avatar_parts[0].split(";")[0].split(":")[1]
-        send_data Base64.decode64(avatar_data), type: avatar_type, disposition: "inline"
+        send_base64_avatar(group.avatar)
       else
-        # make a simple svg avatar with the group's initials if they don't have an avatar
         initials = group.name.split.map(&:first).join.upcase
-        svg = Nokogiri::XML::Builder.new do |xml|
-          xml.svg xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: "24", height: "24" do
-            xml.rect x: "0", y: "0", width: "24", height: "24", fill: "none"
-            xml.text x: "50%", y: "50%", dy: "0.35em", "text-anchor": "middle", "font-family": "Arial", "font-size": "12", fill: "white" do
-              xml.text_ initials
-            end
-          end
-        end
-        send_data svg.to_xml, type: "image/svg+xml", disposition: "inline"
+        send_svg_avatar(initials)
       end
     else
-      svg = Nokogiri::XML::Builder.new do |xml|
-        xml.svg xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: "24", height: "24" do
-          xml.rect x: "0", y: "0", width: "24", height: "24", fill: "none"
-          xml.text x: "50%", y: "50%", dy: "0.35em", "text-anchor": "middle", "font-family": "Arial", "font-size": "12", fill: "white" do
-            xml.text_ "?"
-          end
-        end
-      end
-      send_data svg.to_xml, type: "image/svg+xml", disposition: "inline"
+      send_svg_avatar("?")
     end
   end
 
@@ -293,5 +251,22 @@ class UiController < ApplicationController
     else
       []
     end
+  end
+
+  def send_base64_avatar(avatar)
+    avatar_parts = avatar.split(",")
+    avatar_data = avatar_parts[1]
+    avatar_type = avatar_parts[0].split(";")[0].split(":")[1]
+    send_data Base64.decode64(avatar_data), type: avatar_type, disposition: "inline"
+  end
+
+  def send_svg_avatar(initials)
+    svg = Nokogiri::XML::Builder.new do |xml|
+      xml.svg xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: "24", height: "24" do
+        xml.rect x: "0", y: "0", width: "24", height: "24", fill: "none"
+        xml.text_ initials, :x => "50%", :y => "50%", :dy => "0.35em", "text-anchor" => "middle", "font-family" => "Arial", "font-size" => "10", "font-weight" => "700", :fill => "white"
+      end
+    end
+    send_data svg.to_xml, type: "image/svg+xml", disposition: "inline"
   end
 end

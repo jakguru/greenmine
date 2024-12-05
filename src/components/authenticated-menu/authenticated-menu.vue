@@ -2,17 +2,13 @@
   <v-menu v-model="showAuthMenu" :close-on-content-click="false">
     <template #activator="{ props }">
       <v-btn icon v-bind="props">
-        <v-avatar :color="systemSurfaceColor" size="32">
-          <span class="font-weight-bold">{{ avatarLetters }}</span>
-        </v-avatar>
+        <v-avatar :color="accentColor" size="32" :image="avatarSource" />
       </v-btn>
     </template>
     <v-card :color="systemAppBarColor" width="320" min-height="100">
       <v-list-item>
         <template #prepend>
-          <v-avatar :color="systemSurfaceColor" size="32">
-            <span class="font-weight-bold">{{ avatarLetters }}</span>
-          </v-avatar>
+          <v-avatar :color="accentColor" size="32" :image="avatarSource" />
         </template>
         <v-list-item-subtitle>
           <small>{{ $t("labels.loggedInAs") }}</small>
@@ -47,6 +43,7 @@ import {
   useAppData,
   useSystemAppBarColor,
   useSystemSurfaceColor,
+  useSystemAccentColor,
 } from "@/utils/app";
 import { RouterLink, useRouter } from "vue-router";
 
@@ -65,6 +62,7 @@ export default defineComponent({
     });
     const systemAppBarColor = useSystemAppBarColor();
     const systemSurfaceColor = useSystemSurfaceColor();
+    const accentColor = useSystemAccentColor();
     const avatarLetters = computed(() => {
       if (appData.value.settings.gravatarEnabled) {
         return "";
@@ -107,6 +105,9 @@ export default defineComponent({
         prependIcon: "mdi-code-json",
       },
     ]);
+    const avatarSource = computed(
+      () => `/users/${appData.value.identity.identity.id}/avatar`,
+    );
     return {
       appData,
       showAuthMenu,
@@ -116,6 +117,8 @@ export default defineComponent({
       userRoute,
       logoutRoute,
       navItems,
+      avatarSource,
+      accentColor,
     };
   },
 });

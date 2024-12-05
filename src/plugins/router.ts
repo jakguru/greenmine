@@ -2191,6 +2191,7 @@ router.beforeEach(async (to, from, next) => {
   }
   const props = await loadRouteData(to, api, toast);
   if ("boolean" === typeof props) {
+    store.isLoading(false);
     return props;
   }
   store.store(props);

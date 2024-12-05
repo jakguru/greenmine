@@ -35,7 +35,18 @@ module FridayPlugin
 
         def show
           if friday_request?
-            principals_by_role = @project.principals_by_role
+            principals_by_role = @project.principals_by_role.map { |role, principals|
+              principals = principals.map { |principal|
+                principal.attributes.merge({
+                  type: principal.class.name.underscore.downcase,
+                  name: principal.name
+                })
+              }
+              {
+                role: role,
+                principals: principals
+              }
+            }
             subprojects = @project.children.visible.to_a
             news = @project.news.limit(5).includes(:author, :project).reorder("#{News.table_name}.created_on DESC").to_a
             with_subprojects = Setting.display_subprojects_issues?
@@ -140,31 +151,33 @@ module FridayPlugin
           end
           menu_name = @project.new_record? ? nil : :project_menu
           menu_nodes = []
-          if (menu_name.present? && Redmine::MenuManager.items(menu_name).children.present?)
+          if menu_name.present? && Redmine::MenuManager.items(menu_name).children.present?
             menu_items_for(menu_name, @project) do |node|
               menu_nodes << {
                 key: node.name,
                 title: node.caption(@project),
                 to: node.url.nil? ? nil : get_vue_router_route_for_url(node.url, @project),
-                children: (node.children.present? || !node.child_menus.nil?) ? node.children.map { |child|
-                  {
-                    key: child.name,
-                    title: child.caption(@project),
-                    to: child.url.nil? ? nil : get_vue_router_route_for_url(child.url, @project)
-                  }
-                } : nil
+                children: if node.children.present? || !node.child_menus.nil?
+                            node.children.map { |child|
+                              {
+                                key: child.name,
+                                title: child.caption(@project),
+                                to: child.url.nil? ? nil : get_vue_router_route_for_url(child.url, @project)
+                              }
+                            }
+                          end
               }
             end
           end
           wiki = @project.wiki
           wiki_pages = []
           if wiki.present?
-            wiki_pages = wiki.pages.with_updated_on.includes(:wiki => :project).includes(:parent).to_a.map { |page| 
+            wiki_pages = wiki.pages.with_updated_on.includes(wiki: :project).includes(:parent).to_a.map { |page|
               {
                 id: page.id,
                 title: page.title,
-                url: project_wiki_page_path(page.wiki.project, page.title, :parent => page.parent_id),
-                parent: page.parent_id,
+                url: project_wiki_page_path(page.wiki.project, page.title, parent: page.parent_id),
+                parent: page.parent_id
               }
             }
           end
@@ -281,9 +294,23 @@ module FridayPlugin
               manage_associated_gitlab_projects: User.current.allowed_to?(:manage_associated_gitlab_projects, @project),
               view_time_entries: User.current.allowed_to?(:view_time_entries, @project),
               view_issues: User.current.allowed_to?(:view_issues, @project),
+              view_files: User.current.allowed_to?(:view_files, @project),
+              manage_files: User.current.allowed_to?(:manage_files, @project),
+              view_documents: User.current.allowed_to?(:view_documents, @project),
+              add_documents: User.current.allowed_to?(:add_documents, @project)
             },
             menu: menu_nodes,
             wiki: wiki_pages,
+            documents: @project.documents.to_a.map { |document|
+              {
+                id: document.id,
+                title: document.title,
+                description: document.description,
+                category: document.category&.name,
+                attachment: document.attachments.first&.attributes
+              }
+            },
+            files: @project.attachments.to_a
           }.merge(additional)
         end
 
@@ -366,7 +393,7 @@ module FridayPlugin
           }
         end
 
-        def menu_items_for(menu, project=nil)
+        def menu_items_for(menu, project = nil)
           items = []
           Redmine::MenuManager.items(menu).root.children.each do |node|
             if node.allowed?(User.current, project)
@@ -377,11 +404,11 @@ module FridayPlugin
               end
             end
           end
-          return block_given? ? nil : items
+          block_given? ? nil : items
         end
 
         def use_absolute_controller(url)
-          if url.is_a?(Hash) && url[:controller].present? && !url[:controller].start_with?('/')
+          if url.is_a?(Hash) && url[:controller].present? && !url[:controller].start_with?("/")
             url[:controller] = "/#{url[:controller]}"
           end
           url
@@ -389,25 +416,25 @@ module FridayPlugin
 
         def get_vue_router_route_for_url(url, project)
           case url[:controller]
-          when 'projects'
+          when "projects"
             case url[:action]
-            when 'settings'
-              return { name: "projects-id-settings", params: { id: project.identifier } }
+            when "settings"
+              {name: "projects-id-settings", params: {id: project.identifier}}
             else
-              return { name: "projects-id", params: { id: project.identifier } }
+              {name: "projects-id", params: {id: project.identifier}}
             end
-          when 'gantt'
-            return { name: "projects-project-id-issues-gantt", params: { project_id: project.identifier } }
-          when 'calendar'
-            return { name: "projects-project-id-issues-calendar", params: { project_id: project.identifier } }
+          when "gantt"
+            {name: "projects-project-id-issues-gantt", params: {project_id: project.identifier}}
+          when "calendar"
+            {name: "projects-project-id-issues-calendar", params: {project_id: project.identifier}}
           else
             case url[:action]
-            when 'new'
-              return { name: "projects-project-id-#{url[:controller]}-new", params: { project_id: project.identifier } }
+            when "new"
+              {name: "projects-project-id-#{url[:controller]}-new", params: {project_id: project.identifier}}
             else
-              return { name: "projects-project-id-#{url[:controller]}", params: { project_id: project.identifier } }
+              {name: "projects-project-id-#{url[:controller]}", params: {project_id: project.identifier}}
             end
-          end          
+          end
         end
       end
     end
