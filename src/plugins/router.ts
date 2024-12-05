@@ -1274,6 +1274,15 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/projects/:project_id/activity",
+    name: "projects-project-id-activities",
+    // "component": () => import("@/pages/projects/project_id/boards.vue")
+    component: fourOhFour,
+    meta: {
+      title: "pages.projects-project-id-boards.title",
+    },
+  },
+  {
     path: "/projects/:project_id/boards",
     name: "projects-project-id-boards",
     // "component": () => import("@/pages/projects/project_id/boards.vue")
@@ -1364,6 +1373,15 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/projects/:project_id/issue_categories/new",
+    name: "projects-project-id-issue_categories-new",
+    // "component": () => import("@/pages/projects/project_id/issue_categories/new.vue")
+    component: fourOhFour,
+    meta: {
+      title: "pages.projects-project-id-issue-categories-new.title",
+    },
+  },
+  {
     path: "/projects/:project_id/issues",
     name: "projects-project-id-issues",
     // "component": () => import("@/pages/projects/project_id/issues.vue")
@@ -1391,8 +1409,26 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/projects/:project_id/issues/calendar",
+    name: "projects-project-id-calendars",
+    // "component": () => import("@/pages/projects/project_id/issues/calendar.vue")
+    component: fourOhFour,
+    meta: {
+      title: "pages.projects-project-id-issues-calendar.title",
+    },
+  },
+  {
     path: "/projects/:project_id/issues/gantt",
     name: "projects-project-id-issues-gantt",
+    // "component": () => import("@/pages/projects/project_id/issues/gantt.vue")
+    component: fourOhFour,
+    meta: {
+      title: "pages.projects-project-id-issues-gantt.title",
+    },
+  },
+  {
+    path: "/projects/:project_id/issues/gantt",
+    name: "projects-project-id-gantts",
     // "component": () => import("@/pages/projects/project_id/issues/gantt.vue")
     component: fourOhFour,
     meta: {
@@ -1490,8 +1526,26 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/projects/:project_id/time_entries",
+    name: "projects-project-id-timelog",
+    // "component": () => import("@/pages/projects/project_id/time_entries.vue")
+    component: fourOhFour,
+    meta: {
+      title: "pages.projects-project-id-time-entries.title",
+    },
+  },
+  {
     path: "/projects/:project_id/time_entries/new",
     name: "projects-project-id-time-entries-new",
+    // "component": () => import("@/pages/projects/project_id/time_entries/new.vue")
+    component: fourOhFour,
+    meta: {
+      title: "pages.projects-project-id-time-entries-new.title",
+    },
+  },
+  {
+    path: "/projects/:project_id/time_entries/new",
+    name: "projects-project-id-timelog-new",
     // "component": () => import("@/pages/projects/project_id/time_entries/new.vue")
     component: fourOhFour,
     meta: {

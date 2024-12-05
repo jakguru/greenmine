@@ -1219,6 +1219,7 @@ export interface ProjectPermissions {
   save_queries: boolean;
   view_associated_gitlab_projects: boolean;
   manage_associated_gitlab_projects: boolean;
+  view_time_entries: boolean;
 }
 
 export interface News {
@@ -1237,6 +1238,23 @@ export interface Author {
   login: string;
   firstname: string;
   lastname: string;
+}
+
+export interface FridayMenuItem {
+  children: FridayMenuItem[] | null;
+  key: string;
+  title: string;
+  to: {
+    name: string;
+    params?: Record<string, string | number>;
+  };
+}
+
+export interface ProjectWikiPageLink {
+  id: number;
+  title: string;
+  url: string;
+  parent: number | null;
 }
 
 // export interface ProjectModelForShow extends ProjectModel {

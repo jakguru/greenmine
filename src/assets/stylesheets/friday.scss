@@ -45,3 +45,11 @@ body {
 div:where(.swal2-container) {
   z-index: 5000;
 }
+
+.v-breadcrumbs {
+  overflow-x: auto;
+  
+  .v-breadcrumbs-item {
+    white-space: nowrap;
+  }
+}
