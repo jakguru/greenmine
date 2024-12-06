@@ -5,6 +5,9 @@ class UiController < ApplicationController
   include FridayHelper
   include FridayCustomFieldHelper
 
+  skip_before_action :check_if_login_required, only: [:get_app_data, :get_project_link_info_by_id, :get_actions_for_issues, :get_user_avatar, :get_group_avatar]
+  skip_before_action :check_password_change, only: [:get_app_data, :get_project_link_info_by_id, :get_actions_for_issues, :get_user_avatar, :get_group_avatar]
+
   def get_app_data
     projects = projects_for_jump_box(User.current)
     jump_box = Redmine::ProjectJumpBox.new User.current

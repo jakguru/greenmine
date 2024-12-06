@@ -858,8 +858,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/my/password",
     name: "my-password",
-    // "component": () => import("@/pages/my/password.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/my/password.vue"),
     meta: {
       title: "pages.my-password.title",
     },

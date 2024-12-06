@@ -1,6 +1,7 @@
 import { execa } from "execa";
 import { resolve, dirname } from "path";
 import { copyFileSync, existsSync, mkdirSync } from "fs";
+import { copyRubyFilesAfterBuild } from "../dev/copyRubyFilesAfterBuild.mjs";
 
 import type { Subprocess } from "execa";
 
@@ -54,6 +55,12 @@ process
   });
 
 const doStart = async (_force: boolean = false) => {
+  const getPlugin = await copyRubyFilesAfterBuild();
+  if ("function" === typeof getPlugin.writeBundle) {
+    // @ts-ignore
+    await getPlugin.writeBundle();
+    await doRestart(false);
+  }
   // if (subprocess && !force) {
   //   return;
   // }
