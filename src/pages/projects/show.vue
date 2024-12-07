@@ -162,6 +162,7 @@
                       <ActivitySummaryChart
                         :form-authenticity-token="formAuthenticityToken"
                         :endpoint="`/projects/${model.identifier}/charts/activity-summary`"
+                        :min-date-time="minDateTime"
                       />
                     </v-card>
                   </v-col>
@@ -185,6 +186,7 @@
                       <IssuesByTrackerChart
                         :form-authenticity-token="formAuthenticityToken"
                         :endpoint="`/projects/${model.identifier}/charts/issues-summary-by-tracker`"
+                        :min-date-time="minDateTime"
                       />
                     </v-card>
                   </v-col>
@@ -208,6 +210,7 @@
                       <IssuesByStatusChart
                         :form-authenticity-token="formAuthenticityToken"
                         :endpoint="`/projects/${model.identifier}/charts/issues-summary-by-status`"
+                        :min-date-time="minDateTime"
                       />
                     </v-card>
                   </v-col>
@@ -232,6 +235,7 @@
                       <TimeUtilizationSummaryChart
                         :form-authenticity-token="formAuthenticityToken"
                         :endpoint="`/projects/${model.identifier}/charts/time-summary`"
+                        :min-date-time="minDateTime"
                       />
                     </v-card>
                   </v-col>
@@ -1055,6 +1059,7 @@ export default defineComponent({
         {} as Record<string, ProjectDocumentLink[]>,
       ),
     );
+    const minDateTime = computed(() => model.value.created_on!);
     return {
       breadcrumbsBindings,
       surfaceColor,
@@ -1073,6 +1078,7 @@ export default defineComponent({
       avatarUrlForPrincipal,
       formatDuration,
       documentsByCategory,
+      minDateTime,
     };
   },
 });

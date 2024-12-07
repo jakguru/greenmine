@@ -41,6 +41,7 @@
     "@vue-flow/controls": "^1.1.2",
     "@vue-flow/core": "^1.41.5",
     "@vue-flow/node-toolbar": "^1.1.0",
+    "@vue/shared": "^3.5.13",
     "ace-builds": "^1.36.2",
     "actioncable": "link:@types/@rails/actioncable",
     "add": "^2.0.6",

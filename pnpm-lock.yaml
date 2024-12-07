@@ -89,6 +89,9 @@ importers:
       '@vue-flow/node-toolbar':
         specifier: ^1.1.0
         version: 1.1.0(@vue-flow/core@1.41.5(vue@3.5.8(typescript@5.6.2)))
+      '@vue/shared':
+        specifier: ^3.5.13
+        version: 3.5.13
       ace-builds:
         specifier: ^1.36.2
         version: 1.36.2
@@ -1276,6 +1279,9 @@ packages:
     resolution: {integrity: sha512-7AmC9/mEeV9mmXNVyUIm1a1AjUhyeeGNbkLh39J00E7iPeGks8OGRB5blJiMmvqSh8SkaS7jkLWSpXtxUCeagA==}
     peerDependencies:
       vue: 3.5.8
+
+  '@vue/shared@3.5.13':
+    resolution: {integrity: sha512-/hnE/qP5ZoGpol0a5mDi45bOd7t3tjYJBjsgCsivow7D48cJeV5l05RD82lPqi7gRiphZM37rnhW1l6ZoCNNnQ==}
 
   '@vue/shared@3.5.8':
     resolution: {integrity: sha512-mJleSWbAGySd2RJdX1RBtcrUBX6snyOc0qHpgk3lGi4l9/P/3ny3ELqFWqYdkXIwwNN/kdm8nD9ky8o6l/Lx2A==}
@@ -4842,7 +4848,7 @@ snapshots:
       '@volar/language-core': 2.4.5
       '@vue/compiler-dom': 3.5.8
       '@vue/compiler-vue2': 2.7.16
-      '@vue/shared': 3.5.8
+      '@vue/shared': 3.5.13
       computeds: 0.0.1
       minimatch: 9.0.5
       muggle-string: 0.4.1
@@ -4871,6 +4877,8 @@ snapshots:
       '@vue/compiler-ssr': 3.5.8
       '@vue/shared': 3.5.8
       vue: 3.5.8(typescript@5.6.2)
+
+  '@vue/shared@3.5.13': {}
 
   '@vue/shared@3.5.8': {}
 
