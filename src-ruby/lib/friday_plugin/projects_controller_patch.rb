@@ -315,6 +315,12 @@ module FridayPlugin
         end
 
         def render_project_save_response(creating = false)
+          if params[:project][:avatar].present?
+            params[:project][:avatar] = process_avatar(params[:project][:avatar])
+          end
+          if params[:project][:banner].present?
+            params[:project][:banner] = process_banner(params[:project][:banner])
+          end
           @project.safe_attributes = params[:project]
           if @project.save
             if creating && !User.current.admin?
@@ -435,6 +441,66 @@ module FridayPlugin
               {name: "projects-project-id-#{url[:controller]}", params: {project_id: project.identifier}}
             end
           end
+        end
+
+        def process_avatar(base64_image)
+          # Decode the base64 image
+          image_data = Base64.decode64(base64_image.sub(/^data:image\/\w+;base64,/, ""))
+
+          # Create a Tempfile to store the image
+          temp_image = Tempfile.new(["avatar", ".png"])
+          temp_image.binmode
+          temp_image.write(image_data)
+          temp_image.rewind
+
+          # Use MiniMagick to process the image
+          image = MiniMagick::Image.new(temp_image.path)
+          image.resize "200x200>"
+
+          # Return the modified image as a base64 string
+          output = Tempfile.new(["avatar_processed", ".png"])
+          image.write(output.path)
+          output.rewind
+          base64_output = Base64.strict_encode64(output.read)
+
+          # Clean up temp files
+          temp_image.close
+          temp_image.unlink
+          output.close
+          output.unlink
+
+          # Return the base64 representation with the correct prefix
+          "data:image/png;base64,#{base64_output}"
+        end
+
+        def process_banner(base64_image)
+          # Decode the base64 image
+          image_data = Base64.decode64(base64_image.sub(/^data:image\/\w+;base64,/, ""))
+
+          # Create a Tempfile to store the image
+          temp_image = Tempfile.new(["banner", ".png"])
+          temp_image.binmode
+          temp_image.write(image_data)
+          temp_image.rewind
+
+          # Use MiniMagick to process the image
+          image = MiniMagick::Image.new(temp_image.path)
+          image.resize "3000x150>"
+
+          # Return the modified image as a base64 string
+          output = Tempfile.new(["banner_processed", ".png"])
+          image.write(output.path)
+          output.rewind
+          base64_output = Base64.strict_encode64(output.read)
+
+          # Clean up temp files
+          temp_image.close
+          temp_image.unlink
+          output.close
+          output.unlink
+
+          # Return the base64 representation with the correct prefix
+          "data:image/png;base64,#{base64_output}"
         end
       end
     end

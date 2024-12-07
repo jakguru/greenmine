@@ -443,6 +443,7 @@ export default {
         documents: "Documents",
         files: "Files",
         allFiles: "All Files",
+        activitySummary: "Summary of Activity",
       },
     },
     "projects-id-activity": { title: "Project Activity" },
@@ -1210,6 +1211,13 @@ export default {
     name: "Name",
     username: "Username",
     localUser: "Application User",
+  },
+  charts: {
+    loading: "Loading chart...",
+    filters: "Filters",
+    actions: {
+      refresh: "Refresh",
+    },
   },
   theme: {
     base: {

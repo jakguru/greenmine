@@ -4,7 +4,9 @@
       app
       density="compact"
       :color="systemBarColor"
-      :flat="!isMobile || (isMobile && !showMobileNav)"
+      :flat="
+        (!isMobile || (isMobile && !showMobileNav)) && !isSufficientlyScrolled
+      "
     >
       <template #default>
         <v-menu>
@@ -23,7 +25,7 @@
           <GlobalSearchField
             v-if="isNotMobile"
             v-model:search="globalSearchVal"
-            class="h-100"
+            class="h-100 me-2"
             style="min-width: 180px"
           />
           <v-menu
@@ -32,7 +34,10 @@
             :close-on-content-click="false"
           >
             <template #activator="{ props }">
-              <v-btn icon="mdi-dots-vertical" v-bind="props" />
+              <v-btn v-bind="props">
+                <v-img :src="projectsImage" width="18" height="18" />
+                <v-icon>mdi-menu-down</v-icon>
+              </v-btn>
             </template>
             <PartialProjectsJumper
               v-model:search="projectSearchVal"
@@ -41,6 +46,9 @@
               @submit:search="onProjectJumperSubmit"
             />
           </v-menu>
+          <v-btn icon :loading="routeDataLoading" @click="reloadRouteData">
+            <v-icon>mdi-refresh</v-icon>
+          </v-btn>
           <template v-if="appData.identity.authenticated">
             <AuthenticatedMenu />
           </template>
@@ -192,7 +200,7 @@
         indeterminate
       ></v-progress-circular>
     </v-overlay>
-    <v-footer app :color="systemBarColor">
+    <!-- <v-footer app :color="systemBarColor">
       <v-toolbar-items class="h-100 ml-auto">
         <v-btn
           icon
@@ -203,7 +211,7 @@
           <v-icon size="18">mdi-refresh</v-icon>
         </v-btn>
       </v-toolbar-items>
-    </v-footer>
+    </v-footer> -->
     <!-- <v-fab
       v-if="showDebug"
       app
@@ -221,7 +229,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, inject, ref, onMounted, watch } from "vue";
+import {
+  defineComponent,
+  computed,
+  inject,
+  ref,
+  onMounted,
+  watch,
+  onBeforeUnmount,
+} from "vue";
 import { useTheme, useDisplay } from "vuetify";
 import { useVueprint } from "@jakguru/vueprint/utilities";
 import { initializeLocale, useI18n } from "@/utils/i18n";
@@ -256,6 +272,7 @@ import type Cable from "@rails/actioncable";
 import type { PropType } from "vue";
 import { storeToRefs } from "pinia";
 import "./augmentations.d.ts";
+import projectsImage from "@/assets/images/projects.png?url";
 
 export default defineComponent({
   name: "FridayApp",
@@ -381,6 +398,13 @@ export default defineComponent({
     const onRtuApplication = () => {
       reloadAppData.call();
     };
+    const scrollPositionY = ref(0);
+    const getScrollYPosition = () => {
+      if (!window) {
+        return;
+      }
+      scrollPositionY.value = window.scrollY;
+    };
     onMounted(() => {
       if (bus) {
         bus.on("rtu:connected", onRtuConnected, {
@@ -396,12 +420,17 @@ export default defineComponent({
           local: true,
         });
       }
+      getScrollYPosition();
+      window.addEventListener("scroll", getScrollYPosition);
       loadAppData(ls, api)
         .catch(() => {})
         .finally(() => {
           loaded.value = true;
           updateHead({ ...route }, appData.value);
         });
+    });
+    onBeforeUnmount(() => {
+      window.removeEventListener("scroll", getScrollYPosition);
     });
     watch(
       () => route,
@@ -433,6 +462,7 @@ export default defineComponent({
     });
     router.afterEach(() => {
       isTransitioning.value = false;
+      getScrollYPosition();
     });
     defined<BusService>(bus).then((b) => {
       if (!b) {
@@ -443,6 +473,7 @@ export default defineComponent({
     const vAppBindings = computed(() => ({
       class: [rtu.value ? "rtu-connected" : "rtu-disconnected"],
     }));
+    const isSufficientlyScrolled = computed(() => scrollPositionY.value > 15);
     return {
       complete,
       systemBarColor,
@@ -469,6 +500,8 @@ export default defineComponent({
       routeIsLoading,
       rtu,
       vAppBindings,
+      isSufficientlyScrolled,
+      projectsImage,
     };
   },
 });

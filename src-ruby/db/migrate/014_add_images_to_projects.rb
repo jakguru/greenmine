@@ -1,7 +1,7 @@
 class AddImagesToProjects < ActiveRecord::Migration[4.2]
   def self.up
-    add_column :projects, :avatar, :text, null: true
-    add_column :projects, :banner, :text, null: true
+    add_column :projects, :avatar, :longblob, null: true
+    add_column :projects, :banner, :longblob, null: true
   end
 
   def self.down

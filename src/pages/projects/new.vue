@@ -174,7 +174,7 @@ export default defineComponent({
     }));
     const parentId = computed({
       get: () => {
-        return model.value.parent_id;
+        return Number(model.value.parent_id);
       },
       set: (value: number | null) => {
         router.push({
@@ -401,9 +401,13 @@ export default defineComponent({
         },
       ],
     ]);
-    const formValues = computed<Record<string, unknown>>(() =>
-      cloneObject(model.value as any as Record<string, unknown>),
-    );
+    const formValues = computed<Record<string, unknown>>(() => {
+      const ret = cloneObject(model.value as any as Record<string, unknown>);
+      if (route.query.parent_id) {
+        ret.parent_id = Number(route.query.parent_id);
+      }
+      return ret;
+    });
     const fridayFormBindings = computed(() => ({
       action: `/projects${id.value ? `/${model.value.identifier}/settings` : ""}`,
       method: id.value ? "put" : "post",

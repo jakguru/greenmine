@@ -9,6 +9,19 @@
       <v-divider />
       <v-breadcrumbs v-bind="breadcrumbsBindings" />
       <v-divider />
+      <v-sheet v-bind="projectHeroBindings">
+        <div class="top">
+          <v-avatar size="150" :color="accentColor" class="elevation-5">
+            <v-img :src="avatarSource" />
+          </v-avatar>
+        </div>
+        <div class="bottom">
+          <h1 class="display-1 font-weight-bold mb-3">
+            {{ model.name }}
+          </h1>
+        </div>
+      </v-sheet>
+      <v-divider />
       <v-toolbar color="transparent">
         <v-slide-group show-arrows class="mx-2">
           <v-slide-group-item v-for="mi in menu" :key="mi.key">
@@ -67,19 +80,6 @@
           </v-slide-group-item>
         </v-slide-group>
       </v-toolbar>
-      <v-divider />
-      <v-sheet v-bind="projectHeroBindings">
-        <div class="top">
-          <v-avatar size="150" :color="accentColor" class="elevation-5">
-            <v-img :src="avatarSource" />
-          </v-avatar>
-        </div>
-        <div class="bottom">
-          <h1 class="display-1 font-weight-bold mb-3">
-            {{ model.name }}
-          </h1>
-        </div>
-      </v-sheet>
       <v-divider />
       <v-toolbar color="transparent">
         <v-slide-group show-arrows class="mx-2">
@@ -147,6 +147,25 @@
                     </v-card>
                   </v-col>
                 </v-row>
+                <v-row>
+                  <v-col cols="12">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
+                      <v-label class="mx-2 project-card-label">
+                        <small>{{
+                          $t(`pages.projects-id.content.activitySummary`)
+                        }}</small>
+                      </v-label>
+                      <ActivitySummaryChart
+                        :form-authenticity-token="formAuthenticityToken"
+                        :endpoint="`/projects/${model.identifier}/charts/activity-summary`"
+                      />
+                    </v-card>
+                  </v-col>
+                </v-row>
                 <v-row
                   v-if="
                     hasModule('issue_tracking') && currentUserCan('view_issues')
@@ -163,11 +182,10 @@
                           $t(`pages.projects-id.content.issueSummaryByTracker`)
                         }}</small>
                       </v-label>
-                      <v-card-text>
-                        This is where the project's issue tracking summary will
-                        be shown including a theme-river chart of issues by
-                        tracker over time
-                      </v-card-text>
+                      <IssuesByTrackerChart
+                        :form-authenticity-token="formAuthenticityToken"
+                        :endpoint="`/projects/${model.identifier}/charts/issues-summary-by-tracker`"
+                      />
                     </v-card>
                   </v-col>
                 </v-row>
@@ -187,11 +205,10 @@
                           $t(`pages.projects-id.content.issueSummaryByStatus`)
                         }}</small>
                       </v-label>
-                      <v-card-text>
-                        This is where the project's issue tracking summary by
-                        status will be shown including a theme-river chart of
-                        issues by status over time
-                      </v-card-text>
+                      <IssuesByStatusChart
+                        :form-authenticity-token="formAuthenticityToken"
+                        :endpoint="`/projects/${model.identifier}/charts/issues-summary-by-status`"
+                      />
                     </v-card>
                   </v-col>
                 </v-row>
@@ -212,10 +229,10 @@
                           $t(`pages.projects-id.content.timeSummaryChart`)
                         }}</small>
                       </v-label>
-                      <v-card-text>
-                        This is where the project's estimated & spent time will
-                        be shown visually including sprint demarkations
-                      </v-card-text>
+                      <TimeUtilizationSummaryChart
+                        :form-authenticity-token="formAuthenticityToken"
+                        :endpoint="`/projects/${model.identifier}/charts/time-summary`"
+                      />
                     </v-card>
                   </v-col>
                 </v-row>
@@ -793,6 +810,12 @@ import defaultProjectAvatar from "@/assets/images/default-project-avatar.svg?url
 import defaultProjectBanner from "@/assets/images/default-project-banner.jpg?url";
 import { RenderMarkdown } from "@/components/rendering";
 import { NewsPreview } from "@/components/news";
+import {
+  ActivitySummaryChart,
+  IssuesByTrackerChart,
+  IssuesByStatusChart,
+  TimeUtilizationSummaryChart,
+} from "@/components/charts";
 
 import type { PropType } from "vue";
 // import type {
@@ -825,6 +848,10 @@ export default defineComponent({
   components: {
     RenderMarkdown,
     NewsPreview,
+    ActivitySummaryChart,
+    IssuesByTrackerChart,
+    IssuesByStatusChart,
+    TimeUtilizationSummaryChart,
   },
   props: {
     formAuthenticityToken: {
