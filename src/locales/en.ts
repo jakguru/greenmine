@@ -1211,6 +1211,8 @@ export default {
     name: "Name",
     username: "Username",
     localUser: "Application User",
+    from: "From",
+    to: "To",
   },
   charts: {
     loading: "Loading chart...",

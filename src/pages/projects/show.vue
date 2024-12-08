@@ -147,7 +147,7 @@
                     </v-card>
                   </v-col>
                 </v-row>
-                <v-row>
+                <v-row v-if="currentUserCan('get_chart_for_activity_summary')">
                   <v-col cols="12">
                     <v-card
                       variant="outlined"
@@ -169,7 +169,9 @@
                 </v-row>
                 <v-row
                   v-if="
-                    hasModule('issue_tracking') && currentUserCan('view_issues')
+                    hasModule('issue_tracking') &&
+                    currentUserCan('view_issues') &&
+                    currentUserCan('get_chart_for_issues_by_tracker')
                   "
                 >
                   <v-col cols="12">
@@ -193,7 +195,9 @@
                 </v-row>
                 <v-row
                   v-if="
-                    hasModule('issue_tracking') && currentUserCan('view_issues')
+                    hasModule('issue_tracking') &&
+                    currentUserCan('view_issues') &&
+                    currentUserCan('get_chart_for_issues_by_status')
                   "
                 >
                   <v-col cols="12">
@@ -218,7 +222,8 @@
                 <v-row
                   v-if="
                     hasModule('time_tracking') &&
-                    currentUserCan('view_time_entries')
+                    currentUserCan('view_time_entries') &&
+                    currentUserCan('get_chart_for_time_summary')
                   "
                 >
                   <v-col cols="12">

@@ -3,13 +3,11 @@ import { useI18n } from "vue-i18n";
 import { AsyncAction, matchesSchema, useIsDark } from "@/utils/app";
 import { DateTime } from "luxon";
 import Joi from "joi";
-import qs from "qs";
 import reloadIconUrl from "@/assets/images/reload.png?url";
 import BaseChart from "./base.vue";
 
 import type { Ref } from "vue";
-import type { ApiService } from "@jakguru/vueprint";
-import type { ChartDataItem } from "./index";
+import type { ApiService, CronService } from "@jakguru/vueprint";
 
 export type ChartPropsType = Readonly<{
   formAuthenticityToken: string;
@@ -23,16 +21,16 @@ export const useChartSetup = <EChartsOption extends Record<string, any>>(
   props: ChartPropsType,
   filters: Ref<Record<string, any>>,
   specificChartOptions: EChartsOption,
+  dataSchema: Joi.Schema,
 ) => {
+  const now = ref<DateTime>(DateTime.now());
   const { t } = useI18n({ useScope: "global" });
   const api = inject<ApiService>("api");
+  const cron = inject<CronService>("cron");
   const isDark = useIsDark();
   const endpoint = computed(() => props.endpoint);
   const minDateTime = computed(() => DateTime.fromISO(props.minDateTime));
-  const data = ref<ChartDataItem[]>([]);
-  const dataSchema = Joi.array().items(
-    Joi.array().items(Joi.any().required(), Joi.any().required()),
-  );
+  const data = ref<Record<string, unknown>>({});
   let actionAbortController: AbortController | undefined;
   const dataFetcherAction = new AsyncAction(async () => {
     if (!api) {
@@ -43,8 +41,14 @@ export const useChartSetup = <EChartsOption extends Record<string, any>>(
     }
     actionAbortController = new AbortController();
     try {
-      const { status, data: returned } = await api.get<ChartDataItem[]>(
-        `${endpoint.value}?${qs.stringify(filters.value)}`,
+      const { status, data: returned } = await api.post<
+        Record<string, unknown>
+      >(
+        `${endpoint.value}`,
+        {
+          ...filters.value,
+          authenticity_token: props.formAuthenticityToken,
+        },
         {
           signal: actionAbortController.signal,
         },
@@ -66,12 +70,22 @@ export const useChartSetup = <EChartsOption extends Record<string, any>>(
     },
     { deep: true },
   );
+  const updateNow = () => {
+    now.value = DateTime.now();
+  };
   onMounted(() => {
-    filters.value.from = minDateTime.value.toISODate();
+    updateNow();
+    filters.value.from = now.value.minus({ days: 10 }).toISODate();
+    if (cron) {
+      cron.$on("* * * * * *", updateNow);
+    }
   });
   onBeforeUnmount(() => {
     if (actionAbortController) {
       actionAbortController.abort();
+    }
+    if (cron) {
+      cron.$off("* * * * * *", updateNow);
     }
   });
   const wrapperProps = computed(() => ({
@@ -100,13 +114,8 @@ export const useChartSetup = <EChartsOption extends Record<string, any>>(
         },
       },
       ...specificChartOptions,
+      ...data.value,
     };
-
-    if (Array.isArray(base.series)) {
-      base.series[0].data = data.value;
-    } else if ("object" === typeof base.series && null !== base.series) {
-      base.series.data = data.value;
-    }
     return base;
   });
   const loadingOptions = computed(() => ({
@@ -136,6 +145,8 @@ export const useChartSetup = <EChartsOption extends Record<string, any>>(
   const closeFilterDialog = () => {
     showFilterDialog.value = false;
   };
+  const minDate = computed(() => minDateTime.value.toSQLDate()!);
+  const maxDate = computed(() => now.value.toSQLDate()!);
   return {
     doLoad,
     filters,
@@ -147,5 +158,10 @@ export const useChartSetup = <EChartsOption extends Record<string, any>>(
     filterDialogBindings,
     openFilterDialog,
     closeFilterDialog,
+    minDate,
+    maxDate,
   };
 };
+
+export const calendarChartDataSchema = Joi.object().unknown(true);
+export const themeRiverChartDataSchema = Joi.object().unknown(true);

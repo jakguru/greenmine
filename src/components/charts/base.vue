@@ -17,7 +17,12 @@
         </v-toolbar>
         <v-divider />
         <v-container>
-          <slot name="filters" :loading="loading"></slot>
+          <slot
+            name="filters"
+            :loading="loading"
+            :min-date="minDate"
+            :max-date="maxDate"
+          ></slot>
         </v-container>
       </v-card>
     </v-dialog>
@@ -74,6 +79,14 @@ export default defineComponent({
     },
     closeFilterDialog: {
       type: Function as PropType<() => void>,
+      required: true,
+    },
+    minDate: {
+      type: String as PropType<string>,
+      required: true,
+    },
+    maxDate: {
+      type: String as PropType<string>,
       required: true,
     },
   },

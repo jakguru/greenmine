@@ -74,4 +74,14 @@ RedmineApp::Application.routes.draw do
   namespace :webhooks do
     match "gitlab", to: "gitlab#handle", via: [:get, :post, :put, :patch, :delete, :head]
   end
+
+  # Projects
+  resources :projects do
+    member do
+      post "charts/issues-summary-by-status", to: "projects#get_chart_for_issues_by_status"
+      post "charts/issues-summary-by-tracker", to: "projects#get_chart_for_issues_by_tracker"
+      post "charts/activity-summary", to: "projects#get_chart_for_activity_summary"
+      post "charts/time-summary", to: "projects#get_chart_for_time_summary"
+    end
+  end
 end

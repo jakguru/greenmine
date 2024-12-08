@@ -52,6 +52,10 @@ Redmine::Plugin.register :friday do
   permission :unassign_from_sprint, require: :member
   permission :view_associated_gitlab_projects, public: true, read: true
   permission :manage_associated_gitlab_projects, {projects: :settings}, require: :member
+  permission :get_chart_for_issues_by_status, {projects: :get_chart_for_issues_by_status}, require: :member
+  permission :get_chart_for_issues_by_tracker, {projects: :get_chart_for_issues_by_tracker}, require: :member
+  permission :get_chart_for_activity_summary, {projects: :get_chart_for_activity_summary}, require: :member
+  permission :get_chart_for_time_summary, {projects: :get_chart_for_time_summary}, require: :member
 end
 
 if ENV["REDIS_URL"] && !(defined?(Rails::Console) || File.split($0).last == "rake")
