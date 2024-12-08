@@ -492,7 +492,7 @@ export default {
       title: "Project Repository Stats",
     },
     "projects-id-search": { title: "Project Search" },
-    "projects-id-settings-tab": { title: "Project Settings" },
+    "projects-id-settings": { title: "Project Settings" },
     "projects-id-wiki-destroy": { title: "" },
     "projects-project-id-boards": { title: "" },
     "projects-project-id-boards-id": { title: "" },

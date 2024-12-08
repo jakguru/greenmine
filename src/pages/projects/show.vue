@@ -81,7 +81,7 @@
         </v-slide-group>
       </v-toolbar>
       <v-divider />
-      <v-toolbar color="transparent">
+      <v-toolbar v-if="'projects-id' === $route.name" color="transparent">
         <v-slide-group show-arrows class="mx-2">
           <v-slide-group-item>
             <v-chip
@@ -120,7 +120,7 @@
           </v-slide-group-item>
         </v-slide-group>
       </v-toolbar>
-      <v-divider />
+      <v-divider v-if="'projects-id' === $route.name" />
       <template v-if="'projects-id' === $route.name">
         <v-container fluid class="pa-0">
           <v-row no-gutters class="with-dividing-border">

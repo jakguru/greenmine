@@ -96,7 +96,7 @@ module FridayPlugin
 
         def settings
           if friday_request?
-            render_project_response
+            show
           else
             redmine_base_settings
           end
