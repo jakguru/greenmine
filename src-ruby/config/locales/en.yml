@@ -72,3 +72,10 @@ en:
   label_status_closed: Closed
   label_status_archived: Archived
   label_status_scheduled_for_deletion: Scheduled for Deletion
+  label_github_new: New Github Integration
+  label_monday_new: New Monday Integration
+  field_monday_instance: Monday Instance
+  field_urgency: Urgency
+  field_spent_hours: Spent Hours
+  field_total_spent_hours: Total Spent Hours
+  field_attachments: Attachments

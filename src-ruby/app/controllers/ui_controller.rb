@@ -5,8 +5,8 @@ class UiController < ApplicationController
   include FridayHelper
   include FridayCustomFieldHelper
 
-  skip_before_action :check_if_login_required, only: [:get_app_data, :get_project_link_info_by_id, :get_actions_for_issues, :get_user_avatar, :get_group_avatar]
-  skip_before_action :check_password_change, only: [:get_app_data, :get_project_link_info_by_id, :get_actions_for_issues, :get_user_avatar, :get_group_avatar]
+  skip_before_action :check_if_login_required, only: [:get_app_data, :get_project_link_info_by_id, :get_actions_for_issues, :get_user_avatar, :get_group_avatar, :manifest_dot_webmanifest, :browserconfig_dot_xml, :yandex_browser_manifest_dot_json]
+  skip_before_action :check_password_change, only: [:get_app_data, :get_project_link_info_by_id, :get_actions_for_issues, :get_user_avatar, :get_group_avatar, :manifest_dot_webmanifest, :browserconfig_dot_xml, :yandex_browser_manifest_dot_json]
 
   def get_app_data
     projects = projects_for_jump_box(User.current)
@@ -71,6 +71,18 @@ class UiController < ApplicationController
         },
         GitlabProjectsQuery: {
           operators: GitlabProjectsQuery.operators_by_filter_type
+        },
+        GithubsQuery: {
+          operators: GithubsQuery.operators_by_filter_type
+        },
+        MondaysQuery: {
+          operators: MondaysQuery.operators_by_filter_type
+        },
+        GithubRepositoriesQuery: {
+          operators: GithubRepositoriesQuery.operators_by_filter_type
+        },
+        MondayBoardsQuery: {
+          operators: MondayBoardsQuery.operators_by_filter_type
         }
       },
       settings: {
@@ -244,6 +256,181 @@ class UiController < ApplicationController
     else
       send_svg_avatar("?")
     end
+  end
+
+  # /manifest.webmanifest
+  def manifest_dot_webmanifest
+    site_root = ENV["VITE_BASE_URL"].present? ? ENV["VITE_BASE_URL"] : "#{Setting.send(:protocol)}://#{Setting.send(:host_name)}"
+    asset_path = "#{site_root}/plugin_assets/friday"
+    render json: {
+      name: "Friday",
+      short_name: "Friday",
+      description: "Welcome to Friday: your favorite day of the week! Say goodbye to the convoluted workflows and hello to intuitive, efficient, and no-nonsense project and product management. Friday works the way you do—cutting through the chaos and delivering a streamlined, developer-first experience. It’s as flexible as your code and as reliable as your coffee. With Friday, every day feels like a win—except maybe actual Monday!",
+      dir: "auto",
+      lang: "en-US",
+      display: "minimal-ui",
+      orientation: "any",
+      start_url: "/",
+      background_color: "#282F4C",
+      theme_color: "#00854d",
+      icons: [
+        {
+          src: "#{asset_path}/android-chrome-36x36.png",
+          sizes: "36x36",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-48x48.png",
+          sizes: "48x48",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-72x72.png",
+          sizes: "72x72",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-96x96.png",
+          sizes: "96x96",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-144x144.png",
+          sizes: "144x144",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-192x192.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-256x256.png",
+          sizes: "256x256",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-384x384.png",
+          sizes: "384x384",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-36x36.png",
+          sizes: "36x36",
+          type: "image/png",
+          purpose: "maskable"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-48x48.png",
+          sizes: "48x48",
+          type: "image/png",
+          purpose: "maskable"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-72x72.png",
+          sizes: "72x72",
+          type: "image/png",
+          purpose: "maskable"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-96x96.png",
+          sizes: "96x96",
+          type: "image/png",
+          purpose: "maskable"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-144x144.png",
+          sizes: "144x144",
+          type: "image/png",
+          purpose: "maskable"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-192x192.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "maskable"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-256x256.png",
+          sizes: "256x256",
+          type: "image/png",
+          purpose: "maskable"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-384x384.png",
+          sizes: "384x384",
+          type: "image/png",
+          purpose: "maskable"
+        },
+        {
+          src: "#{asset_path}/android-chrome-maskable-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable"
+        }
+      ],
+      screenshots: [
+        {
+          src: "#{asset_path}/apple-touch-startup-image-1334x750.png",
+          sizes: "1334x750",
+          type: "image/png",
+          form_factor: "wide"
+        },
+        {
+          src: "#{asset_path}/apple-touch-startup-image-750x1334.png",
+          sizes: "750x1334",
+          type: "image/png",
+          form_factor: "narrow"
+        }
+      ]
+    }
+  end
+
+  # /browserconfig.xml
+  def browserconfig_dot_xml
+    site_root = ENV["VITE_BASE_URL"].present? ? ENV["VITE_BASE_URL"] : "#{Setting.send(:protocol)}://#{Setting.send(:host_name)}"
+    asset_path = "#{site_root}/plugin_assets/friday"
+    render xml: {
+      browserconfig: {
+        msapplication: {
+          tile: {
+            square70x70logo: {src: "#{asset_path}/mstile-70x70.png"},
+            square150x150logo: {src: "#{asset_path}/mstile-150x150.png"},
+            square310x310logo: {src: "#{asset_path}/mstile-310x310.png"},
+            TileColor: "#282F4C"
+          }
+        }
+      }
+    }
+  end
+
+  # /yandex-browser-manifest.json
+  def yandex_browser_manifest_dot_json
+    site_root = ENV["VITE_BASE_URL"].present? ? ENV["VITE_BASE_URL"] : "#{Setting.send(:protocol)}://#{Setting.send(:host_name)}"
+    asset_path = "#{site_root}/plugin_assets/friday"
+    render json: {
+      version: "1.0",
+      api_version: 1,
+      layout: {
+        color: "#282F4C",
+        logo: "#{asset_path}/yandex-browser-logo.png",
+        show_title: true
+      }
+    }
   end
 
   private

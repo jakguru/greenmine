@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+import type { createApp } from "vue";
+
 import type {
   RealtimeApplicationUpdateEventPayload,
   RealtimeApplicationUpdateEventWithTabUUIDPayload,
@@ -39,6 +41,12 @@ declare module "@jakguru/vueprint" {
 
 interface ImportMeta {
   readonly env: Record<string, string>;
+}
+
+declare global {
+  interface Window {
+    _friday: ReturnType<typeof createApp>;
+  }
 }
 
 export {};

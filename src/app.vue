@@ -20,6 +20,9 @@
           </template>
           <PartialMenu :color="systemSurfaceColor" />
         </v-menu>
+        <v-avatar class="mx-2">
+          <img :src="iconFriday" width="24" height="24" />
+        </v-avatar>
         <v-toolbar-title class="site-name">{{ appData.name }}</v-toolbar-title>
         <v-toolbar-items>
           <GlobalSearchField
@@ -194,11 +197,9 @@
       opacity="1"
       no-click-animation
     >
-      <v-progress-circular
-        color="primary"
-        size="64"
-        indeterminate
-      ></v-progress-circular>
+      <v-progress-circular color="accent" size="64" indeterminate>
+        <img :src="iconFriday" width="36" height="36" />
+      </v-progress-circular>
     </v-overlay>
     <!-- <v-footer app :color="systemBarColor">
       <v-toolbar-items class="h-100 ml-auto">
@@ -273,6 +274,7 @@ import type { PropType } from "vue";
 import { storeToRefs } from "pinia";
 import "./augmentations.d.ts";
 import projectsImage from "@/assets/images/projects.png?url";
+import iconFriday from "@/assets/icon.svg?url";
 
 export default defineComponent({
   name: "FridayApp",
@@ -502,6 +504,7 @@ export default defineComponent({
       vAppBindings,
       isSufficientlyScrolled,
       projectsImage,
+      iconFriday,
     };
   },
 });
@@ -516,6 +519,7 @@ export default defineComponent({
   .site-name {
     font-size: 24px;
     font-weight: 700;
+    margin-inline-start: 0;
   }
 }
 </style>

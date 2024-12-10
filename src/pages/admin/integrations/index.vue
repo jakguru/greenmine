@@ -13,7 +13,21 @@
       <v-breadcrumbs v-bind="breadcrumbsBindings" />
       <v-divider />
       <v-container fluid>
-        <v-row justify="center">
+        <v-row justify="start">
+          <v-col cols="12" sm="4" md="2">
+            <v-card
+              elevation="5"
+              color="background"
+              :to="{ name: 'admin-integrations-monday' }"
+            >
+              <v-card-text class="pa-3">
+                <v-img :src="iconMonday" :aspect-ratio="1" />
+              </v-card-text>
+              <v-card-title class="text-center">
+                <span>Monday</span>
+              </v-card-title>
+            </v-card>
+          </v-col>
           <v-col cols="12" sm="4" md="2">
             <v-card
               elevation="5"
@@ -113,6 +127,7 @@ import iconPagerduty from "@/assets/images/icon-pagerduty.svg?url";
 import iconSentry from "@/assets/images/icon-sentry.svg?url";
 import iconSlack from "@/assets/images/icon-slack.svg?url";
 import iconWebhooks from "@/assets/images/icon-webhooks.svg?url";
+import iconMonday from "@/assets/images/icon-monday.svg?url";
 
 export default defineComponent({
   name: "AdminIntegrationsIndex",
@@ -134,6 +149,7 @@ export default defineComponent({
       iconSentry,
       iconSlack,
       iconWebhooks,
+      iconMonday,
     };
   },
 });

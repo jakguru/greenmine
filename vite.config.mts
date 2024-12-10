@@ -50,6 +50,7 @@ export default defineConfig(async ({ mode }) => {
         "@": resolve(__dirname, "src"),
       },
     },
+    publicDir: resolve(__dirname, "src", "public"),
     build: {
       manifest: true,
       outDir: resolve(__dirname, "plugins", "friday"),

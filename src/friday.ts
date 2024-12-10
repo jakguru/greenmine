@@ -1315,3 +1315,103 @@ export interface File {
 //   totalEstimatedHours: number | null;
 //   gitlabProjects: GitlabProject[];
 // }
+
+export interface Monday {
+  name: string;
+  api_token: string;
+  active: boolean;
+  users: MondayUser[];
+}
+
+export interface MondayUser {
+  created_at: string;
+  id: number;
+  monday_id: string;
+  redmine_user: any | null;
+  redmine_user_id: number | null;
+  updated_at: string;
+  user_id: number;
+  user_meta_data: {
+    email: string;
+    id: string;
+    name: string;
+    photo_original: string;
+    title: string | null;
+  };
+}
+
+export interface MondayValuesProp {
+  users: SelectableListItem<number>[];
+}
+
+export type MondayFieldType =
+  | "button"
+  | "checkbox"
+  | "color_picker"
+  | "board_relation"
+  | "country"
+  | "creation_log"
+  | "date"
+  | "dependency"
+  | "dropdown"
+  | "email"
+  | "file"
+  | "formula"
+  | "hour"
+  | "item_id"
+  | "last_updated"
+  | "link"
+  | "location"
+  | "long_text"
+  | "mirror"
+  | "doc"
+  | "name"
+  | "numbers"
+  | "people"
+  | "phone"
+  | "rating"
+  | "status"
+  | "tags"
+  | "text"
+  | "timeline"
+  | "time_tracking"
+  | "vote"
+  | "week"
+  | "world_clock"
+  | "auto_number"
+  | "progress";
+
+export interface MondayBoardColumn {
+  id: string;
+  type: MondayFieldType;
+  title: string;
+  settings_str: string;
+}
+
+export interface MondayBoard {
+  id: number;
+  monday_id: number;
+  project_id: number;
+  monday_board_id: string;
+  board_meta_data: {
+    columns: MondayBoardColumn[];
+    description: string | null;
+    id: string;
+    item_terminology: string;
+    name: string;
+    state: string;
+    type: string;
+    url: string;
+  };
+  board_field_mapping: Record<string, string>;
+}
+
+export interface MondayFridayField extends SelectableListItem<string> {
+  monday_can_edit: boolean;
+  monday_types: MondayFieldType[];
+}
+
+export interface MondayBoardValuesProp {
+  projects: SelectableListItem<number>[];
+  fields: MondayFridayField[];
+}

@@ -221,7 +221,7 @@ const vueprintClientPluginOptions: VueClientBootstrapOptions = {
 const consumer = createConsumer();
 
 const pinia = createPinia();
-createApp(FridayApp, {
+const fridayApp = createApp(FridayApp, {
   consumer,
 })
   .use(i18n)
@@ -237,3 +237,7 @@ createApp(FridayApp, {
     },
   } as Plugin)
   .mount("#friday-app");
+
+if (window) {
+  window._friday = fridayApp as any as ReturnType<typeof createApp>;
+}

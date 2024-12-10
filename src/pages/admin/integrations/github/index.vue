@@ -8,11 +8,17 @@
     :permissions="permissions"
     :creatable="creatable"
     :get-action-items="getActionMenuItems"
-  />
+  >
+    <template #sub-header>
+      <v-divider />
+      <v-breadcrumbs v-bind="breadcrumbsBindings" />
+      <v-divider />
+    </template>
+  </QueriesPage>
 </template>
 
 <script lang="ts">
-import { defineComponent, h, inject } from "vue";
+import { defineComponent, h, inject, computed } from "vue";
 import { QueriesPage } from "@/components/queries";
 import { VListItem } from "vuetify/components/VList";
 import { useI18n } from "vue-i18n";
@@ -124,8 +130,21 @@ export default defineComponent({
         },
       ];
     };
+    const breadcrumbsBindings = computed(() => ({
+      items: [
+        { title: t("pages.admin.title"), to: { name: "admin" } },
+        {
+          title: t("pages.admin-integrations.title"),
+          to: { name: "admin-integrations" },
+        },
+        {
+          title: t("pages.admin-integrations-github.title"),
+        },
+      ],
+    }));
     return {
       getActionMenuItems,
+      breadcrumbsBindings,
     };
   },
 });

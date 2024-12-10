@@ -553,6 +553,62 @@ export const QueriesPartialDataTableCell = defineComponent({
             default:
               return toReturnByColumnKey.value;
           }
+        case "MondaysQuery":
+          switch (column.value.key) {
+            case "id":
+            case "name":
+              return h(
+                RouterLink,
+                {
+                  to: {
+                    name: "admin-integrations-monday-id",
+                    params: { id: item.value.id },
+                  },
+                  ...attrs.value,
+                },
+                value.value.display,
+              );
+            default:
+              return toReturnByColumnKey.value;
+          }
+        case "MondayBoardsQuery":
+          switch (column.value.key) {
+            case "monday_board_id":
+            case "name":
+              if (!parent.value) {
+                return toReturnByColumnKey.value;
+              } else {
+                return h(
+                  RouterLink,
+                  {
+                    to: {
+                      name: "admin-integrations-monday-id-board-id",
+                      params: {
+                        id: parent.value.id,
+                        boardId: item.value.entry.monday_board_id.value,
+                      },
+                    },
+                    ...attrs.value,
+                  },
+                  value.value.display,
+                );
+              }
+            case "url":
+              return h(
+                "a",
+                {
+                  href: value.value.value,
+                  target: "_blank",
+                  ...attrs.value,
+                },
+                [
+                  h(VIcon, { size: "small", class: "me-2" }, "mdi-open-in-new"),
+                  value.value.display,
+                ],
+              );
+            default:
+              return toReturnByColumnKey.value;
+          }
         default:
           return toReturnByColumnKey.value;
       }
@@ -604,6 +660,30 @@ export const QueriesPartialDataTableCell = defineComponent({
             {
               to: {
                 name: "admin-integrations-gitlab-id",
+                params: { id: value.value.value.identifier },
+              },
+              ...attrs.value,
+            },
+            value.value.value.name,
+          );
+        case "GithubInstance":
+          return h(
+            RouterLink,
+            {
+              to: {
+                name: "admin-integrations-github-id",
+                params: { id: value.value.value.identifier },
+              },
+              ...attrs.value,
+            },
+            value.value.value.name,
+          );
+        case "MondayInstance":
+          return h(
+            RouterLink,
+            {
+              to: {
+                name: "admin-integrations-monday-id",
                 params: { id: value.value.value.identifier },
               },
               ...attrs.value,

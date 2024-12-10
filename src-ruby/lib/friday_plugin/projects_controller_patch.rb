@@ -580,7 +580,8 @@ module FridayPlugin
               get_chart_for_issues_by_status: User.current.allowed_to?(:get_chart_for_issues_by_status, @project),
               get_chart_for_issues_by_tracker: User.current.allowed_to?(:get_chart_for_issues_by_tracker, @project),
               get_chart_for_activity_summary: User.current.allowed_to?(:get_chart_for_activity_summary, @project),
-              get_chart_for_time_summary: User.current.allowed_to?(:get_chart_for_time_summary, @project)
+              get_chart_for_time_summary: User.current.allowed_to?(:get_chart_for_time_summary, @project),
+              view_associated_monday_board: User.current.allowed_to?(:view_associated_monday_board, @project)
             },
             menu: menu_nodes,
             wiki: wiki_pages,
@@ -593,7 +594,8 @@ module FridayPlugin
                 attachment: document.attachments.first&.attributes
               }
             },
-            files: @project.attachments.to_a
+            files: @project.attachments.to_a,
+            mondayBoard: @project.monday_board
           }.merge(additional)
         end
 

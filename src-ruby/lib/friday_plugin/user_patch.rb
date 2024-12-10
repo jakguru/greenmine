@@ -6,7 +6,11 @@ module FridayPlugin
       base.send(:include, InstanceMethods)
       base.class_eval do
         has_many :user_gitlab_users, class_name: "UserGitlabUser", foreign_key: "user_id"
-        has_many :gitlab_users, through: :user_gitlab_projects
+        has_many :gitlab_users, through: :user_gitlab_users
+        has_many :user_github_users, class_name: "UserGithubUser", foreign_key: "user_id"
+        has_many :github_users, through: :user_github_users
+        has_many :user_monday_users, class_name: "UserMondayUser", foreign_key: "user_id"
+        has_many :monday_users, through: :user_monday_users
         alias_method :redmine_base_allowed_to, :allowed_to?
         safe_attributes "avatar"
         def allowed_to?(action, context, options = {}, &block)

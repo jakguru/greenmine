@@ -14,6 +14,9 @@ RedmineApp::Application.routes.draw do
   get "admin/integrations", to: "admin#integrations"
   get "users/:id/avatar", to: "ui#get_user_avatar"
   get "groups/:id/avatar", to: "ui#get_group_avatar"
+  get "manifest.webmanifest", to: "ui#manifest_dot_webmanifest"
+  get "browserconfig.xml", to: "ui#browserconfig_dot_xml"
+  get "yandex-browser-manifest.json", to: "ui#yandex_browser_manifest_dot_json"
   mount Sidekiq::Web => "admin/sidekiq"
 
   # Time Tracking
@@ -67,12 +70,41 @@ RedmineApp::Application.routes.draw do
           put "users", to: "gitlab#update_user_gitlab_user_association"
         end
       end
+
+      # Monday Integration
+      resources :monday, controller: "monday", only: [:index, :show, :new, :edit, :create, :update, :destroy]
+      resources :monday do
+        member do
+          post "boards", to: "monday#enqueue_fetch_boards"
+          get "boards/:monday_board_id", to: "monday#show_board"
+          put "boards/:monday_board_id", to: "monday#update_board"
+          post "boards/:monday_board_id/actions", to: "monday#handle_board_action"
+          post "boards/:monday_board_id/actions/:action_to_perform", to: "monday#handle_board_action"
+          post "users", to: "monday#enqueue_fetch_users"
+          put "users", to: "monday#update_user_monday_user_association"
+        end
+      end
+
+      # Github Integration
+      resources :github, controller: "github", only: [:index, :show, :new, :edit, :create, :update, :destroy]
+      resources :gitlab do
+        member do
+          post "repositories", to: "gitlab#enqueue_fetch_repositories"
+          get "repositories/:repository_id", to: "gitlab#show_repository"
+          put "repositories/:repository_id", to: "gitlab#update_repository_gitlab_repository_association"
+          post "repositories/:repository_id/actions", to: "gitlab#handle_repository_action"
+          post "repositories/:repository_id/actions/:action_to_perform", to: "gitlab#handle_repository_action"
+          post "users", to: "gitlab#enqueue_fetch_users"
+          put "users", to: "gitlab#update_user_gitlab_user_association"
+        end
+      end
     end
   end
 
   # Webhooks
   namespace :webhooks do
     match "gitlab", to: "gitlab#handle", via: [:get, :post, :put, :patch, :delete, :head]
+    match "monday", to: "monday#handle", via: [:get, :post, :put, :patch, :delete, :head]
   end
 
   # Projects

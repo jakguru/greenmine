@@ -138,6 +138,93 @@ export default {
     "admin-integrations-webhooks": {
       title: "Webhook Integrations",
     },
+    "admin-integrations-monday": {
+      title: "Monday Integrations",
+    },
+    "admin-integrations-monday-new": {
+      title: "Create a Monday Integration",
+      content: {
+        fields: {
+          name: "Integration Name",
+          api_token: "Access Token",
+          active: "Active",
+        },
+      },
+      onSave: {
+        success: "Integration created successfully",
+        error: "An error occurred while creating the integration",
+      },
+    },
+    "admin-integrations-monday-id": {
+      title: "Manage a Monday Integration",
+      content: {
+        fields: {
+          name: "Integration Name",
+          api_token: "Access Token",
+          active: "Active",
+        },
+      },
+      tabs: {
+        integration: "Integration",
+        boards: "Boards",
+        users: "Users",
+      },
+      boards: {
+        title: "Monday Boards",
+        cta: "Sync Boards",
+        onFetch: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
+        onEnqueueJobToInstallWebhooks: {
+          success: "Job(s) Enqueued Successfully",
+          warning: "Some jobs failed to enqueue",
+          error: "An error occurred while enqueueing the job(s)",
+        },
+      },
+      users: {
+        title: "Monday Users",
+        cta: "Sync Users",
+        onFetch: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
+        onSave: {
+          error: "An error occurred while saving the user association",
+        },
+      },
+      onSave: {
+        success: "Integration created successfully",
+        error: "An error occurred while creating the integration",
+      },
+    },
+    "admin-integrations-monday-id-board": {
+      title: "Manage Monday Board",
+      content: {
+        associatedBoards: "Associated Boards",
+        associatedBoardsTable: {
+          headers: {
+            name: "Board Name",
+            isAssociated: "Associated",
+          },
+        },
+        openInMonday: "Open in Monday",
+        enqueueJobToInstallWebhooks: "Install Webhooks",
+        enqueueJobToRefreshBoardMeta: "Refresh Board",
+      },
+      fields: {
+        project_id: "Project for New Issues from Monday",
+        field_mapping_for: 'Friday Field for Monday Column "{title}" ({id})',
+      },
+      onSave: {
+        success: "Board configuration saved successfully",
+        error: "An error occurred while saving the board configuration",
+      },
+      onEnqueueJobToInstallWebhooks: {
+        success: "Job Enqueued Successfully",
+        error: "An error occurred while enqueueing the job",
+      },
+    },
     "admin-plugins": { title: "Integrated Plugins" },
     "admin-projects-context-menu": { title: "" },
     "admin-projects": { title: "Project Management" },
@@ -423,6 +510,7 @@ export default {
         members: "Members",
         subprojects: "Subprojects",
         gitlabProjects: "GitLab Projects",
+        mondayBoard: "Monday Board",
         description: "Description",
         issueSummaryByTracker: "Summary of Issues by Tracker",
         issueSummaryByStatus: "Summary of Issues by Status",
@@ -492,7 +580,21 @@ export default {
       title: "Project Repository Stats",
     },
     "projects-id-search": { title: "Project Search" },
-    "projects-id-settings": { title: "Project Settings" },
+    "projects-id-settings": {
+      title: "Project Settings",
+      tabs: {
+        project: "Project",
+        members: "Members",
+        issues: "Issue Tracking",
+        categories: "Categories",
+        activities: "Time Tracking",
+        versions: "Releases",
+        repositories: "Repositories",
+        gitlab: "Gitlab",
+        boards: "Forums",
+      },
+    },
+    "projects-id-settings-tab": { title: "Project Settings" },
     "projects-id-wiki-destroy": { title: "" },
     "projects-project-id-boards": { title: "" },
     "projects-project-id-boards-id": { title: "" },
@@ -1055,6 +1157,9 @@ export default {
     "workflows-permissions": { title: "" },
   },
   labels: {
+    id: "ID",
+    email: "Email",
+    noData: "No data available",
     home: "Home",
     latestNews: "Latest News",
     allNews: "View all news",
@@ -1846,6 +1951,11 @@ export default {
     },
   },
   gitlabProjectActionMenu: {
+    installWebhook: {
+      title: "Install Webhook",
+    },
+  },
+  mondayBoardActionMenu: {
     installWebhook: {
       title: "Install Webhook",
     },

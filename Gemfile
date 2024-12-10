@@ -10,3 +10,5 @@ gem "elasticsearch-model", "~> 8.0"
 gem "elasticsearch-api", "~> 8.16"
 gem "elasticsearch-dsl", "~> 0.1.10"
 gem "gitlab", "~> 5.1"
+
+gem "graphql-client", "~> 0.24.0"

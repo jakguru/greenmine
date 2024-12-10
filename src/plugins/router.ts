@@ -1,4 +1,4 @@
-import { inject } from "vue";
+import { inject, hasInjectionContext } from "vue";
 import { createWebHistory, createRouter } from "vue-router";
 import { loadRouteData, loadAppData } from "@/utils/app";
 import { useRouteDataStore } from "@/stores/routeData";
@@ -134,6 +134,33 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/admin/integrations/github/new",
+    name: "admin-integrations-github-new",
+    // component: () => import("@/pages/admin/integrations/github/new.vue"),
+    component: fourOhFour,
+    meta: {
+      title: "pages.admin-integrations-github-new.title",
+    },
+  },
+  {
+    path: "/admin/integrations/github/:id",
+    name: "admin-integrations-github-id",
+    // component: () => import("@/pages/admin/integrations/github/edit.vue"),
+    component: fourOhFour,
+    meta: {
+      title: "pages.admin-integrations-github-new.title",
+    },
+  },
+  {
+    path: "/admin/integrations/github/:id/repositories/:repositoryId",
+    name: "admin-integrations-github-id-repository-id",
+    // component: () => import("@/pages/admin/integrations/github/repository.vue"),
+    component: fourOhFour,
+    meta: {
+      title: "pages.admin-integrations-github-id-repository-id.title",
+    },
+  },
+  {
     path: "/admin/integrations/gitlab",
     name: "admin-integrations-gitlab",
     component: () => import("@/pages/admin/integrations/gitlab/index.vue"),
@@ -162,7 +189,7 @@ const routes: RouteRecordRaw[] = [
     name: "admin-integrations-gitlab-id-project-id",
     component: () => import("@/pages/admin/integrations/gitlab/project.vue"),
     meta: {
-      title: "pages.admin-integrations-gitlab-id-project-id.title",
+      title: "pages.admin-integrations-gitlab-id-project.title",
     },
   },
   {
@@ -195,6 +222,38 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/pages/admin/integrations/webhooks/index.vue"),
     meta: {
       title: "pages.admin-integrations-webhooks.title",
+    },
+  },
+  {
+    path: "/admin/integrations/monday",
+    name: "admin-integrations-monday",
+    component: () => import("@/pages/admin/integrations/monday/index.vue"),
+    meta: {
+      title: "pages.admin-integrations-monday.title",
+    },
+  },
+  {
+    path: "/admin/integrations/monday/new",
+    name: "admin-integrations-monday-new",
+    component: () => import("@/pages/admin/integrations/monday/new.vue"),
+    meta: {
+      title: "pages.admin-integrations-monday-new.title",
+    },
+  },
+  {
+    path: "/admin/integrations/monday/:id",
+    name: "admin-integrations-monday-id",
+    component: () => import("@/pages/admin/integrations/monday/edit.vue"),
+    meta: {
+      title: "pages.admin-integrations-monday-new.title",
+    },
+  },
+  {
+    path: "/admin/integrations/monday/:id/boards/:boardId",
+    name: "admin-integrations-monday-id-board-id",
+    component: () => import("@/pages/admin/integrations/monday/board.vue"),
+    meta: {
+      title: "pages.admin-integrations-monday-id-board.title",
     },
   },
   {
@@ -2177,6 +2236,9 @@ export const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
+  if (!hasInjectionContext()) {
+    return next(false);
+  }
   const api = inject<ApiService>("api");
   const toast = inject<ToastService>("toast");
   const ls = inject<LocalStorageService>("localStorage");
@@ -2188,7 +2250,7 @@ router.beforeEach(async (to, from, next) => {
   const props = await loadRouteData(to, api, toast);
   if ("boolean" === typeof props) {
     store.isLoading(false);
-    return props;
+    return next(props);
   }
   store.store(props);
   const appDataStore = useAppDataStore();

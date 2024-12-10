@@ -449,6 +449,38 @@
                     </v-card>
                   </v-col>
                 </v-row>
+                <v-row
+                  v-if="
+                    mondayBoard &&
+                    currentUserCan('view_associated_monday_board')
+                  "
+                >
+                  <v-col cols="12">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
+                      <v-label class="mx-2 project-card-label">
+                        <small>{{
+                          $t(`pages.projects-id.content.mondayBoard`)
+                        }}</small>
+                      </v-label>
+                      <v-list class="bg-transparent pb-0">
+                        <v-list-item
+                          :title="mondayBoard?.board_meta_data?.name"
+                          two-line
+                          :href="mondayBoard?.board_meta_data?.url"
+                          target="_blank"
+                        >
+                          <template #append>
+                            <img height="24" :src="iconMonday" />
+                          </template>
+                        </v-list-item>
+                      </v-list>
+                    </v-card>
+                  </v-col>
+                </v-row>
               </v-container>
             </v-col>
             <v-col cols="12" sm="6" md="3" xl="2" order-md="3">
@@ -795,26 +827,25 @@
           </v-row>
         </v-container>
       </template>
+      <template
+        v-else-if="
+          isCurrentRoute(['projects-id-settings', 'projects-id-settings-tab'])
+        "
+      >
+        <ProjectsShowSettingsPartial v-bind="propsForPartial" />
+      </template>
     </v-card>
   </v-container>
 </template>
 
 <script lang="ts">
-import {
-  defineComponent,
-  computed,
-  // inject
-} from "vue";
+import { defineComponent, computed } from "vue";
 import { useI18n } from "vue-i18n";
-// import { useRoute, useRouter } from "vue-router";
-import {
-  useSystemSurfaceColor,
-  useSystemAccentColor,
-  // useReloadRouteData,
-  // useReloadAppData,
-} from "@/utils/app";
+import { useRoute } from "vue-router";
+import { useSystemSurfaceColor, useSystemAccentColor } from "@/utils/app";
 import { formatDuration } from "@/utils/formatting";
 import iconGitlab from "@/assets/images/icon-gitlab.svg?url";
+import iconMonday from "@/assets/images/icon-monday.svg?url";
 import defaultProjectAvatar from "@/assets/images/default-project-avatar.svg?url";
 import defaultProjectBanner from "@/assets/images/default-project-banner.jpg?url";
 import { RenderMarkdown } from "@/components/rendering";
@@ -825,13 +856,9 @@ import {
   IssuesByStatusChart,
   TimeUtilizationSummaryChart,
 } from "@/components/charts";
+import ProjectsShowSettingsPartial from "@/partials/projects/show/settings.vue";
 
 import type { PropType } from "vue";
-// import type {
-// ToastService,
-// LocalStorageService,
-// ApiService,
-// } from "@jakguru/vueprint";
 import type {
   ProjectModel,
   ProjectMember,
@@ -850,6 +877,7 @@ import type {
   PrincipalRole,
   ProjectDocumentLink,
   File,
+  MondayBoard,
 } from "@/friday";
 
 export default defineComponent({
@@ -861,6 +889,7 @@ export default defineComponent({
     IssuesByTrackerChart,
     IssuesByStatusChart,
     TimeUtilizationSummaryChart,
+    ProjectsShowSettingsPartial,
   },
   props: {
     formAuthenticityToken: {
@@ -964,12 +993,16 @@ export default defineComponent({
       type: Array as PropType<File[]>,
       required: true,
     },
+    mondayBoard: {
+      type: Object as PropType<MondayBoard | null>,
+      required: true,
+    },
   },
   setup(props) {
     // const toast = inject<ToastService>("toast");
     // const ls = inject<LocalStorageService>("ls");
     // const api = inject<ApiService>("api");
-    // const route = useRoute();
+    const route = useRoute();
     // const router = useRouter();
     // const reloadRouteDataAction = useReloadRouteData(route, api, toast);
     // const reloadAppDataAction = useReloadAppData(ls, api);
@@ -1065,6 +1098,40 @@ export default defineComponent({
       ),
     );
     const minDateTime = computed(() => model.value.created_on!);
+    const propsForPartial = computed(() => ({
+      formAuthenticityToken: props.formAuthenticityToken,
+      id: props.id,
+      model: props.model,
+      members: props.members,
+      menu: props.menu,
+      issueCategories: props.issueCategories,
+      versions: props.versions,
+      repositories: props.repositories,
+      customFields: props.customFields,
+      values: props.values,
+      permissions: props.permissions,
+      principalsByRole: props.principalsByRole,
+      subprojects: props.subprojects,
+      news: props.news,
+      trackers: props.trackers,
+      openIssuesByTracker: props.openIssuesByTracker,
+      totalIssuesByTracker: props.totalIssuesByTracker,
+      totalHours: props.totalHours,
+      totalEstimatedHours: props.totalEstimatedHours,
+      gitlabProjects: props.gitlabProjects,
+      parents: props.parents,
+      wiki: props.wiki,
+      documents: props.documents,
+      files: props.files,
+      mondayBoard: props.mondayBoard,
+      surfaceColor: surfaceColor.value,
+      accentColor: accentColor.value,
+      hasModule,
+      currentUserCan,
+    }));
+    const isCurrentRoute = (names: string[]) => {
+      return names.includes(route.name as string);
+    };
     return {
       breadcrumbsBindings,
       surfaceColor,
@@ -1080,10 +1147,13 @@ export default defineComponent({
       currentUserCan,
       topLevelWikiPages,
       iconGitlab,
+      iconMonday,
       avatarUrlForPrincipal,
       formatDuration,
       documentsByCategory,
       minDateTime,
+      propsForPartial,
+      isCurrentRoute,
     };
   },
 });

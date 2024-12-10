@@ -334,6 +334,20 @@ module FridayHelper
           url: new_admin_integrations_gitlab_path
         }
       end
+    elsif klass == GithubsQuery
+      if user.admin
+        ret << {
+          title: l(:label_github_new),
+          url: new_admin_integrations_github_path
+        }
+      end
+    elsif klass == MondaysQuery
+      if user.admin
+        ret << {
+          title: l(:label_monday_new),
+          url: new_admin_integrations_monday_path
+        }
+      end
     end
     ret
   end
