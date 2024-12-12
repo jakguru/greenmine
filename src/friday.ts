@@ -1091,6 +1091,11 @@ export interface ProjectEnumeration {
   active: boolean;
 }
 
+export interface ProjectModelIssueCategory {
+  name: string;
+  assigned_to_id: number;
+}
+
 export interface ProjectModel {
   id: number | null;
   name: string;
@@ -1116,6 +1121,8 @@ export interface ProjectModel {
   issue_custom_field_ids: number[];
   gitlab_projects: number[];
   eumerations: Record<string, ProjectEnumeration>;
+  issue_categories: ProjectModelIssueCategory[];
+  activities: number[];
 }
 
 export interface ProjectIssueCategory {
@@ -1414,4 +1421,9 @@ export interface MondayFridayField extends SelectableListItem<string> {
 export interface MondayBoardValuesProp {
   projects: SelectableListItem<number>[];
   fields: MondayFridayField[];
+}
+
+export interface ProjectPrincipalMembership {
+  principal: number;
+  roles: number[];
 }

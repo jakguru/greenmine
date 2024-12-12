@@ -282,12 +282,16 @@
                                       :offset-x="5"
                                       :offset-y="5"
                                       :icon="
-                                        p.type === 'group'
+                                        ['group', 'group_anonymous'].includes(
+                                          p.type,
+                                        )
                                           ? 'mdi-account-group'
                                           : 'mdi-account'
                                       "
                                       :color="
-                                        p.type === 'group'
+                                        ['group', 'group_anonymous'].includes(
+                                          p.type,
+                                        )
                                           ? 'primary'
                                           : 'secondary'
                                       "
@@ -1078,7 +1082,7 @@ export default defineComponent({
       wiki.value.filter((w) => !w.parent),
     );
     const avatarUrlForPrincipal = (principal: Principal) => {
-      if ("group" === principal.type) {
+      if (["group", "group_anonymous"].includes(principal.type)) {
         return `/groups/${principal.id}/avatar`;
       } else {
         return `/users/${principal.id}/avatar`;

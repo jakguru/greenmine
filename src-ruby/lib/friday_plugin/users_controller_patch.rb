@@ -239,14 +239,14 @@ module FridayPlugin
           existing_memberships = principal.memberships.preload(:member_roles, :roles).sorted_by_project
           # Remove existing memberships that are not in the new list
           existing_memberships.each do |existing_membership|
-            if !memberships.any? { |membership| membership[:project] == existing_membership.project_id }
+            if !memberships.any? { |membership| membership[:project][:id] == existing_membership.project_id }
               existing_membership.destroy
             end
           end
           # Add new memberships that are not in the existing list
           # or update existing memberships with new roles
           memberships.each do |membership|
-            if !existing_memberships.any? { |existing_membership| existing_membership.project_id == membership[:project] }
+            if !existing_memberships.any? { |existing_membership| existing_membership.project_id == membership[:project][:id] }
               Member.create_principal_memberships(principal, {
                 project_ids: [membership[:project]],
                 role_ids: membership[:roles]

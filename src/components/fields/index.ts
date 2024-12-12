@@ -17,6 +17,8 @@ import VPermissionsObjectField from "./permissionsObject.vue";
 import VPermissionsObjectGroupedField from "./permissionsObjectGrouped.vue";
 import VBase64EncodedImageField from "./base64EncodedImage.vue";
 import VProjectMembershipField from "./projectMembership.vue";
+import VPrincipalMembershipField from "./principalMembership.vue";
+import VIssueCategoriesField from "./issueCategories.vue";
 export { VRedmineCustomField } from "./redmineCustomField";
 export { VCSVField } from "./csv";
 export { VLBSVField } from "./lbsv";
@@ -33,6 +35,8 @@ export {
   VPermissionsObjectGroupedField,
   VBase64EncodedImageField,
   VProjectMembershipField,
+  VPrincipalMembershipField,
+  VIssueCategoriesField,
 };
 
 const VPasswordFieldWithGeneratorProps: Record<

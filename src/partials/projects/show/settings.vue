@@ -58,6 +58,15 @@ import {
   useOnError,
 } from "@/utils/app";
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
+import { VAutocomplete } from "vuetify/components/VAutocomplete";
+import { VTextField } from "vuetify/components/VTextField";
+import { VSwitch } from "vuetify/components/VSwitch";
+import {
+  VMarkdownField,
+  VBase64EncodedImageField,
+  VPrincipalMembershipField,
+  VIssueCategoriesField,
+} from "@/components/fields";
 
 import type { PropType } from "vue";
 import type {
@@ -230,37 +239,46 @@ export default defineComponent({
     const reloadAppDataAction = useReloadAppData(ls, api);
     const formAuthenticityToken = computed(() => props.formAuthenticityToken);
     const id = computed(() => props.id);
-    const identifierMaxLength = computed(
-      () => values.value.identifierMaxLength,
-    );
     const parents = computed(() => values.value.parents);
     const modules = computed(() => values.value.modules);
+    const activities = computed(() => values.value.activities);
+    const members = computed(() => values.value.members);
+    const roles = computed(() => values.value.roles);
+    const trackers = computed(() => values.value.trackers);
+    const issueCustomFields = computed(() => values.value.issueCustomFields);
+    const versions = computed(() => values.value.versions);
+    const assignees = computed(() => values.value.assignees);
+    const queries = computed(() => values.value.queries);
     const { t } = useI18n({ useScope: "global" });
     const tabs = computed(() => [
       { text: t("pages.projects-id-settings.tabs.project"), value: "info" },
       { text: t("pages.projects-id-settings.tabs.members"), value: "members" },
       { text: t("pages.projects-id-settings.tabs.issues"), value: "issues" },
-      {
-        text: t("pages.projects-id-settings.tabs.categories"),
-        value: "categories",
-      },
-      {
-        text: t("pages.projects-id-settings.tabs.activities"),
-        value: "activities",
-      },
+      // {
+      //   text: t("pages.projects-id-settings.tabs.categories"),
+      //   value: "categories",
+      // },
+      // {
+      //   text: t("pages.projects-id-settings.tabs.activities"),
+      //   value: "activities",
+      // },
       {
         text: t("pages.projects-id-settings.tabs.versions"),
         value: "versions",
       },
-      {
-        text: t("pages.projects-id-settings.tabs.repositories"),
-        value: "repositories",
-      },
+      // {
+      //   text: t("pages.projects-id-settings.tabs.repositories"),
+      //   value: "repositories",
+      // },
       {
         text: t("pages.projects-id-settings.tabs.gitlab"),
         value: "gitlab",
       },
-      { text: t("pages.projects-id-settings.tabs.boards"), value: "boards" },
+      {
+        text: t("pages.projects-id-settings.tabs.sprints"),
+        value: "sprints",
+      },
+      // { text: t("pages.projects-id-settings.tabs.boards"), value: "boards" },
     ]);
     const tab = computed({
       get: () => (route.params.tab as string | undefined) ?? "info",
@@ -297,12 +315,17 @@ export default defineComponent({
       },
     }));
     const modifyPayload = (payload: Record<string, unknown>) => {
-      return {
+      const ret: any = {
         authenticity_token: formAuthenticityToken.value,
         project: {
           ...payload,
         },
       };
+      if ("issue_categories" in ret.project) {
+        ret.issue_categories = ret.project.issue_categories;
+        delete ret.project.issue_categories;
+      }
+      return ret;
     };
     const onSuccess = (_status: number, payload: unknown) => {
       reloadRouteDataAction.call();
@@ -335,21 +358,357 @@ export default defineComponent({
     const onError = useOnError("pages.projects-new");
     const renderedForm = ref<FridayFormComponent | null>(null);
     const currentFieldValues = ref<Record<string, unknown>>({});
-    const identifierFieldValidator = computed(() =>
-      getFormFieldValidator(
-        t,
-        Joi.string()
-          .required()
-          .max(identifierMaxLength.value)
-          .regex(/^[a-z0-9-_]+$/)
-          .messages({
-            "string.pattern.base":
-              "Only lower case letters (a-z), numbers, dashes, and underscores are allowed.",
-          }),
-        t(`pages.users-id-edit.content.fields.mail`),
-      ),
-    );
-    const formStructure = computed<FridayFormStructure>(() => []);
+    const formStructure = computed<FridayFormStructure>(() => {
+      switch (tab.value) {
+        case "info":
+          return [
+            [
+              {
+                cols: 12,
+                md: 6,
+                lg: 8,
+                fieldComponent: VTextField,
+                formKey: "name",
+                valueKey: "name",
+                label: t(`pages.projects-id-settings.content.fields.name`),
+                bindings: {
+                  label: t(`pages.projects-id-settings.content.fields.name`),
+                },
+                validator: getFormFieldValidator(
+                  t,
+                  Joi.string().required().max(255),
+                  t(`pages.projects-id-settings.content.fields.name`),
+                ),
+              },
+              {
+                cols: 12,
+                md: 6,
+                lg: 4,
+                fieldComponent: VTextField,
+                formKey: "identifier",
+                valueKey: "identifier",
+                label: t(
+                  `pages.projects-id-settings.content.fields.identifier`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.identifier`,
+                  ),
+                  readonly: true,
+                  disabled: true,
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                fieldComponent: VMarkdownField,
+                formKey: "description",
+                valueKey: "description",
+                label: t(
+                  `pages.projects-id-settings.content.fields.description`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.description`,
+                  ),
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VBase64EncodedImageField,
+                formKey: "avatar",
+                valueKey: "avatar",
+                label: t(`pages.projects-id-settings.content.fields.avatar`),
+                bindings: {
+                  label: t(`pages.projects-id-settings.content.fields.avatar`),
+                  height: 200,
+                  clearable: true,
+                },
+              },
+              {
+                cols: 12,
+                md: 8,
+                fieldComponent: VBase64EncodedImageField,
+                formKey: "banner",
+                valueKey: "banner",
+                label: t(`pages.projects-id-settings.content.fields.banner`),
+                bindings: {
+                  label: t(`pages.projects-id-settings.content.fields.banner`),
+                  height: 200,
+                  clearable: true,
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 9,
+                fieldComponent: VTextField,
+                formKey: "homepage",
+                valueKey: "homepage",
+                label: t(`pages.projects-id-settings.content.fields.homepage`),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.homepage`,
+                  ),
+                },
+                validator: getFormFieldValidator(
+                  t,
+                  Joi.string().uri().allow("", null),
+                  t(`pages.projects-id-settings.content.fields.homepage`),
+                ),
+              },
+              {
+                cols: 12,
+                md: 3,
+                fieldComponent: VSwitch,
+                formKey: "is_public",
+                valueKey: "is_public",
+                label: t(`pages.projects-id-settings.content.fields.is_public`),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.is_public`,
+                  ),
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 9,
+                fieldComponent: VAutocomplete,
+                formKey: "parent_id",
+                valueKey: "parent_id",
+                label: t(`pages.projects-id-settings.content.fields.parent_id`),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.parent_id`,
+                  ),
+                  items: parents.value,
+                  itemTitle: "label",
+                },
+              },
+              {
+                cols: 12,
+                md: 3,
+                fieldComponent: VSwitch,
+                formKey: "inherit_members",
+                valueKey: "inherit_members",
+                label: t(
+                  `pages.projects-id-settings.content.fields.inherit_members`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.inherit_members`,
+                  ),
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                fieldComponent: VAutocomplete,
+                formKey: "enabled_module_names",
+                valueKey: "enabled_module_names",
+                label: t(
+                  `pages.projects-id-settings.content.fields.enabled_module_names`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.enabled_module_names`,
+                  ),
+                  items: modules.value,
+                  itemTitle: "label",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                fieldComponent: VAutocomplete,
+                formKey: "activities",
+                valueKey: "activities",
+                label: t(
+                  `pages.projects-id-settings.content.fields.activities`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.activities`,
+                  ),
+                  items: activities.value,
+                  itemTitle: "name",
+                  itemValue: "id",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+              },
+            ],
+          ];
+        case "members":
+          return [
+            [
+              {
+                cols: 12,
+                fieldComponent: VPrincipalMembershipField,
+                formKey: "memberships",
+                valueKey: "memberships",
+                label: t(
+                  `pages.projects-id-settings.content.fields.memberships`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.memberships`,
+                  ),
+                  principals: members.value,
+                  roles: roles.value,
+                  itemTitle: "name",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+              },
+            ],
+          ];
+        case "issues":
+          return [
+            [
+              {
+                cols: 12,
+                fieldComponent: VAutocomplete,
+                formKey: "tracker_ids",
+                valueKey: "tracker_ids",
+                label: t(
+                  `pages.projects-id-settings.content.fields.tracker_ids`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.tracker_ids`,
+                  ),
+                  items: trackers.value,
+                  itemTitle: "name",
+                  itemValue: "id",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                fieldComponent: VAutocomplete,
+                formKey: "issue_custom_field_ids",
+                valueKey: "issue_custom_field_ids",
+                label: t(
+                  `pages.projects-id-settings.content.fields.issue_custom_field_ids`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.issue_custom_field_ids`,
+                  ),
+                  items: issueCustomFields.value,
+                  itemTitle: "description",
+                  itemValue: "id",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "default_version_id",
+                valueKey: "default_version_id",
+                label: t(
+                  `pages.projects-id-settings.content.fields.default_version_id`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.default_version_id`,
+                  ),
+                  items: versions.value,
+                  itemTitle: "label",
+                },
+              },
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "default_assigned_to_id",
+                valueKey: "default_assigned_to_id",
+                label: t(
+                  `pages.projects-id-settings.content.fields.default_assigned_to_id`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.default_assigned_to_id`,
+                  ),
+                  items: assignees.value,
+                  itemTitle: "label",
+                },
+              },
+              {
+                cols: 12,
+                md: 4,
+                fieldComponent: VAutocomplete,
+                formKey: "default_issue_query_id",
+                valueKey: "default_issue_query_id",
+                label: t(
+                  `pages.projects-id-settings.content.fields.default_issue_query_id`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.default_issue_query_id`,
+                  ),
+                  items: queries.value,
+                  itemTitle: "label",
+                },
+              },
+            ],
+            [
+              {
+                cols: 12,
+                fieldComponent: VIssueCategoriesField,
+                formKey: "issue_categories",
+                valueKey: "issue_categories",
+                label: t(
+                  `pages.projects-id-settings.content.fields.issue_categories`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.issue_categories`,
+                  ),
+                  assignees: assignees.value,
+                  roles: roles.value,
+                },
+              },
+            ],
+          ];
+        case "activities":
+          return [];
+        case "versions":
+          return [];
+        case "repositories":
+          return [];
+        case "gitlab":
+          return [];
+        case "boards":
+          return [];
+        default:
+          return [];
+      }
+    });
     const formValues = computed<Record<string, unknown>>(() => {
       const ret = cloneObject(model.value as any as Record<string, unknown>);
       if (route.query.parent_id) {
@@ -358,7 +717,7 @@ export default defineComponent({
       return ret;
     });
     const fridayFormBindings = computed(() => ({
-      action: window.location.href,
+      action: `/projects/${model.value.identifier}`,
       method: "put",
       structure: formStructure.value.filter(
         (r) => Array.isArray(r) && r.length > 0,

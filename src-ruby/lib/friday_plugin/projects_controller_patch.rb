@@ -470,7 +470,20 @@ module FridayPlugin
               issue_custom_field_ids: @project.all_issue_custom_fields.ids,
               gitlab_projects: @project.gitlab_projects(&:id),
               eumerations: eumerations,
-              description: @project.description.nil? ? "" : @project.description
+              description: @project.description.nil? ? "" : @project.description,
+              memberships: @project.memberships.preload(:member_roles, :roles).collect { |membership|
+                {
+                  principal: membership.principal[:id],
+                  roles: membership.roles.sort.collect(&:id)
+                }
+              },
+              issue_categories: @project.issue_categories.sort_by(&:id).map { |category|
+                {
+                  name: category.name,
+                  assigned_to_id: category.assigned_to_id
+                }
+              },
+              activities: @project.activities(true).select { |activity| activity.active }.map(&:id)
             }),
             members: @project.members.map { |member|
               {
@@ -610,6 +623,15 @@ module FridayPlugin
           if @project.save
             if creating && !User.current.admin?
               @project.add_default_member(User.current)
+            end
+            if params[:project][:activities].present?
+              syncronize_project_activities(@project, params[:project][:activities])
+            end
+            if params[:project][:memberships].present?
+              syncronize_project_memberships(@project, params[:project][:memberships])
+            end
+            if params[:issue_categories].present?
+              syncronize_issue_categories(@project, params[:issue_categories])
             end
             render json: {
               id: @project.id,
@@ -786,6 +808,64 @@ module FridayPlugin
 
           # Return the base64 representation with the correct prefix
           "data:image/png;base64,#{base64_output}"
+        end
+
+        def syncronize_project_activities(project, activity_ids)
+          project.activities(true).each do |activity|
+            activity.active = activity_ids.include?(activity.id)
+            activity.save
+          end
+        end
+
+        def syncronize_project_memberships(project, memberships)
+          existing_memberships = project.memberships.preload(:member_roles, :roles)
+          # Remove existing memberships that are not in the new list
+          existing_memberships.each do |existing_membership|
+            if !memberships.any? { |membership| membership[:principal] == existing_membership[:principal_id] }
+              existing_membership.destroy
+            end
+          end
+          # Add new memberships that are not in the existing list
+          # or update existing memberships with new roles
+          memberships.each do |membership|
+            principal = Principal.find(membership[:principal])
+            if !existing_memberships.any? { |existing_membership| existing_membership[:principal_id] == membership[:principal] }
+              Member.create_principal_memberships(principal, {
+                project_ids: [project.id],
+                role_ids: membership[:roles]
+              })
+            else
+              existing_membership = existing_memberships.find { |existing_membership| existing_membership[:principal_id] == membership[:principal] }
+              existing_membership.role_ids = membership[:roles]
+              existing_membership.save
+            end
+          end
+        end
+
+        def syncronize_issue_categories(project, categories)
+          existing_categories = project.issue_categories
+          # Remove existing categories that are not in the new list
+          existing_categories.each do |existing_category|
+            if !categories.any? { |category| category[:name] == existing_category[:name] }
+              existing_category.destroy
+            end
+          end
+          # Add new memberships that are not in the existing list
+          # or update existing memberships with new roles
+          categories.each do |category|
+            existing_category = existing_categories.find { |existing_category| existing_category[:name] == category[:name] }
+            if existing_category.nil?
+              # project.issue_categories.create(category)
+              new_issue_category = IssueCategory.new
+              new_issue_category.name = category[:name]
+              new_issue_category.assigned_to_id = category[:assigned_to_id]
+              new_issue_category.project = project
+              new_issue_category.save
+            else
+              existing_category.assigned_to_id = category[:assigned_to_id]
+              existing_category.save
+            end
+          end
         end
       end
     end
