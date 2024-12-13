@@ -72,7 +72,7 @@ en:
   label_status_closed: Closed
   label_status_archived: Archived
   label_status_scheduled_for_deletion: Scheduled for Deletion
-  label_github_new: New Github Integration
+  label_github_new: New GitHub Integration
   label_monday_new: New Monday Integration
   field_monday_instance: Monday Instance
   field_urgency: Urgency
@@ -83,3 +83,4 @@ en:
   field_github_instance: GitHub Integration
   field_github_repositories: Associated GitHub Project(s)
   field_githubs: GitHub Integration
+  label_version_new: New release

@@ -103,6 +103,7 @@ RedmineApp::Application.routes.draw do
 
   # Webhooks
   namespace :webhooks do
+    match "github", to: "github#handle", via: [:get, :post, :put, :patch, :delete, :head]
     match "gitlab", to: "gitlab#handle", via: [:get, :post, :put, :patch, :delete, :head]
     match "monday", to: "monday#handle", via: [:get, :post, :put, :patch, :delete, :head]
   end

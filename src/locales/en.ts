@@ -665,17 +665,18 @@ export default {
     "projects-id-settings": {
       title: "Project Settings",
       tabs: {
-        project: "Project",
-        members: "Members",
-        issues: "Issue Tracking",
-        categories: "Issue Categories",
         activities: "Time Tracking",
-        versions: "Releases",
-        repositories: "Repositories",
-        gitlab: "GitLab",
-        github: "GitHub",
-        sprints: "Sprints",
         boards: "Forums",
+        categories: "Issue Categories",
+        github: "GitHub",
+        gitlab: "GitLab",
+        issues: "Issue Tracking",
+        members: "Members",
+        monday: "Monday",
+        project: "Project",
+        repositories: "Repositories",
+        sprints: "Sprints",
+        versions: "Releases",
       },
       content: {
         fields: {

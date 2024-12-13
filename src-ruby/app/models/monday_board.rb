@@ -50,4 +50,9 @@ class MondayBoard < ActiveRecord::Base
   def url
     board_meta_data["url"]
   end
+
+  def do_process_webhook(params, headers)
+    Rails.logger.info("Processing Monday Webhook for board #{name} in Monday account #{monday_instance.name}")
+    # TODO: Implement webhook processing logic here
+  end
 end

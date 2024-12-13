@@ -474,7 +474,7 @@ module FridayPlugin
             id: @project.new_record? ? nil : @project.id,
             model: @project.attributes.merge({
               custom_field_values: custom_field_values,
-              enabled_module_names: @project.enabled_module_names,
+              enabled_module_names: @project.enabled_module_names.reject { |name| name == "repository" || name == "boards" },
               tracker_ids: @project.trackers.map(&:id),
               issue_custom_field_ids: @project.all_issue_custom_fields.ids,
               gitlab_projects: @project.gitlab_projects(&:id),

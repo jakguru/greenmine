@@ -20,7 +20,7 @@ class InstallGitlabWebhooksJob
     needs_webhook_update = false
     web_options = {
       name: "#{Setting.send(:app_title)} Webhook",
-      description: "Webhook for #{Setting.send(:app_title)} Redmine Application Gitlab Integration",
+      description: "Webhook for #{Setting.send(:app_title)} Redmine Application GitLab Integration",
       push_events: true,
       tag_push_events: true,
       merge_requests_events: true,

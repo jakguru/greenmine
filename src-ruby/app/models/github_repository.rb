@@ -57,4 +57,9 @@ class GithubRepository < ActiveRecord::Base
     client = github_instance.api_client
     client.repository(self[:repository_id]).to_h
   end
+
+  def do_process_webhook(params, headers)
+    Rails.logger.info("Processing GitHub Webhook for repository #{name} in GitHub account #{github_instance.name}")
+    # TODO: Implement webhook processing logic here
+  end
 end

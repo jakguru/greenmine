@@ -12,6 +12,11 @@ module FridayPlugin
         has_one :monday_board, class_name: "MondayBoard", foreign_key: "project_id"
         safe_attributes "avatar"
         safe_attributes "banner"
+
+        def self.possible_modules
+          # call the original method first
+          super - %w[boards repository]
+        end
       end
     end
 

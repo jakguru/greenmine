@@ -9,6 +9,7 @@ Rails.autoloaders.main.push_dir plugin_lib_dir
 Rails.configuration.to_prepare do
   require_dependency "friday_plugin/news_patch"
   require_dependency "friday_plugin/active_record_hooks"
+  require_dependency "friday_plugin/redmine_access_control_patch"
 end
 
 ActiveSupport.on_load(:active_record) do
@@ -91,4 +92,26 @@ Rails.application.config.after_initialize do
       Rails.logger.info "Cannot Start Schedule Job Polling"
     end
   end
+end
+
+Redmine::MenuManager.map :project_menu do |menu|
+  new_object_item = menu.find(:new_object)
+  if new_object_item&.children.present?
+    new_object_item.children.delete_if { |child| child.name == :new_issue_category }
+  end
+
+  menu.delete :boards
+  menu.delete :repository
+
+  menu.delete :roadmap
+  menu.push :releases,
+    {controller: "versions", action: "index"},
+    param: :project_id,
+    after: :activity,
+    if: proc { |project| project&.module_enabled?("issue_tracking") }
+end
+
+Rails.application.config.after_initialize do
+  Redmine::AccessControl.permissions.delete_if { |p| p.project_module == :boards }
+  Redmine::AccessControl.permissions.delete_if { |p| p.project_module == :repository }
 end

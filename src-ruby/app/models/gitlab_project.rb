@@ -57,4 +57,9 @@ class GitlabProject < ActiveRecord::Base
     client = gitlab_instance.api_client
     client.project(self[:project_id])
   end
+
+  def do_process_webhook(params, headers)
+    Rails.logger.info("Processing GitLab Webhook for project #{name} in GitLab account #{gitlab_instance.name}")
+    # TODO: Implement webhook processing logic here
+  end
 end

@@ -275,17 +275,21 @@ export default defineComponent({
       //   text: t("pages.projects-id-settings.tabs.repositories"),
       //   value: "repositories",
       // },
-      {
-        text: t("pages.projects-id-settings.tabs.gitlab"),
-        value: "gitlab",
-      },
+      // {
+      //   text: t("pages.projects-id-settings.tabs.sprints"),
+      //   value: "sprints",
+      // },
       {
         text: t("pages.projects-id-settings.tabs.github"),
         value: "github",
       },
       {
-        text: t("pages.projects-id-settings.tabs.sprints"),
-        value: "sprints",
+        text: t("pages.projects-id-settings.tabs.gitlab"),
+        value: "gitlab",
+      },
+      {
+        text: t("pages.projects-id-settings.tabs.monday"),
+        value: "monday",
       },
       // { text: t("pages.projects-id-settings.tabs.boards"), value: "boards" },
     ]);
