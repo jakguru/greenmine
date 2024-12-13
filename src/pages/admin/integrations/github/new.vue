@@ -5,8 +5,8 @@
         <v-toolbar-title class="font-weight-bold d-flex align-center" tag="h1">
           {{
             !id
-              ? $t("pages.admin-integrations-monday-new.title")
-              : $t("pages.admin-integrations-monday-new.title")
+              ? $t("pages.admin-integrations-github-new.title")
+              : $t("pages.admin-integrations-github-new.title")
           }}
         </v-toolbar-title>
       </v-toolbar>
@@ -127,18 +127,18 @@ export default defineComponent({
           to: { name: "admin-integrations" },
         },
         {
-          title: t("pages.admin-integrations-monday.title"),
-          to: { name: "admin-integrations-monday" },
+          title: t("pages.admin-integrations-github.title"),
+          to: { name: "admin-integrations-github" },
         },
         {
-          title: t(`pages.admin-integrations-monday-new.title`),
+          title: t(`pages.admin-integrations-github-new.title`),
         },
       ],
     }));
     const modifyPayload = (payload: Record<string, unknown>) => {
       return {
         authenticity_token: formAuthenticityToken.value,
-        monday: {
+        github: {
           ...payload,
         },
       };
@@ -147,7 +147,7 @@ export default defineComponent({
       reloadRouteDataAction.call();
       reloadAppDataAction.call();
       if (!toast) {
-        alert(t(`pages.admin-integrations-monday-new.onSave.success`));
+        alert(t(`pages.admin-integrations-github-new.onSave.success`));
         return;
       } else {
         if (
@@ -157,93 +157,90 @@ export default defineComponent({
           payload.id !== id.value
         ) {
           router.push({
-            name: "admin-integrations-monday-id",
+            name: "admin-integrations-github-id",
             params: {
               id: (payload.id as number).toString(),
             },
           });
         }
         toast.fire({
-          title: t(`pages.admin-integrations-monday-new.onSave.success`),
+          title: t(`pages.admin-integrations-github-new.onSave.success`),
           icon: "success",
         });
         return;
       }
     };
-    const onError = useOnError("pages.admin-integrations-monday-new");
+    const onError = useOnError("pages.admin-integrations-github-new");
     const renderedForm = ref<FridayFormComponent | null>(null);
     const currentFieldValues = ref<Record<string, unknown>>({});
-    const formStructure = computed<FridayFormStructure>(
-      () =>
-        [
-          [
-            {
-              cols: 12,
-              md: 4,
-              fieldComponent: VTextField,
-              formKey: "name",
-              valueKey: "name",
-              label: t(
-                `pages.admin-integrations-monday-new.content.fields.name`,
-              ),
-              bindings: {
-                label: t(
-                  `pages.admin-integrations-monday-new.content.fields.name`,
-                ),
-              },
-              validator: getFormFieldValidator(
-                t,
-                Joi.string().required().max(255),
-                t(`pages.admin-integrations-monday-new.content.fields.name`),
-              ),
-            },
-          ],
-          [
-            {
-              cols: 12,
-              md: 4,
-              fieldComponent: VPasswordField,
-              formKey: "api_token",
-              valueKey: "api_token",
-              label: t(
-                `pages.admin-integrations-monday-new.content.fields.api_token`,
-              ),
-              bindings: {
-                label: t(
-                  `pages.admin-integrations-monday-new.content.fields.api_token`,
-                ),
-              },
-              validator: getFormFieldValidator(
-                t,
-                Joi.string().required(),
-                t(`pages.admin-integrations-monday-new.content.fields.url`),
-              ),
-            },
-          ],
-          [
-            {
-              cols: 12,
-              md: 4,
-              fieldComponent: VSwitch,
-              formKey: "active",
-              valueKey: "active",
-              label: t(
-                `pages.admin-integrations-monday-new.content.fields.active`,
-              ),
-              bindings: {
-                label: t(
-                  `pages.admin-integrations-monday-new.content.fields.active`,
-                ),
-              },
-            },
-          ],
-        ] as FridayFormStructure,
-    );
+    const formStructure = computed<FridayFormStructure>(() => [
+      [
+        {
+          cols: 12,
+          md: 4,
+          fieldComponent: VTextField,
+          formKey: "name",
+          valueKey: "name",
+          label: t(`pages.admin-integrations-github-new.content.fields.name`),
+          bindings: {
+            label: t(`pages.admin-integrations-github-new.content.fields.name`),
+          },
+          validator: getFormFieldValidator(
+            t,
+            Joi.string().required().max(255),
+            t(`pages.admin-integrations-github-new.content.fields.name`),
+          ),
+        },
+      ],
+      [
+        {
+          cols: 12,
+          md: 4,
+          fieldComponent: VPasswordField,
+          formKey: "api_token",
+          valueKey: "api_token",
+          label: t(
+            `pages.admin-integrations-github-new.content.fields.api_token`,
+          ),
+          bindings: {
+            label: t(
+              `pages.admin-integrations-github-new.content.fields.api_token`,
+            ),
+          },
+          validator: getFormFieldValidator(
+            t,
+            Joi.string()
+              .required()
+              .regex(/^ghp_.+/) // Ensure the string starts with 'ghp_'
+              .messages({
+                "string.pattern.base":
+                  'The token must be a valid access token starting with "ghp_".',
+              }),
+            t(`pages.admin-integrations-github-new.content.fields.api_token`),
+          ),
+        },
+      ],
+      [
+        {
+          cols: 12,
+          md: 4,
+          fieldComponent: VSwitch,
+          formKey: "active",
+          valueKey: "active",
+          label: t(`pages.admin-integrations-github-new.content.fields.active`),
+          bindings: {
+            label: t(
+              `pages.admin-integrations-github-new.content.fields.active`,
+            ),
+          },
+        },
+      ],
+    ]);
     const formValues = computed<Record<string, unknown>>(() =>
       cloneObject(model.value as any as Record<string, unknown>),
     );
     const fridayFormBindings = computed(() => ({
-      action: `/admin/integrations/monday${id.value ? `/${id.value}` : ""}`,
+      action: `/admin/integrations/github${id.value ? `/${id.value}` : ""}`,
       method: id.value ? "put" : "post",
       structure: formStructure.value.filter(
         (r) => Array.isArray(r) && r.length > 0,

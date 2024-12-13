@@ -40,6 +40,87 @@ export default {
     "admin-integrations-github": {
       title: "GitHub Integrations",
     },
+    "admin-integrations-github-new": {
+      title: "Create a GitHub Integration",
+      content: {
+        fields: {
+          name: "Integration Name",
+          api_token: "Access Token",
+          active: "Active",
+        },
+      },
+      onSave: {
+        success: "Integration created successfully",
+        error: "An error occurred while creating the integration",
+      },
+    },
+    "admin-integrations-github-id": {
+      title: "Manage a GitHub Integration",
+      content: {
+        fields: {
+          name: "Integration Name",
+          api_token: "Access Token",
+          active: "Active",
+        },
+      },
+      tabs: {
+        integration: "Integration",
+        repositories: "Repositories",
+        users: "Users",
+      },
+      repositories: {
+        title: "GitHub Repositories",
+        cta: "Sync Repositories",
+        onFetch: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
+        onEnqueueJobToInstallWebhooks: {
+          success: "Job(s) Enqueued Successfully",
+          warning: "Some jobs failed to enqueue",
+          error: "An error occurred while enqueueing the job(s)",
+        },
+      },
+      users: {
+        title: "GitHub Users",
+        cta: "Sync Users",
+        onFetch: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
+        onSave: {
+          error: "An error occurred while saving the user association",
+        },
+      },
+      onSave: {
+        success: "Integration created successfully",
+        error: "An error occurred while creating the integration",
+      },
+    },
+    "admin-integrations-github-id-repository": {
+      title: "Manage GitHub Repository",
+      content: {
+        associatedProjects: "Associated Projects",
+        associatedProjectsTable: {
+          headers: {
+            name: "Project Name",
+            isAssociated: "Associated",
+          },
+        },
+        openInGitHub: "Open in GitHub",
+        copyGitHttpUrl: "Copy Git HTTP URL",
+        copyGitSshUrl: "Copy Git SSH URL",
+        enqueueJobToInstallWebhooks: "Install Webhooks",
+      },
+      onSave: {
+        success: "Project associations saved successfully",
+        error: "An error occurred while saving the project associations",
+      },
+      onEnqueueJobToInstallWebhooks: {
+        success: "Job Enqueued Successfully",
+        error: "An error occurred while enqueueing the job",
+      },
+    },
     "admin-integrations-gitlab": {
       title: "GitLab Integrations",
     },
@@ -74,7 +155,7 @@ export default {
         users: "Users",
       },
       projects: {
-        title: "Gitlab Projects",
+        title: "GitLab Projects",
         cta: "Sync Projects",
         onFetch: {
           success: "Job Enqueued Successfully",
@@ -87,7 +168,7 @@ export default {
         },
       },
       users: {
-        title: "Gitlab Users",
+        title: "GitLab Users",
         cta: "Sync Users",
         onFetch: {
           success: "Job Enqueued Successfully",
@@ -112,7 +193,7 @@ export default {
             isAssociated: "Associated",
           },
         },
-        openInGitlab: "Open in GitLab",
+        openInGitLab: "Open in GitLab",
         copyGitHttpUrl: "Copy Git HTTP URL",
         copyGitSshUrl: "Copy Git SSH URL",
         enqueueJobToInstallWebhooks: "Install Webhooks",
@@ -510,6 +591,7 @@ export default {
         members: "Members",
         subprojects: "Subprojects",
         gitlabProjects: "GitLab Projects",
+        githubRepositories: "GitHub Repositories",
         mondayBoard: "Monday Board",
         description: "Description",
         issueSummaryByTracker: "Summary of Issues by Tracker",
@@ -590,7 +672,8 @@ export default {
         activities: "Time Tracking",
         versions: "Releases",
         repositories: "Repositories",
-        gitlab: "Gitlab",
+        gitlab: "GitLab",
+        github: "GitHub",
         sprints: "Sprints",
         boards: "Forums",
       },

@@ -1,4 +1,4 @@
-# require "github"
+require "octokit"
 
 class GithubInstance < ActiveRecord::Base
   self.table_name = "githubs"
@@ -9,7 +9,6 @@ class GithubInstance < ActiveRecord::Base
 
   # Validations
   validates :name, presence: true
-  validates :url, presence: true
   validates :api_token, presence: true
 
   # Scopes
@@ -20,10 +19,12 @@ class GithubInstance < ActiveRecord::Base
     true
   end
 
-  # Method to provide an instance of the GitLab API client
-  # def api_client
-  #   raise "GitLab instance is disabled" unless active
+  # Method to provide an instance of the Gitlab API client
+  def api_client
+    raise "Gitlab instance is disabled" unless active
 
-  #   ::Github.client(endpoint: "#{url}/api/v4", private_token: api_token)
-  # end
+    client = Octokit::Client.new(access_token: api_token)
+    client.auto_paginate = true
+    client
+  end
 end

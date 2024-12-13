@@ -49,7 +49,7 @@
               :to="{ name: 'admin-integrations-gitlab' }"
             >
               <v-card-text class="pa-3">
-                <v-img :src="iconGitlab" :aspect-ratio="1" />
+                <v-img :src="iconGitLab" :aspect-ratio="1" />
               </v-card-text>
               <v-card-title class="text-center">
                 <span>GitLab</span>
@@ -122,7 +122,7 @@
 import { defineComponent, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import iconGithub from "@/assets/images/icon-github.svg?url";
-import iconGitlab from "@/assets/images/icon-gitlab.svg?url";
+import iconGitLab from "@/assets/images/icon-gitlab.svg?url";
 import iconPagerduty from "@/assets/images/icon-pagerduty.svg?url";
 import iconSentry from "@/assets/images/icon-sentry.svg?url";
 import iconSlack from "@/assets/images/icon-slack.svg?url";
@@ -144,7 +144,7 @@ export default defineComponent({
     return {
       breadcrumbsBindings,
       iconGithub,
-      iconGitlab,
+      iconGitLab,
       iconPagerduty,
       iconSentry,
       iconSlack,

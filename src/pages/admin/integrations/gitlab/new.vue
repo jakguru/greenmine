@@ -90,10 +90,10 @@ import type {
   LocalStorageService,
   ApiService,
 } from "@jakguru/vueprint";
-import type { Gitlab } from "@/friday";
+import type { GitLab } from "@/friday";
 
 export default defineComponent({
-  name: "AdminIntegrationsGitlabNew",
+  name: "AdminIntegrationsGitLabNew",
   components: {
     FridayForm,
   },
@@ -107,7 +107,7 @@ export default defineComponent({
       default: null,
     },
     model: {
-      type: Object as PropType<Gitlab>,
+      type: Object as PropType<GitLab>,
       required: true,
     },
   },

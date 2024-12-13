@@ -18,7 +18,7 @@ class CreateGithubs < ActiveRecord::Migration[6.1]
     # Model Table for github projects
     create_table :github_repositories do |t|
       t.bigint :github_id, null: false, foreign_key: true  # Matches githubs.id which is an integer
-      t.bigint :project_id, null: false, foreign_key: false # This is the project id from the github API
+      t.bigint :repository_id, null: false, foreign_key: false # This is the project id from the github API
       t.string :name, null: false
       t.string :name_with_namespace, null: false
       t.string :path, null: false

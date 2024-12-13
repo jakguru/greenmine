@@ -2,9 +2,9 @@ module Admin
   module Integrations
     class GithubController < ApplicationController
       default_search_scope :githubs
-      before_action :find_github, only: [:show, :edit, :update, :destroy, :show_repositoriy, :handle_project_action, :update_project_github_repository_association, :update_user_github_user_association]
+      before_action :find_github, only: [:show, :edit, :update, :destroy, :show_repository, :handle_repository_action, :update_project_github_repository_association, :update_user_github_user_association]
       accept_atom_auth :index, :show
-      accept_api_auth :index, :show, :create, :update, :destroy, :show_repositoriy
+      accept_api_auth :index, :show, :create, :update, :destroy, :show_repository
 
       rescue_from Query::StatementInvalid, with: :query_statement_invalid
       rescue_from Query::QueryError, with: :query_error
@@ -59,7 +59,7 @@ module Admin
         render json: {}, status: 200
       end
 
-      def enqueue_fetch_projects
+      def enqueue_fetch_repositories
         FetchGithubRepositoriesJob.perform_async(params[:id])
         render json: {}, status: 202
       end
@@ -69,8 +69,8 @@ module Admin
         render json: {}, status: 202
       end
 
-      def show_repositoriy
-        @github_repository = GithubRepository.where(github_id: @github.id, project_id: params[:project_id]).first
+      def show_repository
+        @github_repository = GithubRepository.where(github_id: @github.id, repository_id: params[:repository_id]).first
         if friday_request?
           render json: {
             id: @github_repository.id,
@@ -93,7 +93,7 @@ module Admin
       end
 
       def update_project_github_repository_association
-        @github_repository = GithubRepository.where(github_id: @github.id, project_id: params[:project_id]).first
+        @github_repository = GithubRepository.where(github_id: @github.id, repository_id: params[:repository_id]).first
         if friday_request?
           if @github_repository.set_associated_projects(Project.where(id: params[:project_ids]))
             render json: {
@@ -107,8 +107,8 @@ module Admin
         end
       end
 
-      def handle_project_action
-        @github_repository = GithubRepository.where(github_id: @github.id, project_id: params[:project_id]).first
+      def handle_repository_action
+        @github_repository = GithubRepository.where(github_id: @github.id, repository_id: params[:repository_id]).first
         case params[:action_to_perform]
         when "install-webhooks"
           InstallGithubWebhooksJob.perform_async(@github.id, @github_repository.id)
@@ -144,7 +144,7 @@ module Admin
         params[:op]["github_id"] = "="
         params[:v]["github_id"] = [@github.id.nil? ? "0" : @github.id.to_s]
         retrieve_query(GithubRepositoriesQuery, false)
-        projects = query_response(@query, @query.base_scope, GithubRepositoriesQuery, @project, User.current, params, per_page_option)
+        repositories = query_response(@query, @query.base_scope, GithubRepositoriesQuery, @project, User.current, params, per_page_option)
         render json: {
           formAuthenticityToken: form_authenticity_token,
           id: @github.id,
@@ -156,7 +156,7 @@ module Admin
               })
             }
           }),
-          projects: projects,
+          repositories: repositories,
           values: {
             users: [{value: nil, label: l(:label_none)}] + User.active.sorted.collect { |user|
               {
@@ -169,7 +169,8 @@ module Admin
       end
 
       def render_save_response
-        @github.safe_attributes = params[:github]
+        @github.name = params[:github][:name]
+        @github.api_token = params[:github][:api_token]
         @github.active = params[:github][:active].present?
         if @github.save
           render json: {

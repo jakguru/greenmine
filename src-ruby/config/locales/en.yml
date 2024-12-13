@@ -27,10 +27,10 @@ en:
   field_end_date: End Date
   field_git_http_url: Repository HTTP URL
   field_git_ssh_url: Repository Git URL
-  field_gitlab_id: Gitlab Integration
-  field_gitlab_instance: Gitlab Integration
-  field_gitlab_projects: Associated Gitlab Project(s)
-  field_gitlabs: Gitlab Integration
+  field_gitlab_id: GitLab Integration
+  field_gitlab_instance: GitLab Integration
+  field_gitlab_projects: Associated GitLab Project(s)
+  field_gitlabs: GitLab Integration
   field_id: ID
   field_impact: Impact
   field_issues: Issues
@@ -50,10 +50,10 @@ en:
   field_time_tracking: Time Tracking
   field_total_estimated_work: Total Estimated Work
   field_total_time_logged: Total Time Logged
-  field_web_url: Gitlab URL
+  field_web_url: URL
   label_active: Active
   label_backlog: Backlog
-  label_gitlab_new: New Gitlab Integration
+  label_gitlab_new: New GitLab Integration
   label_issue_impact_updated: Impact updated
   label_issue_priority_updated: Urgency updated
   label_locked: Locked
@@ -79,3 +79,7 @@ en:
   field_spent_hours: Spent Hours
   field_total_spent_hours: Total Spent Hours
   field_attachments: Attachments
+  field_github_id: GitHub Integration
+  field_github_instance: GitHub Integration
+  field_github_repositories: Associated GitHub Project(s)
+  field_githubs: GitHub Integration

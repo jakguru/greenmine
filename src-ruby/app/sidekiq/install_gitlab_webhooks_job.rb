@@ -4,23 +4,23 @@ class InstallGitlabWebhooksJob
   def perform(gitlab_instance_id, gitlab_project_id)
     gitlab_instance = GitlabInstance.find(gitlab_instance_id)
     if gitlab_instance.nil?
-      Rails.logger.error("GitLab Instance ID: #{gitlab_instance_id} not found")
+      Rails.logger.error("Gitlab Instance ID: #{gitlab_instance_id} not found")
       return
     end
     gitlab_project = GitlabProject.find_by(id: gitlab_project_id)
     if gitlab_project.nil?
-      Rails.logger.error("GitLab Project ID: #{gitlab_project_id} not found")
+      Rails.logger.error("Gitlab Project ID: #{gitlab_project_id} not found")
       return
     end
     webhook_url_protocol = Setting.send(:protocol)
     webhook_url_host = Setting.send(:host_name)
     gitlab_webhook_url = "#{webhook_url_protocol}://#{webhook_url_host}/webhooks/gitlab?glid=#{gitlab_instance_id}&glpid=#{gitlab_project_id}"
-    Rails.logger.info("Installing GitLab Webhook #{gitlab_webhook_url} for GitLab Project ID: #{gitlab_project.project_id} on GitLab Instance ID: #{gitlab_instance_id}")
+    Rails.logger.info("Installing Gitlab Webhook #{gitlab_webhook_url} for Gitlab Project ID: #{gitlab_project.project_id} on Gitlab Instance ID: #{gitlab_instance_id}")
     needs_webhook_installation = true
     needs_webhook_update = false
     web_options = {
       name: "#{Setting.send(:app_title)} Webhook",
-      description: "Webhook for #{Setting.send(:app_title)} Redmine Application GitLab Integration",
+      description: "Webhook for #{Setting.send(:app_title)} Redmine Application Gitlab Integration",
       push_events: true,
       tag_push_events: true,
       merge_requests_events: true,

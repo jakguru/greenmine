@@ -883,7 +883,7 @@ export interface GroupValuesProp {
   users: SelectableListItem<number>[];
 }
 
-export interface GitlabUser {
+export interface GitLabUser {
   id: number;
   gitlab_id: number;
   user_id: number;
@@ -893,19 +893,19 @@ export interface GitlabUser {
   redmine_user_id: number | null;
 }
 
-export interface Gitlab {
+export interface GitLab {
   name: string;
   url: string;
   api_token: string;
   active: boolean;
-  users: GitlabUser[];
+  users: GitLabUser[];
 }
 
-export interface GitlabValuesProp {
+export interface GitLabValuesProp {
   users: SelectableListItem<number>[];
 }
 
-export interface GitlabProject {
+export interface GitLabProject {
   id: number;
   gitlab_id: number;
   project_id: number;
@@ -916,13 +916,13 @@ export interface GitlabProject {
   created_at: string;
   updated_at: string;
   projects: number[];
-  remote_info: GitlabProjectRemoteInfo;
+  remote_info: GitLabProjectRemoteInfo;
   web_url: string;
   git_http_url: string;
   git_ssh_url: string;
 }
 
-export interface GitlabProjectRemoteInfo {
+export interface GitLabProjectRemoteInfo {
   id: number;
   description: string | null;
   name: string;
@@ -941,15 +941,15 @@ export interface GitlabProjectRemoteInfo {
   avatar_url: string | null;
   star_count: number;
   last_activity_at: string;
-  namespace: GitlabProjectNamespace;
+  namespace: GitLabProjectNamespace;
   container_registry_image_prefix: string;
-  _links: GitlabProjectLinks;
+  _links: GitLabProjectLinks;
   packages_enabled: boolean;
   empty_repo: boolean;
   archived: boolean;
   visibility: string;
   resolve_outdated_diff_discussions: boolean;
-  container_expiration_policy: GitlabProjectContainerExpirationPolicy;
+  container_expiration_policy: GitLabProjectContainerExpirationPolicy;
   repository_object_format: string;
   issues_enabled: boolean;
   merge_requests_enabled: boolean;
@@ -1032,10 +1032,10 @@ export interface GitlabProjectRemoteInfo {
   requirements_access_level: string;
   security_and_compliance_enabled: boolean;
   compliance_frameworks: any[];
-  permissions: GitlabProjectPermissions;
+  permissions: GitLabProjectPermissions;
 }
 
-export interface GitlabProjectNamespace {
+export interface GitLabProjectNamespace {
   id: number;
   name: string;
   path: string;
@@ -1046,7 +1046,7 @@ export interface GitlabProjectNamespace {
   web_url: string;
 }
 
-export interface GitlabProjectLinks {
+export interface GitLabProjectLinks {
   self: string;
   issues: string;
   merge_requests: string;
@@ -1057,7 +1057,7 @@ export interface GitlabProjectLinks {
   cluster_agents: string;
 }
 
-export interface GitlabProjectContainerExpirationPolicy {
+export interface GitLabProjectContainerExpirationPolicy {
   cadence: string;
   enabled: boolean;
   keep_n: number;
@@ -1067,17 +1067,208 @@ export interface GitlabProjectContainerExpirationPolicy {
   next_run_at: string;
 }
 
-export interface GitlabProjectPermissions {
+export interface GitLabProjectPermissions {
   project_access: any | null;
-  group_access: GitlabProjectGroupAccess;
+  group_access: GitLabProjectGroupAccess;
 }
 
-export interface GitlabProjectGroupAccess {
+export interface GitLabProjectGroupAccess {
   access_level: number;
   notification_level: number;
 }
 
-export interface GitlabProjectValuesProp {
+export interface GitLabProjectValuesProp {
+  projects: SelectableListItem<number>[];
+}
+
+export interface GitHubUser {
+  id: number;
+  gitlab_id: number;
+  user_id: number;
+  name: string;
+  username: string;
+  redmine_user: any | null;
+  redmine_user_id: number | null;
+}
+
+export interface GitHub {
+  name: string;
+  url: string;
+  api_token: string;
+  active: boolean;
+  users: GitHubUser[];
+}
+
+export interface GitHubValuesProp {
+  users: SelectableListItem<number>[];
+}
+
+export interface GitHubRepository {
+  id: number;
+  gitlab_id: number;
+  repository_id: number;
+  name: string;
+  name_with_namespace: string;
+  path: string;
+  path_with_namespace: string;
+  created_at: string;
+  updated_at: string;
+  projects: number[];
+  web_url: string;
+  git_http_url: string;
+  git_ssh_url: string;
+  remote_info: GitHubRepositoryRemoteInfo;
+}
+
+export interface GitHubRepositoryRemoteInfo {
+  id: number;
+  node_id: string;
+  name: string;
+  full_name: string;
+  private: boolean;
+  owner: GitHubRepositoryRemoteInfoOwner;
+  html_url: string;
+  description: string | null;
+  fork: boolean;
+  url: string;
+  forks_url: string;
+  keys_url: string;
+  collaborators_url: string;
+  teams_url: string;
+  hooks_url: string;
+  issue_events_url: string;
+  events_url: string;
+  assignees_url: string;
+  branches_url: string;
+  tags_url: string;
+  blobs_url: string;
+  git_tags_url: string;
+  git_refs_url: string;
+  trees_url: string;
+  statuses_url: string;
+  languages_url: string;
+  stargazers_url: string;
+  contributors_url: string;
+  subscribers_url: string;
+  subscription_url: string;
+  commits_url: string;
+  git_commits_url: string;
+  comments_url: string;
+  issue_comment_url: string;
+  contents_url: string;
+  compare_url: string;
+  merges_url: string;
+  archive_url: string;
+  downloads_url: string;
+  issues_url: string;
+  pulls_url: string;
+  milestones_url: string;
+  notifications_url: string;
+  labels_url: string;
+  releases_url: string;
+  deployments_url: string;
+  created_at: string;
+  updated_at: string;
+  pushed_at: string;
+  git_url: string;
+  ssh_url: string;
+  clone_url: string;
+  svn_url: string;
+  homepage: string | null;
+  size: number;
+  stargazers_count: number;
+  watchers_count: number;
+  language: string | null;
+  has_issues: boolean;
+  has_projects: boolean;
+  has_downloads: boolean;
+  has_wiki: boolean;
+  has_pages: boolean;
+  has_discussions: boolean;
+  forks_count: number;
+  mirror_url: string | null;
+  archived: boolean;
+  disabled: boolean;
+  open_issues_count: number;
+  license: GitHubRepositoryRemoteInfoLicense | null;
+  allow_forking: boolean;
+  is_template: boolean;
+  web_commit_signoff_required: boolean;
+  topics: string[];
+  visibility: string;
+  forks: number;
+  open_issues: number;
+  watchers: number;
+  default_branch: string;
+  permissions: GitHubRepositoryRemoteInfoPermissions;
+  temp_clone_token: string;
+  allow_squash_merge: boolean;
+  allow_merge_commit: boolean;
+  allow_rebase_merge: boolean;
+  allow_auto_merge: boolean;
+  delete_branch_on_merge: boolean;
+  allow_update_branch: boolean;
+  use_squash_pr_title_as_default: boolean;
+  squash_merge_commit_message: string;
+  squash_merge_commit_title: string;
+  merge_commit_message: string;
+  merge_commit_title: string;
+  security_and_analysis: GitHubRepositoryRemoteInfoSecurityAndAnalysis;
+  network_count: number;
+  subscribers_count: number;
+}
+
+export interface GitHubRepositoryRemoteInfoOwner {
+  login: string;
+  id: number;
+  node_id: string;
+  avatar_url: string;
+  gravatar_id: string;
+  url: string;
+  html_url: string;
+  followers_url: string;
+  following_url: string;
+  gists_url: string;
+  starred_url: string;
+  subscriptions_url: string;
+  organizations_url: string;
+  repos_url: string;
+  events_url: string;
+  received_events_url: string;
+  type: string;
+  user_view_type: string;
+  site_admin: boolean;
+}
+
+export interface GitHubRepositoryRemoteInfoLicense {
+  key: string;
+  name: string;
+  spdx_id: string;
+  url: string | null;
+  node_id: string;
+}
+
+export interface GitHubRepositoryRemoteInfoPermissions {
+  admin: boolean;
+  maintain: boolean;
+  push: boolean;
+  triage: boolean;
+  pull: boolean;
+}
+
+export interface GitHubRepositoryRemoteInfoSecurityAndAnalysis {
+  secret_scanning: GitHubRepositoryRemoteInfoSecurityItem;
+  secret_scanning_push_protection: GitHubRepositoryRemoteInfoSecurityItem;
+  dependabot_security_updates: GitHubRepositoryRemoteInfoSecurityItem;
+  secret_scanning_non_provider_patterns: GitHubRepositoryRemoteInfoSecurityItem;
+  secret_scanning_validity_checks: GitHubRepositoryRemoteInfoSecurityItem;
+}
+
+export interface GitHubRepositoryRemoteInfoSecurityItem {
+  status: string;
+}
+
+export interface GitHubRepositoryValuesProp {
   projects: SelectableListItem<number>[];
 }
 
@@ -1120,6 +1311,7 @@ export interface ProjectModel {
   tracker_ids: number[];
   issue_custom_field_ids: number[];
   gitlab_projects: number[];
+  github_repositories: number[];
   eumerations: Record<string, ProjectEnumeration>;
   issue_categories: ProjectModelIssueCategory[];
   activities: number[];
@@ -1244,6 +1436,8 @@ export interface ProjectPermissions {
   save_queries: boolean;
   view_associated_gitlab_projects: boolean;
   manage_associated_gitlab_projects: boolean;
+  view_associated_github_repositories: boolean;
+  manage_associated_github_repositories: boolean;
   view_time_entries: boolean;
   view_issues: boolean;
   view_files: boolean;
@@ -1320,7 +1514,7 @@ export interface File {
 //   totalIssuesByTracker: Record<string, number>;
 //   totalHours: number | null;
 //   totalEstimatedHours: number | null;
-//   gitlabProjects: GitlabProject[];
+//   gitlabProjects: GitLabProject[];
 // }
 
 export interface Monday {

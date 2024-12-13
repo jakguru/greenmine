@@ -169,7 +169,9 @@ module Admin
       end
 
       def render_save_response
-        @gitlab.safe_attributes = params[:gitlab]
+        @gitlab.name = params[:gitlab][:name]
+        @gitlab.url = params[:gitlab][:url]
+        @gitlab.api_token = params[:gitlab][:api_token]
         @gitlab.active = params[:gitlab][:active].present?
         if @gitlab.save
           render json: {

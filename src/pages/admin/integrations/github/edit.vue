@@ -5,8 +5,8 @@
         <v-toolbar-title class="font-weight-bold d-flex align-center" tag="h1">
           {{
             !id
-              ? $t("pages.admin-integrations-gitlab-id.title")
-              : $t("pages.admin-integrations-gitlab-id.title")
+              ? $t("pages.admin-integrations-github-id.title")
+              : $t("pages.admin-integrations-github-id.title")
           }}
         </v-toolbar-title>
       </v-toolbar>
@@ -15,7 +15,7 @@
       <v-divider />
       <v-tabs v-bind="vTabBindings" />
       <v-divider />
-      <template v-if="tab === 'projects'">
+      <template v-if="tab === 'repositories'">
         <v-container fluid>
           <v-toolbar color="transparent">
             <v-slide-group show-arrows class="mx-2">
@@ -121,7 +121,9 @@
                   @click="doFetchProjects"
                 >
                   <v-icon class="me-2">mdi-cloud-sync</v-icon>
-                  {{ $t("pages.admin-integrations-gitlab-id.projects.cta") }}
+                  {{
+                    $t("pages.admin-integrations-github-id.repositories.cta")
+                  }}
                 </v-btn>
               </v-slide-group-item>
             </v-slide-group>
@@ -133,7 +135,7 @@
             :payload="payload"
             :submitting="submitting"
             :dirty="dirty"
-            filter-to-id-field="gitlab_project_id"
+            filter-to-id-field="github_repository_id"
             :get-action-items="getActionMenuItems"
             :parent="modelAsParent"
             @submit="onSubmit"
@@ -158,7 +160,7 @@
                   @click="doFetchUsers"
                 >
                   <v-icon class="me-2">mdi-cloud-sync</v-icon>
-                  {{ $t("pages.admin-integrations-gitlab-id.users.cta") }}
+                  {{ $t("pages.admin-integrations-github-id.users.cta") }}
                 </v-btn>
               </v-slide-group-item>
             </v-slide-group>
@@ -166,23 +168,24 @@
           <v-table>
             <thead>
               <tr>
-                <th>{{ $t("labels.name") }}</th>
                 <th>{{ $t("labels.username") }}</th>
                 <th>{{ $t("labels.localUser") }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="user in model.users" :key="user.user_id">
-                <td width="25%">{{ user.name }}</td>
-                <td width="25%">
-                  <a :href="`${model.url}/${user.username}`" target="_blank">
-                    @{{ user.username }}
+                <td width="50%">
+                  <a
+                    :href="`https://github.com/${user.username}`"
+                    target="_blank"
+                  >
+                    {{ user.username }}
                   </a>
                 </td>
                 <td width="50%">
                   <v-autocomplete
                     v-model:model-value="
-                      userGitLabUserModelValues[user.user_id.toString()]
+                      userGitHubUserModelValues[user.user_id.toString()]
                     "
                     :items="userValues"
                     :loading="usersSaving.includes(user.user_id)"
@@ -279,12 +282,7 @@ import {
   useOnError,
 } from "@/utils/app";
 import { useActionCableConsumer } from "@/utils/realtime";
-import {
-  Joi,
-  getFormFieldValidator,
-  FridayForm,
-  tlds,
-} from "@/components/forms";
+import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 import {
   QueriesPartialFilters,
   QueriesPartialColumns,
@@ -309,8 +307,8 @@ import type {
   BusEventCallbackSignatures,
 } from "@jakguru/vueprint";
 import type {
-  GitLab,
-  GitLabValuesProp,
+  GitHub,
+  GitHubValuesProp,
   QueryResponse,
   QueryData,
   QueryResponsePayload,
@@ -321,7 +319,7 @@ import type Cable from "@rails/actioncable";
 import type { ActionMenuItem } from "@/components/queries/partials/action-menu";
 
 export default defineComponent({
-  name: "AdminIntegrationsGitLabEdit",
+  name: "AdminIntegrationsGitHubEdit",
   components: {
     FridayForm,
     QueriesPartialFilters,
@@ -341,15 +339,15 @@ export default defineComponent({
       default: null,
     },
     model: {
-      type: Object as PropType<GitLab>,
+      type: Object as PropType<GitHub>,
       required: true,
     },
-    projects: {
+    repositories: {
       type: Object as PropType<QueryResponse>,
       required: true,
     },
     values: {
-      type: Object as PropType<GitLabValuesProp>,
+      type: Object as PropType<GitHubValuesProp>,
       required: true,
     },
   },
@@ -375,8 +373,8 @@ export default defineComponent({
         ...Object.keys(model.value).map((k) => ({
           [k]: {
             type: "String",
-            display: model.value[k as keyof GitLab].toString(),
-            value: model.value[k as keyof GitLab],
+            display: model.value[k as keyof GitHub].toString(),
+            value: model.value[k as keyof GitHub],
           },
         })),
       ),
@@ -394,8 +392,8 @@ export default defineComponent({
           to: { name: "admin-integrations" },
         },
         {
-          title: t("pages.admin-integrations-gitlab.title"),
-          to: { name: "admin-integrations-gitlab" },
+          title: t("pages.admin-integrations-github.title"),
+          to: { name: "admin-integrations-github" },
         },
         {
           title: model.value.name,
@@ -405,15 +403,15 @@ export default defineComponent({
     const tabs = computed(() =>
       [
         {
-          text: t("pages.admin-integrations-gitlab-id.tabs.integration"),
+          text: t("pages.admin-integrations-github-id.tabs.integration"),
           value: "integration",
         },
         {
-          text: t("pages.admin-integrations-gitlab-id.tabs.projects"),
-          value: "projects",
+          text: t("pages.admin-integrations-github-id.tabs.repositories"),
+          value: "repositories",
         },
         {
-          text: t("pages.admin-integrations-gitlab-id.tabs.users"),
+          text: t("pages.admin-integrations-github-id.tabs.users"),
           value: "users",
         },
       ].filter((v) => "undefined" !== typeof v),
@@ -440,7 +438,7 @@ export default defineComponent({
     const modifyPayload = (payload: Record<string, unknown>) => {
       return {
         authenticity_token: formAuthenticityToken.value,
-        gitlab: {
+        github: {
           ...payload,
         },
       };
@@ -449,7 +447,7 @@ export default defineComponent({
       reloadRouteDataAction.call();
       reloadAppDataAction.call();
       if (!toast) {
-        alert(t(`pages.admin-integrations-gitlab-id.onSave.success`));
+        alert(t(`pages.admin-integrations-github-id.onSave.success`));
         return;
       } else {
         if (
@@ -459,20 +457,20 @@ export default defineComponent({
           payload.id !== id.value
         ) {
           router.push({
-            name: "admin-integrations-gitlab-id",
+            name: "admin-integrations-github-id",
             params: {
               id: (payload.id as number).toString(),
             },
           });
         }
         toast.fire({
-          title: t(`pages.admin-integrations-gitlab-id.onSave.success`),
+          title: t(`pages.admin-integrations-github-id.onSave.success`),
           icon: "success",
         });
         return;
       }
     };
-    const onError = useOnError("pages.admin-integrations-gitlab-id");
+    const onError = useOnError("pages.admin-integrations-github-id");
     const renderedForm = ref<FridayFormComponent | null>(null);
     const currentFieldValues = ref<Record<string, unknown>>({});
     const formStructure = computed<FridayFormStructure>(() => [
@@ -483,48 +481,14 @@ export default defineComponent({
           fieldComponent: VTextField,
           formKey: "name",
           valueKey: "name",
-          label: t(`pages.admin-integrations-gitlab-id.content.fields.name`),
+          label: t(`pages.admin-integrations-github-id.content.fields.name`),
           bindings: {
-            label: t(`pages.admin-integrations-gitlab-id.content.fields.name`),
+            label: t(`pages.admin-integrations-github-id.content.fields.name`),
           },
           validator: getFormFieldValidator(
             t,
             Joi.string().required().max(255),
-            t(`pages.admin-integrations-gitlab-id.content.fields.name`),
-          ),
-        },
-      ],
-      [
-        {
-          cols: 12,
-          md: 3,
-          fieldComponent: VTextField,
-          formKey: "url",
-          valueKey: "url",
-          label: t(`pages.admin-integrations-gitlab-id.content.fields.url`),
-          bindings: {
-            label: t(`pages.admin-integrations-gitlab-id.content.fields.url`),
-          },
-          validator: getFormFieldValidator(
-            t,
-            Joi.string()
-              .required()
-              .uri({
-                scheme: ["https"],
-                domain: {
-                  allowUnicode: false,
-                  tlds: {
-                    allow: tlds,
-                  },
-                  minDomainSegments: 2,
-                },
-              })
-              .regex(/^https:\/\/[^/]+$/)
-              .messages({
-                "string.pattern.base":
-                  "Please provide only the base URL of the GitLab instance.",
-              }),
-            t(`pages.admin-integrations-gitlab-id.content.fields.url`),
+            t(`pages.admin-integrations-github-id.content.fields.name`),
           ),
         },
       ],
@@ -536,23 +500,23 @@ export default defineComponent({
           formKey: "api_token",
           valueKey: "api_token",
           label: t(
-            `pages.admin-integrations-gitlab-id.content.fields.api_token`,
+            `pages.admin-integrations-github-id.content.fields.api_token`,
           ),
           bindings: {
             label: t(
-              `pages.admin-integrations-gitlab-id.content.fields.api_token`,
+              `pages.admin-integrations-github-id.content.fields.api_token`,
             ),
           },
           validator: getFormFieldValidator(
             t,
             Joi.string()
               .required()
-              .regex(/^glpat-.+/) // Ensure the string starts with 'glpat-'
+              .regex(/^ghbp_.+/) // Ensure the string starts with 'ghbp_'
               .messages({
                 "string.pattern.base":
-                  'The token must be a valid access token starting with "glpat-".',
+                  'The token must be a valid access token starting with "ghbp_".',
               }),
-            t(`pages.admin-integrations-gitlab-id.content.fields.url`),
+            t(`pages.admin-integrations-github-id.content.fields.url`),
           ),
         },
       ],
@@ -563,10 +527,10 @@ export default defineComponent({
           fieldComponent: VSwitch,
           formKey: "active",
           valueKey: "active",
-          label: t(`pages.admin-integrations-gitlab-id.content.fields.active`),
+          label: t(`pages.admin-integrations-github-id.content.fields.active`),
           bindings: {
             label: t(
-              `pages.admin-integrations-gitlab-id.content.fields.active`,
+              `pages.admin-integrations-github-id.content.fields.active`,
             ),
           },
         },
@@ -576,7 +540,7 @@ export default defineComponent({
       cloneObject(model.value as any as Record<string, unknown>),
     );
     const fridayFormBindings = computed(() => ({
-      action: `/admin/integrations/gitlab${id.value ? `/${id.value}` : ""}`,
+      action: `/admin/integrations/github${id.value ? `/${id.value}` : ""}`,
       method: id.value ? "put" : "post",
       structure: formStructure.value.filter(
         (r) => Array.isArray(r) && r.length > 0,
@@ -597,10 +561,10 @@ export default defineComponent({
       //       return {
       //         model: values,
       //         disabled: !(values.permissions as string[]).includes(
-      //           "view_projects",
+      //           "view_repositories",
       //         ),
       //         readonly: !(values.permissions as string[]).includes(
-      //           "view_projects",
+      //           "view_repositories",
       //         ),
       //       };
       //     case "permissions":
@@ -620,10 +584,10 @@ export default defineComponent({
       },
     }));
 
-    const projects = computed(() => props.projects);
-    const query = computed(() => projects.value.query);
+    const repositories = computed(() => props.repositories);
+    const query = computed(() => repositories.value.query);
     const value = ref<QueryData>(cloneObject(query.value));
-    const payload = computed(() => projects.value.payload);
+    const payload = computed(() => repositories.value.payload);
     const payloadValue = ref<QueryResponsePayload>(cloneObject(payload.value));
     const dirty = computed(
       () =>
@@ -757,17 +721,19 @@ export default defineComponent({
         return;
       }
       const { status } = await api.post(
-        `/admin/integrations/gitlab/${id.value}/projects`,
+        `/admin/integrations/github/${id.value}/repositories`,
       );
       if (status !== 202) {
         toast?.fire({
-          title: t("pages.admin-integrations-gitlab-id.projects.onFetch.error"),
+          title: t(
+            "pages.admin-integrations-github-id.repositories.onFetch.error",
+          ),
           icon: "error",
         });
       } else {
         toast?.fire({
           title: t(
-            "pages.admin-integrations-gitlab-id.projects.onFetch.success",
+            "pages.admin-integrations-github-id.repositories.onFetch.success",
           ),
           icon: "success",
         });
@@ -778,40 +744,42 @@ export default defineComponent({
         return;
       }
       const { status } = await api.post(
-        `/admin/integrations/gitlab/${id.value}/users`,
+        `/admin/integrations/github/${id.value}/users`,
       );
       if (status !== 202) {
         toast?.fire({
-          title: t("pages.admin-integrations-gitlab-id.users.onFetch.error"),
+          title: t("pages.admin-integrations-github-id.users.onFetch.error"),
           icon: "error",
         });
       } else {
         toast?.fire({
-          title: t("pages.admin-integrations-gitlab-id.users.onFetch.success"),
+          title: t("pages.admin-integrations-github-id.users.onFetch.success"),
           icon: "success",
         });
       }
     };
     const consumer = useActionCableConsumer();
-    const projectsSubscription = ref<Cable.Subscription | undefined>(undefined);
+    const repositoriesSubscription = ref<Cable.Subscription | undefined>(
+      undefined,
+    );
     const usersSubscription = ref<Cable.Subscription | undefined>(undefined);
     onMounted(() => {
       if (consumer) {
-        if (projectsSubscription.value) {
-          projectsSubscription.value.unsubscribe();
+        if (repositoriesSubscription.value) {
+          repositoriesSubscription.value.unsubscribe();
         }
         if (usersSubscription.value) {
           usersSubscription.value.unsubscribe();
         }
-        projectsSubscription.value = consumer.subscriptions.create(
+        repositoriesSubscription.value = consumer.subscriptions.create(
           {
             channel: "FridayPlugin::RealTimeUpdatesChannel",
-            room: "gitlab_instance_projects",
+            room: "github_instance_repositories",
           },
           {
-            received: (data: { gitlab_instance_id: number; from?: string }) => {
+            received: (data: { github_instance_id: number; from?: string }) => {
               if (
-                data.gitlab_instance_id === id.value &&
+                data.github_instance_id === id.value &&
                 (!data.from || bus?.uuid !== data.from)
               ) {
                 onRefresh();
@@ -822,12 +790,12 @@ export default defineComponent({
         usersSubscription.value = consumer.subscriptions.create(
           {
             channel: "FridayPlugin::RealTimeUpdatesChannel",
-            room: "gitlab_instance_users",
+            room: "github_instance_users",
           },
           {
-            received: (data: { gitlab_instance_id: number; from?: string }) => {
+            received: (data: { github_instance_id: number; from?: string }) => {
               if (
-                data.gitlab_instance_id === id.value &&
+                data.github_instance_id === id.value &&
                 (!data.from || bus?.uuid !== data.from)
               ) {
                 onRefresh();
@@ -838,19 +806,19 @@ export default defineComponent({
       }
     });
     onBeforeUnmount(() => {
-      if (projectsSubscription.value) {
-        projectsSubscription.value.unsubscribe();
+      if (repositoriesSubscription.value) {
+        repositoriesSubscription.value.unsubscribe();
       }
       if (usersSubscription.value) {
         usersSubscription.value.unsubscribe();
       }
     });
-    const userGitLabUserModelValues = ref<Record<string, number | null>>({});
+    const userGitHubUserModelValues = ref<Record<string, number | null>>({});
     watch(
       () => model.value.users,
       (users) => {
         users.forEach((user) => {
-          userGitLabUserModelValues.value[user.user_id.toString()] =
+          userGitHubUserModelValues.value[user.user_id.toString()] =
             user.redmine_user_id;
         });
       },
@@ -860,41 +828,41 @@ export default defineComponent({
     const usersSavingAbortControllersByUserId = ref<
       Record<string, AbortController>
     >({});
-    const doSaveUserGitLabUserAssociation = async (
-      gitlabUserId: number,
+    const doSaveUserGitHubUserAssociation = async (
+      githubUserId: number,
       redmineUserId: number | null,
     ) => {
       if (!api) {
         return;
       }
-      if (usersSavingAbortControllersByUserId.value[gitlabUserId]) {
-        usersSavingAbortControllersByUserId.value[gitlabUserId].abort();
+      if (usersSavingAbortControllersByUserId.value[githubUserId]) {
+        usersSavingAbortControllersByUserId.value[githubUserId].abort();
       }
-      usersSavingAbortControllersByUserId.value[gitlabUserId] =
+      usersSavingAbortControllersByUserId.value[githubUserId] =
         new AbortController();
-      if (!usersSaving.value.includes(gitlabUserId)) {
-        usersSaving.value.push(gitlabUserId);
+      if (!usersSaving.value.includes(githubUserId)) {
+        usersSaving.value.push(githubUserId);
       }
       try {
         const { status } = await api.put(
-          `/admin/integrations/gitlab/${id.value}/users`,
+          `/admin/integrations/github/${id.value}/users`,
           {
             authenticity_token: formAuthenticityToken.value,
-            gitlab_user_id: gitlabUserId,
+            github_user_id: githubUserId,
             redmine_user_id: redmineUserId,
           },
           {
             signal:
-              usersSavingAbortControllersByUserId.value[gitlabUserId].signal,
+              usersSavingAbortControllersByUserId.value[githubUserId].signal,
           },
         );
         if (201 !== status) {
           toast?.fire({
-            title: t("pages.admin-integrations-gitlab-id.users.onSave.error"),
+            title: t("pages.admin-integrations-github-id.users.onSave.error"),
             icon: "error",
           });
-          userGitLabUserModelValues.value[gitlabUserId.toString()] =
-            model.value.users.find((u) => u.user_id === gitlabUserId)
+          userGitHubUserModelValues.value[githubUserId.toString()] =
+            model.value.users.find((u) => u.user_id === githubUserId)
               ?.redmine_user_id ?? null;
         } else {
           await onRefresh();
@@ -902,13 +870,13 @@ export default defineComponent({
       } catch {
         // noop
       }
-      const gitlabUserIdSavingIndex = usersSaving.value.indexOf(gitlabUserId);
-      if (gitlabUserIdSavingIndex !== -1) {
-        usersSaving.value.splice(gitlabUserIdSavingIndex, 1);
+      const githubUserIdSavingIndex = usersSaving.value.indexOf(githubUserId);
+      if (githubUserIdSavingIndex !== -1) {
+        usersSaving.value.splice(githubUserIdSavingIndex, 1);
       }
     };
     watch(
-      () => userGitLabUserModelValues.value,
+      () => userGitHubUserModelValues.value,
       (vals) => {
         const differences = Object.keys(vals).filter(
           (k) =>
@@ -916,7 +884,7 @@ export default defineComponent({
               ?.redmine_user_id !== vals[k as string],
         );
         differences.forEach((k) => {
-          doSaveUserGitLabUserAssociation(Number(k), vals[k as string]);
+          doSaveUserGitHubUserAssociation(Number(k), vals[k as string]);
         });
       },
       { deep: true },
@@ -929,7 +897,7 @@ export default defineComponent({
       const responses = await Promise.all(
         items.map(async (item) => {
           const { status } = await api.post(
-            `/admin/integrations/gitlab/${id.value}/projects/${item.entry.project_id.value.toString()}/actions/install-webhooks`,
+            `/admin/integrations/github/${id.value}/repositories/${item.entry.repository_id.value.toString()}/actions/install-webhooks`,
             {
               authenticity_token: formAuthenticityToken.value,
             },
@@ -940,21 +908,21 @@ export default defineComponent({
       if (responses.every((r) => r === true)) {
         toast.fire({
           title: t(
-            "pages.admin-integrations-gitlab-id.projects.onEnqueueJobToInstallWebhooks.success",
+            "pages.admin-integrations-github-id.repositories.onEnqueueJobToInstallWebhooks.success",
           ),
           icon: "success",
         });
       } else if (responses.some((r) => r === true) && responses.length > 1) {
         toast.fire({
           title: t(
-            "pages.admin-integrations-gitlab-id.projects.onEnqueueJobToInstallWebhooks.warning",
+            "pages.admin-integrations-github-id.repositories.onEnqueueJobToInstallWebhooks.warning",
           ),
           icon: "warning",
         });
       } else {
         toast.fire({
           title: t(
-            "pages.admin-integrations-gitlab-id.projects.onEnqueueJobToInstallWebhooks.error",
+            "pages.admin-integrations-github-id.repositories.onEnqueueJobToInstallWebhooks.error",
           ),
           icon: "error",
         });
@@ -962,20 +930,20 @@ export default defineComponent({
     };
 
     const getActionMenuItems = (
-      gitlabProjects: Item[],
+      githubProjects: Item[],
       onDone: () => void,
       onFilterTo: () => void,
     ): ActionMenuItem[] => {
-      if (gitlabProjects.length > 1) {
+      if (githubProjects.length > 1) {
         return [
           {
             component: h(
               VListItem,
               {
-                title: t("gitlabProjectActionMenu.installWebhook.title"),
+                title: t("githubProjectActionMenu.installWebhook.title"),
                 density: "compact",
                 onClick: async () => {
-                  await doInstallWebhooksForItems(gitlabProjects);
+                  await doInstallWebhooksForItems(githubProjects);
                   onDone();
                 },
               },
@@ -1007,10 +975,11 @@ export default defineComponent({
             prependIcon: "mdi-open-in-app",
             density: "compact",
             to: {
-              name: "admin-integrations-gitlab-id-project-id",
+              name: "admin-integrations-github-id-project-id",
               params: {
                 id: id.value,
-                projectId: gitlabProjects[0].entry.project_id.value.toString(),
+                projectId:
+                  githubProjects[0].entry.repository_id.value.toString(),
               },
             },
           }),
@@ -1019,10 +988,10 @@ export default defineComponent({
           component: h(
             VListItem,
             {
-              title: t("gitlabProjectActionMenu.installWebhook.title"),
+              title: t("githubProjectActionMenu.installWebhook.title"),
               density: "compact",
               onClick: async () => {
-                await doInstallWebhooksForItems(gitlabProjects);
+                await doInstallWebhooksForItems(githubProjects);
                 onDone();
               },
             },
@@ -1076,8 +1045,8 @@ export default defineComponent({
       doFetchUsers,
       userValues,
       usersSaving,
-      doSaveUserGitLabUserAssociation,
-      userGitLabUserModelValues,
+      doSaveUserGitHubUserAssociation,
+      userGitHubUserModelValues,
       getActionMenuItems,
     };
   },

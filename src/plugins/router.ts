@@ -136,8 +136,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/admin/integrations/github/new",
     name: "admin-integrations-github-new",
-    // component: () => import("@/pages/admin/integrations/github/new.vue"),
-    component: fourOhFour,
+    component: () => import("@/pages/admin/integrations/github/new.vue"),
     meta: {
       title: "pages.admin-integrations-github-new.title",
     },
@@ -145,19 +144,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/admin/integrations/github/:id",
     name: "admin-integrations-github-id",
-    // component: () => import("@/pages/admin/integrations/github/edit.vue"),
-    component: fourOhFour,
+    component: () => import("@/pages/admin/integrations/github/edit.vue"),
     meta: {
-      title: "pages.admin-integrations-github-new.title",
+      title: "pages.admin-integrations-github-id.title",
     },
   },
   {
     path: "/admin/integrations/github/:id/repositories/:repositoryId",
     name: "admin-integrations-github-id-repository-id",
-    // component: () => import("@/pages/admin/integrations/github/repository.vue"),
-    component: fourOhFour,
+    component: () => import("@/pages/admin/integrations/github/repository.vue"),
     meta: {
-      title: "pages.admin-integrations-github-id-repository-id.title",
+      title: "pages.admin-integrations-github-id-repository.title",
     },
   },
   {
@@ -181,7 +178,7 @@ const routes: RouteRecordRaw[] = [
     name: "admin-integrations-gitlab-id",
     component: () => import("@/pages/admin/integrations/gitlab/edit.vue"),
     meta: {
-      title: "pages.admin-integrations-gitlab-new.title",
+      title: "pages.admin-integrations-gitlab-id.title",
     },
   },
   {

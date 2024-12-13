@@ -70,6 +70,14 @@ module FridayPlugin
                 gitlab: gitlab_project.gitlab_instance.name
               })
             }
+            github_repositories = @project.github_repositories.preload(:github_instance).map { |github_repository|
+              github_repository.attributes.merge({
+                id: github_repository.id,
+                name: github_repository.name,
+                web_url: github_repository.web_url,
+                github: github_repository.github_instance.name
+              })
+            }
             parents = []
             project = @project
             while project.parent
@@ -87,6 +95,7 @@ module FridayPlugin
               totalHours: total_hours,
               totalEstimatedHours: total_estimated_hours,
               gitlabProjects: gitlab_projects,
+              githubRepositories: github_repositories,
               parents: parents.reverse
             })
           else
@@ -469,6 +478,7 @@ module FridayPlugin
               tracker_ids: @project.trackers.map(&:id),
               issue_custom_field_ids: @project.all_issue_custom_fields.ids,
               gitlab_projects: @project.gitlab_projects(&:id),
+              github_repositories: @project.github_repositories(&:id),
               eumerations: eumerations,
               description: @project.description.nil? ? "" : @project.description,
               memberships: @project.memberships.preload(:member_roles, :roles).collect { |membership|
@@ -548,6 +558,14 @@ module FridayPlugin
                   gitlab: gitlab_project.gitlab_instance.name
                 }
               },
+              githubRepositories: GithubRepository.preload(:github_instance).map { |github_repository|
+                {
+                  id: github_repository.id,
+                  name: github_repository.name,
+                  web_url: github_repository.web_url,
+                  github: github_repository.github_instance.name
+                }
+              },
               parents: @project.allowed_parents.compact.map { |project|
                 {
                   value: project.id,
@@ -584,6 +602,8 @@ module FridayPlugin
               save_queries: User.current.allowed_to?(:save_queries, @project),
               view_associated_gitlab_projects: User.current.allowed_to?(:view_associated_gitlab_projects, @project),
               manage_associated_gitlab_projects: User.current.allowed_to?(:manage_associated_gitlab_projects, @project),
+              view_associated_github_repositories: User.current.allowed_to?(:view_associated_github_repositories, @project),
+              manage_associated_github_repositories: User.current.allowed_to?(:manage_associated_github_repositories, @project),
               view_time_entries: User.current.allowed_to?(:view_time_entries, @project),
               view_issues: User.current.allowed_to?(:view_issues, @project),
               view_files: User.current.allowed_to?(:view_files, @project),

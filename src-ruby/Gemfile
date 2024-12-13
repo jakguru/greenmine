@@ -9,3 +9,7 @@ gem "elasticsearch-api", "~> 8.16"
 gem "elasticsearch-dsl", "~> 0.1.10"
 gem "gitlab", "~> 5.1"
 gem "graphql-client", "~> 0.24.0"
+
+gem "octokit", "~> 9.2"
+
+gem "faraday-retry", "~> 2.2"

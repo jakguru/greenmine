@@ -7,7 +7,7 @@ class GitlabUser < ActiveRecord::Base
 
   # Validations
   validates :gitlab_id, presence: true
-  validates :user_id, presence: true  # This represents the GitLab API user ID
+  validates :user_id, presence: true  # This represents the Gitlab API user ID
   validates :username, presence: true
   validates :name, presence: true
 

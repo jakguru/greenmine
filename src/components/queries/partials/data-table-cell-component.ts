@@ -516,6 +516,24 @@ export const QueriesPartialDataTableCell = defineComponent({
             default:
               return toReturnByColumnKey.value;
           }
+        case "GithubsQuery":
+          switch (column.value.key) {
+            case "id":
+            case "name":
+              return h(
+                RouterLink,
+                {
+                  to: {
+                    name: "admin-integrations-github-id",
+                    params: { id: item.value.id },
+                  },
+                  ...attrs.value,
+                },
+                value.value.display,
+              );
+            default:
+              return toReturnByColumnKey.value;
+          }
         case "GitlabProjectsQuery":
           switch (column.value.key) {
             case "project_id":
@@ -530,6 +548,43 @@ export const QueriesPartialDataTableCell = defineComponent({
                       params: {
                         id: parent.value.id,
                         projectId: value.value.value,
+                      },
+                    },
+                    ...attrs.value,
+                  },
+                  value.value.display,
+                );
+              }
+            case "web_url":
+              return h(
+                "a",
+                {
+                  href: value.value.value,
+                  target: "_blank",
+                  ...attrs.value,
+                },
+                [
+                  h(VIcon, { size: "small", class: "me-2" }, "mdi-open-in-new"),
+                  value.value.display,
+                ],
+              );
+            default:
+              return toReturnByColumnKey.value;
+          }
+        case "GithubRepositoriesQuery":
+          switch (column.value.key) {
+            case "repository_id":
+              if (!parent.value) {
+                return toReturnByColumnKey.value;
+              } else {
+                return h(
+                  RouterLink,
+                  {
+                    to: {
+                      name: "admin-integrations-github-id-repository-id",
+                      params: {
+                        id: parent.value.id,
+                        repositoryId: value.value.value,
                       },
                     },
                     ...attrs.value,

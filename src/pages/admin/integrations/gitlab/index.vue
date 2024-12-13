@@ -39,7 +39,7 @@ import type { ActionMenuItem } from "@/components/queries/partials/action-menu";
 import type { ApiService, SwalService, ToastService } from "@jakguru/vueprint";
 
 export default defineComponent({
-  name: "AdminIntegrationsGitlabIndex",
+  name: "AdminIntegrationsGitLabIndex",
   components: {
     QueriesPage,
   },

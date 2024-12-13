@@ -87,15 +87,15 @@ RedmineApp::Application.routes.draw do
 
       # Github Integration
       resources :github, controller: "github", only: [:index, :show, :new, :edit, :create, :update, :destroy]
-      resources :gitlab do
+      resources :github do
         member do
-          post "repositories", to: "gitlab#enqueue_fetch_repositories"
-          get "repositories/:repository_id", to: "gitlab#show_repository"
-          put "repositories/:repository_id", to: "gitlab#update_repository_gitlab_repository_association"
-          post "repositories/:repository_id/actions", to: "gitlab#handle_repository_action"
-          post "repositories/:repository_id/actions/:action_to_perform", to: "gitlab#handle_repository_action"
-          post "users", to: "gitlab#enqueue_fetch_users"
-          put "users", to: "gitlab#update_user_gitlab_user_association"
+          post "repositories", to: "github#enqueue_fetch_repositories"
+          get "repositories/:repository_id", to: "github#show_repository"
+          put "repositories/:repository_id", to: "github#update_project_github_repository_association"
+          post "repositories/:repository_id/actions", to: "github#handle_repository_action"
+          post "repositories/:repository_id/actions/:action_to_perform", to: "github#handle_repository_action"
+          post "users", to: "github#enqueue_fetch_users"
+          put "users", to: "github#update_user_github_user_association"
         end
       end
     end

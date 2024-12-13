@@ -20,9 +20,9 @@ class GitlabInstance < ActiveRecord::Base
     true
   end
 
-  # Method to provide an instance of the GitLab API client
+  # Method to provide an instance of the Gitlab API client
   def api_client
-    raise "GitLab instance is disabled" unless active
+    raise "Gitlab instance is disabled" unless active
 
     ::Gitlab.client(endpoint: "#{url}/api/v4", private_token: api_token)
   end

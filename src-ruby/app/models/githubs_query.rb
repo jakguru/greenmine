@@ -4,7 +4,6 @@ class GithubsQuery < Query
   self.available_columns = [
     QueryColumn.new(:id, sortable: "#{GithubInstance.table_name}.id", default_order: "desc", caption: "#", frozen: true),
     QueryColumn.new(:name, sortable: "#{GithubInstance.table_name}.name"),
-    QueryColumn.new(:url, sortable: "#{GithubInstance.table_name}.url"),
     QueryColumn.new(:active, sortable: "#{GithubInstance.table_name}.active")
   ]
 
@@ -27,7 +26,7 @@ class GithubsQuery < Query
   end
 
   def default_columns_names
-    @default_columns_names ||= [:id, :name, :url, :active]
+    @default_columns_names ||= [:id, :name, :active]
   end
 
   def default_sort_criteria

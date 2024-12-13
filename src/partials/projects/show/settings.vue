@@ -81,7 +81,8 @@ import type {
   Principal,
   News,
   Tracker,
-  GitlabProject,
+  GitLabProject,
+  GitHubRepository,
   FridayMenuItem,
   ProjectWikiPageLink,
   PrincipalRole,
@@ -187,7 +188,11 @@ export default defineComponent({
       required: true,
     },
     gitlabProjects: {
-      type: Array as PropType<GitlabProject[]>,
+      type: Array as PropType<GitLabProject[]>,
+      required: true,
+    },
+    githubRepositories: {
+      type: Array as PropType<GitHubRepository[]>,
       required: true,
     },
     parents: {
@@ -262,10 +267,10 @@ export default defineComponent({
       //   text: t("pages.projects-id-settings.tabs.activities"),
       //   value: "activities",
       // },
-      {
-        text: t("pages.projects-id-settings.tabs.versions"),
-        value: "versions",
-      },
+      // {
+      //   text: t("pages.projects-id-settings.tabs.versions"),
+      //   value: "versions",
+      // },
       // {
       //   text: t("pages.projects-id-settings.tabs.repositories"),
       //   value: "repositories",
@@ -273,6 +278,10 @@ export default defineComponent({
       {
         text: t("pages.projects-id-settings.tabs.gitlab"),
         value: "gitlab",
+      },
+      {
+        text: t("pages.projects-id-settings.tabs.github"),
+        value: "github",
       },
       {
         text: t("pages.projects-id-settings.tabs.sprints"),
@@ -695,12 +704,12 @@ export default defineComponent({
               },
             ],
           ];
-        case "activities":
-          return [];
-        case "versions":
-          return [];
-        case "repositories":
-          return [];
+        // case "activities":
+        //   return [];
+        // case "versions":
+        //   return [];
+        // case "repositories":
+        //   return [];
         case "gitlab":
           return [];
         case "boards":

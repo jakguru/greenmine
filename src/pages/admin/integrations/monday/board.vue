@@ -28,7 +28,7 @@
               target="_blank"
             >
               <v-img
-                :src="iconGitlab"
+                :src="iconGitLab"
                 :aspect-ratio="1"
                 width="13"
                 height="13"
@@ -155,7 +155,7 @@ import {
   useOnError,
 } from "@/utils/app";
 import { useActionCableConsumer } from "@/utils/realtime";
-import iconGitlab from "@/assets/images/icon-monday.svg?url";
+import iconGitLab from "@/assets/images/icon-monday.svg?url";
 import iconWebhooks from "@/assets/images/icon-webhooks.svg?url";
 import { FridayForm } from "@/components/forms";
 
@@ -459,7 +459,7 @@ export default defineComponent({
     return {
       breadcrumbsBindings,
       accentColor,
-      iconGitlab,
+      iconGitLab,
       copyToClipboard,
       projectValues,
       iconWebhooks,

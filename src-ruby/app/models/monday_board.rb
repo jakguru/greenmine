@@ -6,7 +6,7 @@ class MondayBoard < ActiveRecord::Base
 
   # Validations
   validates :monday_id, presence: true
-  validates :project_id, presence: true  # This represents the GitLab API project ID
+  validates :project_id, presence: true  # This represents the Gitlab API project ID
   validates :board_meta_data, presence: true
   validates :board_field_mapping, presence: true
 

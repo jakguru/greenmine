@@ -446,7 +446,37 @@
                           target="_blank"
                         >
                           <template #append>
-                            <v-avatar size="24" :image="iconGitlab" />
+                            <v-avatar size="24" :image="iconGitLab" />
+                          </template>
+                        </v-list-item>
+                      </v-list>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                <v-row v-if="githubRepositories.length">
+                  <v-col cols="12">
+                    <v-card
+                      variant="outlined"
+                      class="overflow-y-visible"
+                      elevation="3"
+                    >
+                      <v-label class="mx-2 project-card-label">
+                        <small>{{
+                          $t(`pages.projects-id.content.githubRepositories`)
+                        }}</small>
+                      </v-label>
+                      <v-list class="bg-transparent pb-0">
+                        <v-list-item
+                          v-for="ghr in githubRepositories"
+                          :key="`githubRepository-${ghr.id}`"
+                          :title="ghr.name_with_namespace"
+                          :subtitle="ghr.path_with_namespace"
+                          two-line
+                          :href="ghr.web_url"
+                          target="_blank"
+                        >
+                          <template #append>
+                            <v-avatar size="24" :image="iconGitHub" />
                           </template>
                         </v-list-item>
                       </v-list>
@@ -848,7 +878,8 @@ import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { useSystemSurfaceColor, useSystemAccentColor } from "@/utils/app";
 import { formatDuration } from "@/utils/formatting";
-import iconGitlab from "@/assets/images/icon-gitlab.svg?url";
+import iconGitLab from "@/assets/images/icon-gitlab.svg?url";
+import iconGitHub from "@/assets/images/icon-github.svg?url";
 import iconMonday from "@/assets/images/icon-monday.svg?url";
 import defaultProjectAvatar from "@/assets/images/default-project-avatar.svg?url";
 import defaultProjectBanner from "@/assets/images/default-project-banner.jpg?url";
@@ -875,7 +906,8 @@ import type {
   Principal,
   News,
   Tracker,
-  GitlabProject,
+  GitLabProject,
+  GitHubRepository,
   FridayMenuItem,
   ProjectWikiPageLink,
   PrincipalRole,
@@ -978,7 +1010,11 @@ export default defineComponent({
       required: true,
     },
     gitlabProjects: {
-      type: Array as PropType<GitlabProject[]>,
+      type: Array as PropType<GitLabProject[]>,
+      required: true,
+    },
+    githubRepositories: {
+      type: Array as PropType<GitHubRepository[]>,
       required: true,
     },
     parents: {
@@ -1123,6 +1159,7 @@ export default defineComponent({
       totalHours: props.totalHours,
       totalEstimatedHours: props.totalEstimatedHours,
       gitlabProjects: props.gitlabProjects,
+      githubRepositories: props.githubRepositories,
       parents: props.parents,
       wiki: props.wiki,
       documents: props.documents,
@@ -1150,7 +1187,8 @@ export default defineComponent({
       hasModule,
       currentUserCan,
       topLevelWikiPages,
-      iconGitlab,
+      iconGitLab,
+      iconGitHub,
       iconMonday,
       avatarUrlForPrincipal,
       formatDuration,

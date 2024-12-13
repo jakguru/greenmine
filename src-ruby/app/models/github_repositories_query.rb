@@ -2,15 +2,15 @@ class GithubRepositoriesQuery < Query
   self.queried_class = GithubRepository
 
   self.available_columns = [
-    QueryColumn.new(:project_id, sortable: "#{GithubRepository.table_name}.project_id", default_order: "desc", caption: "#", frozen: true),
+    QueryColumn.new(:repository_id, sortable: "#{GithubRepository.table_name}.repository_id", default_order: "desc", caption: "#", frozen: true),
     QueryColumn.new(:name, sortable: "#{GithubRepository.table_name}.name"),
     QueryColumn.new(:name_with_namespace, sortable: "#{GithubRepository.table_name}.name_with_namespace"),
     QueryColumn.new(:path, sortable: "#{GithubRepository.table_name}.path"),
     QueryColumn.new(:path_with_namespace, sortable: "#{GithubRepository.table_name}.path_with_namespace"),
-    QueryColumn.new(:github_instance, sortable: "#{GithubInstance.table_name}.id")
-    # QueryColumn.new(:web_url),
-    # QueryColumn.new(:git_http_url),
-    # QueryColumn.new(:git_ssh_url)
+    QueryColumn.new(:github_instance, sortable: "#{GithubInstance.table_name}.id"),
+    QueryColumn.new(:web_url),
+    QueryColumn.new(:git_http_url),
+    QueryColumn.new(:git_ssh_url)
   ]
 
   def initialize(attributes = nil, *args)
@@ -18,13 +18,13 @@ class GithubRepositoriesQuery < Query
   end
 
   def initialize_available_filters
-    add_available_filter "id", type: :list, name: l(:field_github_projects), values: lambda { github_project_values }
+    add_available_filter "id", type: :list, name: l(:field_github_repositories), values: lambda { github_repository_values }
     add_available_filter "name", type: :text
     add_available_filter "name_with_namespace", type: :text
     add_available_filter "path", type: :text
     add_available_filter "path_with_namespace", type: :text
     add_available_filter "github_id", type: :list, name: l(:field_githubs), values: lambda { github_values }
-    add_available_filter "project_id", type: :number
+    add_available_filter "repository_id", type: :number
   end
 
   def available_columns
@@ -35,11 +35,11 @@ class GithubRepositoriesQuery < Query
   end
 
   def default_columns_names
-    @default_columns_names ||= [:project_id, :github_instance, :name_with_namespace, :path_with_namespace]
+    @default_columns_names ||= [:repository_id, :github_instance, :name_with_namespace, :path_with_namespace]
   end
 
   def default_sort_criteria
-    [["project_id", "desc"]]
+    [["repository_id", "desc"]]
   end
 
   def base_scope
@@ -60,7 +60,7 @@ class GithubRepositoriesQuery < Query
     joins.any? ? joins.join(" ") : nil
   end
 
-  def github_project_values
+  def github_repository_values
     GithubRepository.all.collect { |gp| [gp.name, gp.id.to_s] }
   end
 

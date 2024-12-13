@@ -5,8 +5,8 @@
         <v-toolbar-title class="font-weight-bold d-flex align-center" tag="h1">
           {{
             !id
-              ? $t("pages.admin-integrations-gitlab-id-project.title")
-              : $t("pages.admin-integrations-gitlab-id-project.title")
+              ? $t("pages.admin-integrations-github-id-repository.title")
+              : $t("pages.admin-integrations-github-id-repository.title")
           }}
         </v-toolbar-title>
       </v-toolbar>
@@ -29,7 +29,7 @@
             >
               <!-- <v-icon class="me-2">mdi-open-in-app</v-icon> -->
               <v-img
-                :src="iconGitLab"
+                :src="iconGitHub"
                 :aspect-ratio="1"
                 width="13"
                 height="13"
@@ -37,7 +37,7 @@
               />
               {{
                 $t(
-                  "pages.admin-integrations-gitlab-id-project.content.openInGitLab",
+                  "pages.admin-integrations-github-id-repository.content.openInGitHub",
                 )
               }}
             </v-btn>
@@ -56,7 +56,7 @@
               <v-icon class="me-2">mdi-content-copy</v-icon>
               {{
                 $t(
-                  "pages.admin-integrations-gitlab-id-project.content.copyGitHttpUrl",
+                  "pages.admin-integrations-github-id-repository.content.copyGitHttpUrl",
                 )
               }}
             </v-btn>
@@ -75,7 +75,7 @@
               <v-icon class="me-2">mdi-content-copy</v-icon>
               {{
                 $t(
-                  "pages.admin-integrations-gitlab-id-project.content.copyGitSshUrl",
+                  "pages.admin-integrations-github-id-repository.content.copyGitSshUrl",
                 )
               }}
             </v-btn>
@@ -101,7 +101,7 @@
               />
               {{
                 $t(
-                  "pages.admin-integrations-gitlab-id-project.content.enqueueJobToInstallWebhooks",
+                  "pages.admin-integrations-github-id-repository.content.enqueueJobToInstallWebhooks",
                 )
               }}
             </v-btn>
@@ -116,7 +116,7 @@
         >
           {{
             $t(
-              "pages.admin-integrations-gitlab-id-project.content.associatedProjects",
+              "pages.admin-integrations-github-id-repository.content.associatedProjects",
             )
           }}
         </v-toolbar-title>
@@ -128,14 +128,14 @@
             <th>
               {{
                 $t(
-                  "pages.admin-integrations-gitlab-id-project.content.associatedProjectsTable.headers.name",
+                  "pages.admin-integrations-github-id-repository.content.associatedProjectsTable.headers.name",
                 )
               }}
             </th>
             <th>
               {{
                 $t(
-                  "pages.admin-integrations-gitlab-id-project.content.associatedProjectsTable.headers.isAssociated",
+                  "pages.admin-integrations-github-id-repository.content.associatedProjectsTable.headers.isAssociated",
                 )
               }}
             </th>
@@ -193,20 +193,20 @@ import {
   useCopyToClipboard,
 } from "@/utils/app";
 import { useActionCableConsumer } from "@/utils/realtime";
-import iconGitLab from "@/assets/images/icon-gitlab.svg?url";
+import iconGitHub from "@/assets/images/icon-github.svg?url";
 import iconWebhooks from "@/assets/images/icon-webhooks.svg?url";
 
 import type { PropType } from "vue";
 import type { ToastService, ApiService, BusService } from "@jakguru/vueprint";
 import type {
-  GitLabProject,
-  GitLabProjectValuesProp,
+  GitHubRepository,
+  GitHubRepositoryValuesProp,
   QueryResponse,
 } from "@/friday";
 import type Cable from "@rails/actioncable";
 
 export default defineComponent({
-  name: "AdminIntegrationsGitLabProject",
+  name: "AdminIntegrationsGitHubRepository",
   components: {},
   props: {
     formAuthenticityToken: {
@@ -226,7 +226,7 @@ export default defineComponent({
       required: true,
     },
     model: {
-      type: Object as PropType<GitLabProject>,
+      type: Object as PropType<GitHubRepository>,
       required: true,
     },
     projects: {
@@ -234,7 +234,7 @@ export default defineComponent({
       required: true,
     },
     values: {
-      type: Object as PropType<GitLabProjectValuesProp>,
+      type: Object as PropType<GitHubRepositoryValuesProp>,
       required: true,
     },
   },
@@ -265,13 +265,13 @@ export default defineComponent({
           to: { name: "admin-integrations" },
         },
         {
-          title: t("pages.admin-integrations-gitlab.title"),
-          to: { name: "admin-integrations-gitlab" },
+          title: t("pages.admin-integrations-github.title"),
+          to: { name: "admin-integrations-github" },
         },
         {
           title: parentName.value,
           to: {
-            name: "admin-integrations-gitlab-id",
+            name: "admin-integrations-github-id",
             params: { id: parentId.value },
             query: { tab: "projects" },
           },
@@ -303,7 +303,7 @@ export default defineComponent({
       }
       saving.value = true;
       const { status } = await api.put(
-        `/admin/integrations/gitlab/${parentId.value}/projects/${model.value.project_id}`,
+        `/admin/integrations/github/${parentId.value}/repositories/${model.value.repository_id}`,
         {
           project_ids: associatedProjects.value,
           authenticity_token: formAuthenticityToken.value,
@@ -312,13 +312,17 @@ export default defineComponent({
       if (201 === status) {
         toast.fire({
           icon: "success",
-          title: t("pages.admin-integrations-gitlab-id-project.onSave.success"),
+          title: t(
+            "pages.admin-integrations-github-id-repository.onSave.success",
+          ),
         });
         reloadRouteDataAction.call();
       } else {
         toast.fire({
           icon: "error",
-          title: t("pages.admin-integrations-gitlab-id-project.onSave.error"),
+          title: t(
+            "pages.admin-integrations-github-id-repository.onSave.error",
+          ),
         });
       }
       saving.value = false;
@@ -330,7 +334,7 @@ export default defineComponent({
       }
       enqueueingJobToInstallWebhooks.value = true;
       const { status } = await api.post(
-        `/admin/integrations/gitlab/${parentId.value}/projects/${model.value.project_id}/actions/install-webhooks`,
+        `/admin/integrations/github/${parentId.value}/repositories/${model.value.repository_id}/actions/install-webhooks`,
         {
           authenticity_token: formAuthenticityToken.value,
         },
@@ -339,14 +343,14 @@ export default defineComponent({
         toast.fire({
           icon: "success",
           title: t(
-            "pages.admin-integrations-gitlab-id-project.onEnqueueJobToInstallWebhooks.success",
+            "pages.admin-integrations-github-id-repository.onEnqueueJobToInstallWebhooks.success",
           ),
         });
       } else {
         toast.fire({
           icon: "error",
           title: t(
-            "pages.admin-integrations-gitlab-id-project.onEnqueueJobToInstallWebhooks.error",
+            "pages.admin-integrations-github-id-repository.onEnqueueJobToInstallWebhooks.error",
           ),
         });
       }
@@ -354,46 +358,47 @@ export default defineComponent({
     };
 
     const consumer = useActionCableConsumer();
-    const projectGitLabProjectSubscription = ref<
+    const projectGitHubRepositorySubscription = ref<
       Cable.Subscription | undefined
     >(undefined);
     onMounted(() => {
       if (consumer) {
-        if (projectGitLabProjectSubscription.value) {
-          projectGitLabProjectSubscription.value.unsubscribe();
+        if (projectGitHubRepositorySubscription.value) {
+          projectGitHubRepositorySubscription.value.unsubscribe();
         }
-        projectGitLabProjectSubscription.value = consumer.subscriptions.create(
-          {
-            channel: "FridayPlugin::RealTimeUpdatesChannel",
-            room: "project_gitlab_project",
-          },
-          {
-            received: (data: {
-              gitlab_instance_id: number;
-              gitlab_project_id: number;
-              from?: string;
-            }) => {
-              if (
-                data.gitlab_instance_id === parentId.value &&
-                data.gitlab_project_id === id.value &&
-                (!data.from || bus?.uuid !== data.from)
-              ) {
-                reloadRouteDataAction.call();
-              }
+        projectGitHubRepositorySubscription.value =
+          consumer.subscriptions.create(
+            {
+              channel: "FridayPlugin::RealTimeUpdatesChannel",
+              room: "project_github_repository",
             },
-          },
-        );
+            {
+              received: (data: {
+                github_instance_id: number;
+                github_repository_id: number;
+                from?: string;
+              }) => {
+                if (
+                  data.github_instance_id === parentId.value &&
+                  data.github_repository_id === id.value &&
+                  (!data.from || bus?.uuid !== data.from)
+                ) {
+                  reloadRouteDataAction.call();
+                }
+              },
+            },
+          );
       }
     });
     onBeforeUnmount(() => {
-      if (projectGitLabProjectSubscription.value) {
-        projectGitLabProjectSubscription.value.unsubscribe();
+      if (projectGitHubRepositorySubscription.value) {
+        projectGitHubRepositorySubscription.value.unsubscribe();
       }
     });
     return {
       breadcrumbsBindings,
       accentColor,
-      iconGitLab,
+      iconGitHub,
       copyToClipboard,
       associatedProjects,
       projectValues,
