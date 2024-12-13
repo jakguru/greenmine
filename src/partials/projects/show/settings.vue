@@ -89,6 +89,7 @@ import type {
   ProjectDocumentLink,
   File,
   MondayBoard,
+  SelectableListItem,
 } from "@/friday";
 import type {
   FridayFormStructure,
@@ -231,6 +232,14 @@ export default defineComponent({
       type: Function as PropType<(input: string) => boolean>,
       required: true,
     },
+    possibleGitHubRepositories: {
+      type: Array as PropType<SelectableListItem<number>[]>,
+      required: true,
+    },
+    possibleGitLabProjects: {
+      type: Array as PropType<SelectableListItem<number>[]>,
+      required: true,
+    },
   },
   setup(props) {
     const toast = inject<ToastService>("toast");
@@ -254,6 +263,10 @@ export default defineComponent({
     const versions = computed(() => values.value.versions);
     const assignees = computed(() => values.value.assignees);
     const queries = computed(() => values.value.queries);
+    const possibleGitHubRepositories = computed(
+      () => props.possibleGitHubRepositories,
+    );
+    const possibleGitLabProjects = computed(() => props.possibleGitLabProjects);
     const { t } = useI18n({ useScope: "global" });
     const tabs = computed(() => [
       { text: t("pages.projects-id-settings.tabs.project"), value: "info" },
@@ -287,10 +300,10 @@ export default defineComponent({
         text: t("pages.projects-id-settings.tabs.gitlab"),
         value: "gitlab",
       },
-      {
-        text: t("pages.projects-id-settings.tabs.monday"),
-        value: "monday",
-      },
+      // {
+      //   text: t("pages.projects-id-settings.tabs.monday"),
+      //   value: "monday",
+      // },
       // { text: t("pages.projects-id-settings.tabs.boards"), value: "boards" },
     ]);
     const tab = computed({
@@ -712,12 +725,54 @@ export default defineComponent({
         //   return [];
         // case "versions":
         //   return [];
-        // case "repositories":
-        //   return [];
+        case "github":
+          return [
+            [
+              {
+                cols: 12,
+                fieldComponent: VAutocomplete,
+                formKey: "github_repository_ids",
+                valueKey: "github_repository_ids",
+                label: t(
+                  `pages.projects-id-settings.content.fields.github_repository_ids`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.github_repository_ids`,
+                  ),
+                  items: possibleGitHubRepositories.value,
+                  itemTitle: "label",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+              },
+            ],
+          ];
         case "gitlab":
-          return [];
-        case "boards":
-          return [];
+          return [
+            [
+              {
+                cols: 12,
+                fieldComponent: VAutocomplete,
+                formKey: "gitlab_project_ids",
+                valueKey: "gitlab_project_ids",
+                label: t(
+                  `pages.projects-id-settings.content.fields.gitlab_project_ids`,
+                ),
+                bindings: {
+                  label: t(
+                    `pages.projects-id-settings.content.fields.gitlab_project_ids`,
+                  ),
+                  items: possibleGitLabProjects.value,
+                  itemTitle: "label",
+                  multiple: true,
+                  chips: true,
+                  closableChips: true,
+                },
+              },
+            ],
+          ];
         default:
           return [];
       }

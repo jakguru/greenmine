@@ -914,6 +914,7 @@ import type {
   ProjectDocumentLink,
   File,
   MondayBoard,
+  SelectableListItem,
 } from "@/friday";
 
 export default defineComponent({
@@ -1035,6 +1036,14 @@ export default defineComponent({
     },
     mondayBoard: {
       type: Object as PropType<MondayBoard | null>,
+      required: true,
+    },
+    possibleGitHubRepositories: {
+      type: Array as PropType<SelectableListItem<number>[]>,
+      required: true,
+    },
+    possibleGitLabProjects: {
+      type: Array as PropType<SelectableListItem<number>[]>,
       required: true,
     },
   },
@@ -1169,6 +1178,8 @@ export default defineComponent({
       accentColor: accentColor.value,
       hasModule,
       currentUserCan,
+      possibleGitHubRepositories: props.possibleGitHubRepositories,
+      possibleGitLabProjects: props.possibleGitLabProjects,
     }));
     const isCurrentRoute = (names: string[]) => {
       return names.includes(route.name as string);

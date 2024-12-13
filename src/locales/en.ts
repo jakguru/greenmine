@@ -698,6 +698,8 @@ export default {
           default_assigned_to_id: "Default Assignee",
           default_issue_query_id: "Default Issue Query",
           issue_categories: "Issue Categories",
+          github_repository_ids: "Associated GitHub Repositories",
+          gitlab_project_ids: "Associated GitLab Projects",
         },
       },
       onSave: {

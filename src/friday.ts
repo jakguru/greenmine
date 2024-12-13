@@ -1312,6 +1312,8 @@ export interface ProjectModel {
   issue_custom_field_ids: number[];
   gitlab_projects: number[];
   github_repositories: number[];
+  gitlab_project_ids: number[];
+  github_repository_ids: number[];
   eumerations: Record<string, ProjectEnumeration>;
   issue_categories: ProjectModelIssueCategory[];
   activities: number[];

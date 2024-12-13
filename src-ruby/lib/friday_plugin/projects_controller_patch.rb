@@ -84,8 +84,7 @@ module FridayPlugin
               parents << project.parent
               project = project.parent
             end
-
-            render_project_response({
+            additional = {
               principalsByRole: principals_by_role,
               subprojects: subprojects,
               news: news,
@@ -96,8 +95,27 @@ module FridayPlugin
               totalEstimatedHours: total_estimated_hours,
               gitlabProjects: gitlab_projects,
               githubRepositories: github_repositories,
+              possibleGitHubRepositories: [],
+              possibleGitLabProjects: [],
               parents: parents.reverse
-            })
+            }
+            case params[:tab]
+            when "github"
+              additional[:possibleGitHubRepositories] = GithubRepository.all.map { |github_repository|
+                {
+                  value: github_repository.id,
+                  label: github_repository.name_with_namespace
+                }
+              }
+            when "gitlab"
+              additional[:possibleGitLabProjects] = GitlabProject.all.map { |gitlab_project|
+                {
+                  value: gitlab_project.id,
+                  label: gitlab_project.name_with_namespace
+                }
+              }
+            end
+            render_project_response(additional)
           else
             redmine_base_show
           end
@@ -477,8 +495,10 @@ module FridayPlugin
               enabled_module_names: @project.enabled_module_names.reject { |name| name == "repository" || name == "boards" },
               tracker_ids: @project.trackers.map(&:id),
               issue_custom_field_ids: @project.all_issue_custom_fields.ids,
-              gitlab_projects: @project.gitlab_projects(&:id),
-              github_repositories: @project.github_repositories(&:id),
+              gitlab_projects: @project.gitlab_projects,
+              github_repositories: @project.github_repositories,
+              gitlab_project_ids: @project.gitlab_projects.map(&:id),
+              github_repository_ids: @project.github_repositories.map(&:id),
               eumerations: eumerations,
               description: @project.description.nil? ? "" : @project.description,
               memberships: @project.memberships.preload(:member_roles, :roles).collect { |membership|
