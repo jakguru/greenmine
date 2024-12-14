@@ -4,6 +4,15 @@ class GithubRepository < ActiveRecord::Base
   belongs_to :github_instance, class_name: "GithubInstance", foreign_key: "github_id"
   has_many :project_repositories, class_name: "ProjectGithubRepository", foreign_key: "github_repository_id"
   has_many :projects, through: :project_repositories
+  # Association with RemoteGit Models
+  has_many :branches, as: :branchable, class_name: "RemoteGit::Branch", dependent: :destroy
+  has_many :commits, as: :commitable, class_name: "RemoteGit::Commit", dependent: :destroy
+  has_many :merge_requests, as: :merge_requestable, class_name: "RemoteGit::MergeRequest", dependent: :destroy
+  has_many :tags, as: :taggable, class_name: "RemoteGit::Tag", dependent: :destroy
+  has_many :releases, through: :tags, class_name: "RemoteGit::Release"
+  has_many :pipelines, through: :branches, class_name: "RemoteGit::Pipeline"
+  has_many :pipelines, through: :tags, class_name: "RemoteGit::Pipeline"
+  has_many :pipelines, through: :commits, class_name: "RemoteGit::Pipeline"
 
   # Validations
   validates :github_id, presence: true

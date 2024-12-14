@@ -69,6 +69,11 @@ module Admin
         render json: {}, status: 202
       end
 
+      def enqueue_fetch_entities
+        # TODO: Implement this
+        render json: {}, status: 202
+      end
+
       def show_repository
         @github_repository = GithubRepository.where(github_id: @github.id, repository_id: params[:repository_id]).first
         if friday_request?

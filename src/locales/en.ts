@@ -92,6 +92,13 @@ export default {
           error: "An error occurred while saving the user association",
         },
       },
+      entities: {
+        cta: "Sync Entities",
+        onFetch: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
+      },
       onSave: {
         success: "Integration created successfully",
         error: "An error occurred while creating the integration",
@@ -176,6 +183,13 @@ export default {
         },
         onSave: {
           error: "An error occurred while saving the user association",
+        },
+      },
+      entities: {
+        cta: "Sync Entities",
+        onFetch: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
         },
       },
       onSave: {
@@ -2056,6 +2070,18 @@ export default {
     },
   },
   userActionMenu: {
+    filterTo: {
+      title: "Filter",
+    },
+    none: {
+      title: "No Actions Available",
+    },
+    delete: {
+      title: "Delete",
+      confirm: "Are you sure you want to delete this user?",
+    },
+  },
+  integrationsActionMenu: {
     filterTo: {
       title: "Filter",
     },

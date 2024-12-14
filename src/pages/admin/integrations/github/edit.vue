@@ -207,6 +207,26 @@
         </v-container>
       </template>
       <template v-else>
+        <v-toolbar color="transparent">
+          <v-slide-group show-arrows class="mx-2">
+            <v-slide-group-item>
+              <v-btn
+                variant="elevated"
+                :color="accentColor"
+                size="x-small"
+                class="ma-2"
+                type="button"
+                height="24px"
+                :loading="submitting"
+                style="position: relative; top: 1px"
+                @click="doFetchEntities"
+              >
+                <v-icon class="me-2">mdi-cloud-sync</v-icon>
+                {{ $t("pages.admin-integrations-github-id.entities.cta") }}
+              </v-btn>
+            </v-slide-group-item>
+          </v-slide-group>
+        </v-toolbar>
         <FridayForm
           v-bind="fridayFormBindings"
           ref="renderedForm"
@@ -758,6 +778,27 @@ export default defineComponent({
         });
       }
     };
+    const doFetchEntities = async () => {
+      if (!api) {
+        return;
+      }
+      const { status } = await api.post(
+        `/admin/integrations/github/${id.value}/entities`,
+      );
+      if (status !== 202) {
+        toast?.fire({
+          title: t("pages.admin-integrations-github-id.entities.onFetch.error"),
+          icon: "error",
+        });
+      } else {
+        toast?.fire({
+          title: t(
+            "pages.admin-integrations-github-id.entities.onFetch.success",
+          ),
+          icon: "success",
+        });
+      }
+    };
     const consumer = useActionCableConsumer();
     const repositoriesSubscription = ref<Cable.Subscription | undefined>(
       undefined,
@@ -1043,6 +1084,7 @@ export default defineComponent({
       showAdditional,
       doFetchProjects,
       doFetchUsers,
+      doFetchEntities,
       userValues,
       usersSaving,
       doSaveUserGitHubUserAssociation,

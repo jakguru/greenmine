@@ -68,6 +68,7 @@ RedmineApp::Application.routes.draw do
           post "projects/:project_id/actions/:action_to_perform", to: "gitlab#handle_project_action"
           post "users", to: "gitlab#enqueue_fetch_users"
           put "users", to: "gitlab#update_user_gitlab_user_association"
+          post "entities", to: "gitlab#enqueue_fetch_entities"
         end
       end
 
@@ -96,6 +97,7 @@ RedmineApp::Application.routes.draw do
           post "repositories/:repository_id/actions/:action_to_perform", to: "github#handle_repository_action"
           post "users", to: "github#enqueue_fetch_users"
           put "users", to: "github#update_user_github_user_association"
+          post "entities", to: "github#enqueue_fetch_entities"
         end
       end
     end

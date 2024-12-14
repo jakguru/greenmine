@@ -95,7 +95,7 @@ export default defineComponent({
             prependIcon: "mdi-open-in-app",
             density: "compact",
             to: {
-              name: "admin-integrations-github-id-edit",
+              name: "admin-integrations-github-id",
               params: { id: customFields[0].id },
             },
           }),

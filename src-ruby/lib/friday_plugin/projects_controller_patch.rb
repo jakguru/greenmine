@@ -664,14 +664,20 @@ module FridayPlugin
             if creating && !User.current.admin?
               @project.add_default_member(User.current)
             end
-            if params[:project][:activities].present?
+            if params[:project].key?("activities")
               syncronize_project_activities(@project, params[:project][:activities])
             end
-            if params[:project][:memberships].present?
+            if params[:project].key?("memberships")
               syncronize_project_memberships(@project, params[:project][:memberships])
             end
             if params[:issue_categories].present?
               syncronize_issue_categories(@project, params[:issue_categories])
+            end
+            if params[:project].key?("github_repository_ids")
+              syncronize_github_repositories(@project, params[:project][:github_repository_ids])
+            end
+            if params[:project].key?("gitlab_project_ids")
+              syncronize_gitlab_projects(@project, params[:project][:gitlab_project_ids])
             end
             render json: {
               id: @project.id,
@@ -904,6 +910,38 @@ module FridayPlugin
             else
               existing_category.assigned_to_id = category[:assigned_to_id]
               existing_category.save
+            end
+          end
+        end
+
+        def syncronize_github_repositories(project, github_repository_ids)
+          existing_relationships = project.project_github_repositories
+          # Remove existing relationships that are not in the new list
+          existing_relationships.each do |existing_relationship|
+            if !github_repository_ids.include?(existing_relationship[:github_repository_id])
+              existing_relationship.destroy
+            end
+          end
+          # Add new relationships that are not in the existing list
+          github_repository_ids.each do |github_repository_id|
+            if !existing_relationships.any? { |existing_relationship| existing_relationship[:github_repository_id] == github_repository_id }
+              project.project_github_repositories.create(github_repository_id: github_repository_id)
+            end
+          end
+        end
+
+        def syncronize_gitlab_projects(project, gitlab_project_ids)
+          existing_relationships = project.project_gitlab_projects
+          # Remove existing relationships that are not in the new list
+          existing_relationships.each do |existing_relationship|
+            if !gitlab_project_ids.include?(existing_relationship[:gitlab_project_id])
+              existing_relationship.destroy
+            end
+          end
+          # Add new relationships that are not in the existing list
+          gitlab_project_ids.each do |gitlab_project_id|
+            if !existing_relationships.any? { |existing_relationship| existing_relationship[:gitlab_project_id] == gitlab_project_id }
+              project.project_gitlab_projects.create(gitlab_project_id: gitlab_project_id)
             end
           end
         end

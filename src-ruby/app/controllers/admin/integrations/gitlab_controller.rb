@@ -69,6 +69,11 @@ module Admin
         render json: {}, status: 202
       end
 
+      def enqueue_fetch_entities
+        # TODO: Implement this
+        render json: {}, status: 202
+      end
+
       def show_project
         @gitlab_project = GitlabProject.where(gitlab_id: @gitlab.id, project_id: params[:project_id]).first
         if friday_request?

@@ -4,6 +4,15 @@ class GitlabProject < ActiveRecord::Base
   belongs_to :gitlab_instance, class_name: "GitlabInstance", foreign_key: "gitlab_id"
   has_many :project_gitlab_projects, class_name: "ProjectGitlabProject", foreign_key: "gitlab_project_id"
   has_many :projects, through: :project_gitlab_projects
+  # Association with RemoteGit Models
+  has_many :branches, as: :branchable, class_name: "RemoteGit::Branch", dependent: :destroy
+  has_many :commits, as: :commitable, class_name: "RemoteGit::Commit", dependent: :destroy
+  has_many :merge_requests, as: :merge_requestable, class_name: "RemoteGit::MergeRequest", dependent: :destroy
+  has_many :tags, as: :taggable, class_name: "RemoteGit::Tag", dependent: :destroy
+  has_many :releases, through: :tags, class_name: "RemoteGit::Release"
+  has_many :pipelines, through: :branches, class_name: "RemoteGit::Pipeline"
+  has_many :pipelines, through: :tags, class_name: "RemoteGit::Pipeline"
+  has_many :pipelines, through: :commits, class_name: "RemoteGit::Pipeline"
 
   # Validations
   validates :gitlab_id, presence: true
