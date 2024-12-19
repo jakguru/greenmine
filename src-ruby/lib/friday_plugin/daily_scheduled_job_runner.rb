@@ -16,6 +16,7 @@ module FridayPlugin
 
     def self.run_periodic_task
       # Your periodic task logic here
+      PeriodicallyFetchGitablesJob.perform_async
     rescue => e
       Rails.logger.error("Error while running Friday plugin's periodic task: #{e.message}")
     end
