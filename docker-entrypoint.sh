@@ -83,7 +83,8 @@ if [ -n "$isLikelyRedmine" ]; then
 			file_env 'REDMINE_DB_USERNAME' "${MYSQL_ENV_MYSQL_USER:-root}"
 			file_env 'REDMINE_DB_PASSWORD' "${MYSQL_ENV_MYSQL_PASSWORD:-${MYSQL_ENV_MYSQL_ROOT_PASSWORD:-}}"
 			file_env 'REDMINE_DB_DATABASE' "${MYSQL_ENV_MYSQL_DATABASE:-${MYSQL_ENV_MYSQL_USER:-redmine}}"
-			file_env 'REDMINE_DB_ENCODING' ''
+			file_env 'REDMINE_DB_ENCODING' 'utf8mb4'
+			file_env 'REDMINE_DB_COLLATION' 'utf8mb4_unicode_ci'
 		elif [ "$REDMINE_DB_POSTGRES" ]; then
 			adapter='postgresql'
 			host="$REDMINE_DB_POSTGRES"
@@ -91,7 +92,8 @@ if [ -n "$isLikelyRedmine" ]; then
 			file_env 'REDMINE_DB_USERNAME' "${POSTGRES_ENV_POSTGRES_USER:-postgres}"
 			file_env 'REDMINE_DB_PASSWORD' "${POSTGRES_ENV_POSTGRES_PASSWORD}"
 			file_env 'REDMINE_DB_DATABASE' "${POSTGRES_ENV_POSTGRES_DB:-${REDMINE_DB_USERNAME:-}}"
-			file_env 'REDMINE_DB_ENCODING' 'utf8'
+			file_env 'REDMINE_DB_ENCODING' 'utf8mb4'
+			file_env 'REDMINE_DB_COLLATION' 'utf8mb4_unicode_ci'
 		elif [ "$REDMINE_DB_SQLSERVER" ]; then
 			adapter='sqlserver'
 			host="$REDMINE_DB_SQLSERVER"
@@ -100,6 +102,7 @@ if [ -n "$isLikelyRedmine" ]; then
 			file_env 'REDMINE_DB_PASSWORD' ''
 			file_env 'REDMINE_DB_DATABASE' ''
 			file_env 'REDMINE_DB_ENCODING' ''
+			file_env 'REDMINE_DB_COLLATION' ''
 		else
 			echo >&2
 			echo >&2 'warning: missing REDMINE_DB_MYSQL, REDMINE_DB_POSTGRES, or REDMINE_DB_SQLSERVER environment variables'
@@ -113,7 +116,8 @@ if [ -n "$isLikelyRedmine" ]; then
 			file_env 'REDMINE_DB_USERNAME' 'redmine'
 			file_env 'REDMINE_DB_PASSWORD' ''
 			file_env 'REDMINE_DB_DATABASE' 'sqlite/redmine.db'
-			file_env 'REDMINE_DB_ENCODING' 'utf8'
+			file_env 'REDMINE_DB_ENCODING' 'utf8mb4'
+			file_env 'REDMINE_DB_COLLATION' 'utf8mb4_unicode_ci'
 
 			mkdir -p "$(dirname "$REDMINE_DB_DATABASE")"
 			if [ "$(id -u)" = '0' ]; then
@@ -132,6 +136,7 @@ if [ -n "$isLikelyRedmine" ]; then
 			password \
 			database \
 			encoding \
+			collation \
 		; do
 			env="REDMINE_DB_${var^^}"
 			val="${!env}"

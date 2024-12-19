@@ -1,18 +1,30 @@
 module RemoteGit
   class Tag < ActiveRecord::Base
     self.table_name = "remote_git_tags"
-    # Relationships
-    belongs_to :commit, class_name: "RemoteGit::Commit"
+
+    # Polymorphic association
     belongs_to :taggable, polymorphic: true
+
+    # Association with the commit that the tag points to
+    belongs_to :commit, class_name: "RemoteGit::Commit"
+
+    # Association with the committer
+    belongs_to :committer, class_name: "RemoteGit::Committer", optional: true
 
     # Validations
     validates :name, presence: true
-    validates :tagged_at, presence: true
-    validates :author_name, presence: true
-    validates :author_email, presence: true, format: {with: URI::MailTo::EMAIL_REGEXP}
     validates :commit, presence: true
+    validates :taggable, presence: true
 
-    # Custom method to retrieve projects
+    # Ensure uniqueness at the model level as well
+    validates :name, uniqueness: {scope: [:taggable_type, :taggable_id]}
+
+    # Self-referential logic for parent tags
+    def parent_commit
+      RemoteGit::Commit.find_by(sha: parent_sha) if parent_sha.present?
+    end
+
+    # Custom method to retrieve associated projects
     def projects
       case taggable
       when GitLabProject

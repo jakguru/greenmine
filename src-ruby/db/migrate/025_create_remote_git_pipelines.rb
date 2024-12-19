@@ -4,9 +4,8 @@ class CreateRemoteGitPipelines < ActiveRecord::Migration[6.0]
       t.string :name, null: false # Pipeline name
       t.references :branch, foreign_key: {to_table: :remote_git_branches}, null: true # Optional branch relationship
       t.references :tag, foreign_key: {to_table: :remote_git_tags}, null: true # Optional tag relationship
+      t.references :merge_request, foreign_key: {to_table: :remote_git_merge_requests}, null: true # Optional merge request relationship
       t.references :commit, foreign_key: {to_table: :remote_git_commits}, null: false # Required commit relationship
-      t.string :author_name, null: false # Name of the user who triggered the pipeline
-      t.string :author_email, null: false # Email of the user who triggered the pipeline
       t.string :remote_user, null: false # Remote user identifier for GitHub/GitLab
       t.datetime :start_time, null: false # When the pipeline started
       t.datetime :end_time # When the pipeline ended

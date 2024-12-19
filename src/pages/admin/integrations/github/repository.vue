@@ -106,6 +106,22 @@
               }}
             </v-btn>
           </v-slide-group-item>
+          <v-slide-group-item>
+            <v-btn
+              variant="elevated"
+              :color="accentColor"
+              size="x-small"
+              class="ma-2"
+              type="button"
+              height="24px"
+              :loading="enqueueingJobToFetchEntities"
+              style="position: relative; top: 1px"
+              @click="doEnqueueJobToFetchEntities"
+            >
+              <v-icon class="me-2">mdi-source-branch-sync</v-icon>
+              {{ $t("pages.admin-integrations-github-id.entities.cta") }}
+            </v-btn>
+          </v-slide-group-item>
         </v-slide-group>
       </v-toolbar>
       <v-divider />
@@ -357,6 +373,37 @@ export default defineComponent({
       enqueueingJobToInstallWebhooks.value = false;
     };
 
+    const enqueueingJobToFetchEntities = ref(false);
+    const doEnqueueJobToFetchEntities = async () => {
+      if (!api || !toast) {
+        return;
+      }
+      enqueueingJobToFetchEntities.value = true;
+      const { status } = await api.post(
+        `/admin/integrations/github/${parentId.value}/entities/`,
+        {
+          authenticity_token: formAuthenticityToken.value,
+          child: model.value.id,
+        },
+      );
+      if (202 === status) {
+        toast.fire({
+          icon: "success",
+          title: t(
+            "pages.admin-integrations-github-id-repository.onEnqueueJobToFetchEntities.success",
+          ),
+        });
+      } else {
+        toast.fire({
+          icon: "error",
+          title: t(
+            "pages.admin-integrations-github-id-repository.onEnqueueJobToFetchEntities.error",
+          ),
+        });
+      }
+      enqueueingJobToFetchEntities.value = false;
+    };
+
     const consumer = useActionCableConsumer();
     const projectGitHubRepositorySubscription = ref<
       Cable.Subscription | undefined
@@ -408,6 +455,8 @@ export default defineComponent({
       iconWebhooks,
       enqueueingJobToInstallWebhooks,
       doEnqueueJobToInstallWebhooks,
+      enqueueingJobToFetchEntities,
+      doEnqueueJobToFetchEntities,
     };
   },
 });

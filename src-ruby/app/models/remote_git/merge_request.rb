@@ -13,8 +13,6 @@ module RemoteGit
     validates :title, presence: true
     validates :state, presence: true
     validates :remote_id, presence: true, uniqueness: true
-    validates :author_name, presence: true
-    validates :author_email, presence: true, format: {with: URI::MailTo::EMAIL_REGEXP}
     validates :source_branch, presence: true
     validates :target_branch, presence: true
 

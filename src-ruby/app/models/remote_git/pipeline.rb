@@ -4,13 +4,12 @@ module RemoteGit
     # Relationships
     belongs_to :branch, class_name: "RemoteGit::Branch", optional: true
     belongs_to :tag, class_name: "RemoteGit::Tag", optional: true
+    belongs_to :merge_request, class_name: "RemoteGit::MergeRequest", optional: true
     belongs_to :commit, class_name: "RemoteGit::Commit"
 
     # Validations
     validates :name, presence: true
     validates :commit, presence: true
-    validates :author_name, presence: true
-    validates :author_email, presence: true, format: {with: URI::MailTo::EMAIL_REGEXP}
     validates :remote_user, presence: true
     validates :start_time, presence: true
     validates :status, presence: true

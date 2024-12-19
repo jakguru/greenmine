@@ -70,7 +70,11 @@ module Admin
       end
 
       def enqueue_fetch_entities
-        # TODO: Implement this
+        if params[:child].present?
+          FetchGitlabProjectEntitiesJob.perform_async(params[:child])
+        else
+          FetchGitableEntitiesJob.perform_async("GitlabInstance", params[:id])
+        end
         render json: {}, status: 202
       end
 
@@ -78,6 +82,7 @@ module Admin
         @gitlab_project = GitlabProject.where(gitlab_id: @gitlab.id, project_id: params[:project_id]).first
         if friday_request?
           render json: {
+            formAuthenticityToken: form_authenticity_token,
             id: @gitlab_project.id,
             parentName: @gitlab.name,
             parentId: @gitlab.id,

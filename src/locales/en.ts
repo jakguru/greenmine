@@ -80,6 +80,10 @@ export default {
           warning: "Some jobs failed to enqueue",
           error: "An error occurred while enqueueing the job(s)",
         },
+        onEnqueueJobToFetchEntities: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
       },
       users: {
         title: "GitHub Users",
@@ -124,6 +128,10 @@ export default {
         error: "An error occurred while saving the project associations",
       },
       onEnqueueJobToInstallWebhooks: {
+        success: "Job Enqueued Successfully",
+        error: "An error occurred while enqueueing the job",
+      },
+      onEnqueueJobToFetchEntities: {
         success: "Job Enqueued Successfully",
         error: "An error occurred while enqueueing the job",
       },
@@ -173,6 +181,10 @@ export default {
           warning: "Some jobs failed to enqueue",
           error: "An error occurred while enqueueing the job(s)",
         },
+        onEnqueueJobToFetchEntities: {
+          success: "Job Enqueued Successfully",
+          error: "An error occurred while enqueueing the job",
+        },
       },
       users: {
         title: "GitLab Users",
@@ -217,6 +229,10 @@ export default {
         error: "An error occurred while saving the project associations",
       },
       onEnqueueJobToInstallWebhooks: {
+        success: "Job Enqueued Successfully",
+        error: "An error occurred while enqueueing the job",
+      },
+      onEnqueueJobToFetchEntities: {
         success: "Job Enqueued Successfully",
         error: "An error occurred while enqueueing the job",
       },
@@ -316,6 +332,10 @@ export default {
         error: "An error occurred while saving the board configuration",
       },
       onEnqueueJobToInstallWebhooks: {
+        success: "Job Enqueued Successfully",
+        error: "An error occurred while enqueueing the job",
+      },
+      onEnqueueJobToFetchEntities: {
         success: "Job Enqueued Successfully",
         error: "An error occurred while enqueueing the job",
       },
@@ -2091,6 +2111,11 @@ export default {
     delete: {
       title: "Delete",
       confirm: "Are you sure you want to delete this user?",
+    },
+  },
+  githubProjectActionMenu: {
+    installWebhook: {
+      title: "Install Webhook",
     },
   },
   gitlabProjectActionMenu: {

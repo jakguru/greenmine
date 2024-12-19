@@ -7,7 +7,6 @@ module RemoteGit
 
     # Validations
     validates :name, presence: true
-    validates :released_at, presence: true
     validates :tag, presence: true
 
     # Custom method to retrieve projects (optional if needed)

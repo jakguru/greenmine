@@ -126,6 +126,22 @@
                   }}
                 </v-btn>
               </v-slide-group-item>
+              <v-slide-group-item>
+                <v-btn
+                  variant="elevated"
+                  :color="accentColor"
+                  size="x-small"
+                  class="ma-2"
+                  type="button"
+                  height="24px"
+                  :loading="submitting"
+                  style="position: relative; top: 1px"
+                  @click="doFetchEntities"
+                >
+                  <v-icon class="me-2">mdi-source-branch-sync</v-icon>
+                  {{ $t("pages.admin-integrations-github-id.entities.cta") }}
+                </v-btn>
+              </v-slide-group-item>
             </v-slide-group>
           </v-toolbar>
           <QueriesPartialDataTable
@@ -221,7 +237,7 @@
                 style="position: relative; top: 1px"
                 @click="doFetchEntities"
               >
-                <v-icon class="me-2">mdi-cloud-sync</v-icon>
+                <v-icon class="me-2">mdi-source-branch-sync</v-icon>
                 {{ $t("pages.admin-integrations-github-id.entities.cta") }}
               </v-btn>
             </v-slide-group-item>
@@ -289,6 +305,7 @@ import { VTextField } from "vuetify/components/VTextField";
 import { VSwitch } from "vuetify/components/VSwitch";
 import { VListItem } from "vuetify/components/VList";
 import { VImg } from "vuetify/components/VImg";
+import { VIcon } from "vuetify/components/VIcon";
 import { VPasswordField } from "@/components/fields";
 import { useRoute, useRouter } from "vue-router";
 import { makeNewQueryPayloadFromQueryAndQueryPayload } from "@/friday";
@@ -778,12 +795,15 @@ export default defineComponent({
         });
       }
     };
-    const doFetchEntities = async () => {
+    const doFetchEntities = async (child: number | null) => {
       if (!api) {
         return;
       }
       const { status } = await api.post(
         `/admin/integrations/github/${id.value}/entities`,
+        {
+          child,
+        },
       );
       if (status !== 202) {
         toast?.fire({
@@ -1044,6 +1064,31 @@ export default defineComponent({
                   height: 22,
                   aspectRatio: 1,
                 }),
+            },
+          ),
+        },
+        {
+          component: h(
+            VListItem,
+            {
+              title: t("pages.admin-integrations-github-id.entities.cta"),
+              density: "compact",
+              onClick: async () => {
+                await Promise.all(
+                  githubProjects.map((p) => doFetchEntities(p.id)),
+                );
+                onDone();
+              },
+            },
+            {
+              append: () =>
+                h(
+                  VIcon,
+                  {
+                    size: 22,
+                  },
+                  "mdi-source-branch-sync",
+                ),
             },
           ),
         },

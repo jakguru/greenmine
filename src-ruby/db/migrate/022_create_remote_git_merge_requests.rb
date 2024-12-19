@@ -1,16 +1,14 @@
 class CreateRemoteGitMergeRequests < ActiveRecord::Migration[6.0]
   def change
     create_table :remote_git_merge_requests do |t|
-      t.string :title, null: false
-      t.text :description
+      t.string :title, null: false, collation: "utf8mb4_bin"
+      t.text :description, collation: "utf8mb4_bin"
       t.string :state, null: false # e.g., "open", "merged", "closed"
       t.string :remote_id, null: false # Unique ID from GitHub/GitLab
       t.datetime :opened_at, null: false
       t.datetime :closed_at
       t.datetime :merged_at
-      t.string :author_name, null: false
-      t.string :author_email, null: false
-      t.string :merge_user # Remote user who performed the merge
+      t.string :merge_user, collation: "utf8mb4_bin" # Remote user who performed the merge
       t.boolean :draft, default: false
       t.boolean :can_merge, default: false # Indicates if the merge request can currently be merged
       t.string :status # Current status (GitLab/GitHub mergeable state)

@@ -5,6 +5,7 @@ class CronsController < ApplicationController
 
   def poll
     FridayPlugin::ScheduledJobRunner.run_if_needed
+    FridayPlugin::DailyScheduledJobRunner.run_if_needed
     render json: {status: "OK"}
   end
 end

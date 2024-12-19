@@ -70,7 +70,11 @@ module Admin
       end
 
       def enqueue_fetch_entities
-        # TODO: Implement this
+        if params[:child].present?
+          FetchGithubRepositoryEntitiesJob.perform_async(params[:child])
+        else
+          FetchGitableEntitiesJob.perform_async("GithubInstance", params[:id])
+        end
         render json: {}, status: 202
       end
 
@@ -78,6 +82,7 @@ module Admin
         @github_repository = GithubRepository.where(github_id: @github.id, repository_id: params[:repository_id]).first
         if friday_request?
           render json: {
+            formAuthenticityToken: form_authenticity_token,
             id: @github_repository.id,
             parentName: @github.name,
             parentId: @github.id,

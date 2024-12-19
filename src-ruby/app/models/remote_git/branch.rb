@@ -4,6 +4,9 @@ module RemoteGit
     # Polymorphic association
     belongs_to :branchable, polymorphic: true
 
+    # Many-to-Many relationship with Commits
+    has_and_belongs_to_many :commits, class_name: "RemoteGit::Commit", join_table: "remote_git_branches_commits"
+
     # Validations
     validates :name, presence: true
     validates :branchable, presence: true
