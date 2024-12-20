@@ -2,6 +2,7 @@ class CreateRemoteGitPipelines < ActiveRecord::Migration[6.0]
   def change
     create_table :remote_git_pipelines do |t|
       t.string :name, null: false # Pipeline name
+      t.string :remote_id, null: false # Unique ID from GitHub/GitLab
       t.references :branch, foreign_key: {to_table: :remote_git_branches}, null: true # Optional branch relationship
       t.references :tag, foreign_key: {to_table: :remote_git_tags}, null: true # Optional tag relationship
       t.references :merge_request, foreign_key: {to_table: :remote_git_merge_requests}, null: true # Optional merge request relationship

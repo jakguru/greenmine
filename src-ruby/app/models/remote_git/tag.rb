@@ -13,6 +13,7 @@ module RemoteGit
 
     # Validations
     validates :name, presence: true
+    validates :remote_id, presence: true, uniqueness: true
     validates :commit, presence: true
     validates :taggable, presence: true
 

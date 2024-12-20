@@ -3,32 +3,18 @@ class FetchGithubRepositoryEntitiesJob
 
   def perform(id, only = ["branch", "commit", "merge_request", "tag", "pipeline", "release"], since = nil)
     github_repository = GithubRepository.find(id)
-    return nil if github_repository.nil?
+    return if github_repository.nil?
 
     github = github_repository.github_instance
-    return nil if github.nil?
+    return if github.nil?
 
     api_client = github.api_client
 
-    if only.include?("branch") || only.include?("commit")
-      sync_branches_and_commits(github_repository, api_client, since)
-    end
-
-    if only.include?("merge_request")
-      sync_merge_requests(github_repository, api_client)
-    end
-
-    if only.include?("tag")
-      sync_tags(github_repository, api_client)
-    end
-
-    if only.include?("pipeline")
-      sync_pipelines(github_repository, api_client)
-    end
-
-    if only.include?("release")
-      sync_releases(github_repository, api_client)
-    end
+    sync_branches_and_commits(github_repository, api_client, since) if only.include?("branch") || only.include?("commit")
+    sync_merge_requests(github_repository, api_client) if only.include?("merge_request")
+    sync_tags(github_repository, api_client) if only.include?("tag")
+    sync_pipelines(github_repository, api_client) if only.include?("pipeline")
+    sync_releases(github_repository, api_client) if only.include?("release")
   end
 
   private
@@ -105,7 +91,7 @@ class FetchGithubRepositoryEntitiesJob
       commitable_id: github_repository.id,
       author_name: committer_name,
       author_email: committer_email,
-      remote_user: committer_data[:committer]&.[](:id) || nil # Use the `id` field for remote_user
+      remote_user: committer_data[:committer]&.[](:id) || nil # Use the id field for remote_user
     }
     # Handle creation or update separately to avoid conflicts
     commit = RemoteGit::Commit.find_or_initialize_by(sha: commit_data[:sha])
@@ -203,184 +189,71 @@ class FetchGithubRepositoryEntitiesJob
   def sync_tags(github_repository, api_client)
     Rails.logger.info("Fetching tags for Github repository #{github_repository.id}")
 
-    tags = []
-    res = api_client.tags(github_repository.path_with_namespace)
-    tags.concat(res)
-
-    while api_client.last_response.rels[:next].present?
-      res = api_client.get(api_client.last_response.rels[:next].href)
-      tags.concat(res)
-    end
-
-    tags.each do |tag_data|
-      # Fetch commit SHA from tag data
+    api_client.tags(github_repository.path_with_namespace).each do |tag_data|
       commit_sha = tag_data[:commit][:sha]
       next unless commit_sha
 
-      # Check if commit exists in the database, otherwise sync it
-      commit = RemoteGit::Commit.where(sha: commit_sha).preload(:committer).first
-      unless commit
-        Rails.logger.info("Commit #{commit_sha} for tag #{tag_data[:name]} not found. Syncing commit.")
-        commit_details = api_client.commit(github_repository.path_with_namespace, commit_sha)
-        commit = sync_commit(github_repository, api_client, commit_details)
-        if commit.nil?
-          Rails.logger.warn("Failed to sync commit #{commit_sha} for tag #{tag_data[:name]}. Skipping tag.")
-          next
-        end
-      end
+      # Ensure commit exists
+      commit = RemoteGit::Commit.find_by(sha: commit_sha) || sync_commit(github_repository, api_client, api_client.commit(github_repository.path_with_namespace, commit_sha))
+      next unless commit
 
-      # Create or update the tag
+      # Sync tag
       tag_attrs = {
+        remote_id: tag_data[:node_id],
+        name: tag_data[:name],
         commit: commit,
-        parent_sha: commit[:parent_sha], # Optionally reference parent commit
-        committer_id: commit.committer_id,
-        tagged_at: commit[:committed_at],
-        taggable_type: "GithubRepository",
-        taggable_id: github_repository.id
+        tagged_at: commit.committed_at,
+        taggable: github_repository
       }
+      tag = RemoteGit::Tag.find_or_initialize_by(remote_id: tag_data[:node_id])
+      tag.update!(tag_attrs)
+      Rails.logger.info("Synced tag #{tag.name} for repository #{github_repository.id}")
+    end
+  end
 
-      tag_record = RemoteGit::Tag.where(
-        taggable_type: "GithubRepository",
-        taggable_id: github_repository.id,
-        name: tag_data[:name]
-      ).first_or_initialize(tag_attrs)
+  def sync_releases(github_repository, api_client)
+    Rails.logger.info("Fetching releases for Github repository #{github_repository.id}")
 
-      tag_record.update!(tag_attrs)
-      Rails.logger.info("Synced tag: #{tag_data[:name]} for repository #{github_repository.id}")
+    api_client.releases(github_repository.path_with_namespace).each do |release_data|
+      tag = RemoteGit::Tag.find_by(name: release_data[:tag_name], taggable: github_repository)
+      next unless tag
+
+      release_attrs = {
+        remote_id: release_data[:id],
+        name: release_data[:name],
+        description: release_data[:body],
+        released_at: release_data[:published_at],
+        tag: tag
+      }
+      release = RemoteGit::Release.find_or_initialize_by(remote_id: release_data[:id])
+      release.update!(release_attrs)
+      Rails.logger.info("Synced release #{release.name} for repository #{github_repository.id}")
     end
   end
 
   def sync_pipelines(github_repository, api_client)
     Rails.logger.info("Fetching pipelines for Github repository #{github_repository.id}")
 
-    # Fetch pipelines
-    pipelines = []
-    res = api_client.get("/repos/#{github_repository.path_with_namespace}/actions/runs")
-    pipelines.concat(res[:workflow_runs] || [])
-
-    while api_client.last_response.rels[:next].present?
-      res = api_client.get(api_client.last_response.rels[:next].href)
-      pipelines.concat(res[:workflow_runs] || [])
-    end
-
-    pipelines.each do |pipeline_data|
-      Rails.logger.debug("Processing pipeline: #{pipeline_data.inspect}")
-
-      # Extract head commit SHA
+    api_client.get("/repos/#{github_repository.path_with_namespace}/actions/runs")[:workflow_runs].each do |pipeline_data|
       commit_sha = pipeline_data[:head_sha]
-      head_branch = pipeline_data[:head_branch]
       next unless commit_sha
 
-      # Ensure the commit exists; sync it if missing
-      commit = RemoteGit::Commit.find_by(sha: commit_sha)
-      unless commit
-        Rails.logger.info("Commit #{commit_sha} for pipeline #{pipeline_data[:id]} not found. Syncing commit.")
-        commit_details = api_client.commit(github_repository.path_with_namespace, commit_sha)
-        commit = sync_commit(github_repository, api_client, commit_details)
-        if commit.nil?
-          Rails.logger.warn("Failed to sync commit #{commit_sha} for pipeline #{pipeline_data[:id]}. Skipping pipeline.")
-          next
-        end
-      end
+      commit = RemoteGit::Commit.find_by(sha: commit_sha) || sync_commit(github_repository, api_client, api_client.commit(github_repository.path_with_namespace, commit_sha))
+      next unless commit
 
-      # Initialize relationships
-      branch = nil
-      tag = nil
-      merge_request = nil
-
-      if head_branch&.start_with?("refs/pull/")
-        # Handle pull request reference
-        pull_request_id = head_branch.split("/")[2]
-        Rails.logger.info("Pipeline references a pull request: #{pull_request_id}")
-
-        # Fetch pull request details from the API
-        pull_request = api_client.pull_request(github_repository.path_with_namespace, pull_request_id.to_i)
-        if pull_request
-          merge_request = RemoteGit::MergeRequest.find_or_create_by!(
-            remote_id: pull_request[:id],
-            merge_requestable: github_repository
-          ) do |mr|
-            mr.title = pull_request[:title]
-            mr.description = pull_request[:body] || ""
-            mr.state = pull_request[:state]
-            mr.opened_at = pull_request[:created_at]
-            mr.closed_at = pull_request[:closed_at]
-            mr.merged_at = pull_request[:merged_at]
-            mr.merge_user = pull_request[:user][:login]
-            mr.draft = pull_request[:draft]
-            mr.can_merge = pull_request[:mergeable] || false
-            mr.status = pull_request[:state]
-          end
-        else
-          Rails.logger.warn("Failed to resolve pull request #{pull_request_id} for pipeline #{pipeline_data[:id]}.")
-        end
-      else
-        # Check if head_branch is a branch or tag
-        branch = RemoteGit::Branch.find_by(
-          branchable_id: github_repository.id,
-          branchable_type: "GithubRepository",
-          name: head_branch
-        )
-        tag = RemoteGit::Tag.find_by(
-          taggable_type: "GithubRepository",
-          taggable_id: github_repository.id,
-          name: head_branch
-        )
-      end
-
-      # Extract GitHub user details for remote_user
-      actor_data = pipeline_data[:triggering_actor] || {}
-      github_user_id = actor_data[:id] || 0
-
-      # Prepare pipeline attributes
       pipeline_attrs = {
+        remote_id: pipeline_data[:id],
         name: pipeline_data[:name] || "Pipeline #{pipeline_data[:id]}",
         commit: commit,
-        branch: branch,
-        tag: tag,
-        merge_request: merge_request,
-        remote_user: github_user_id,
         start_time: pipeline_data[:run_started_at],
         end_time: pipeline_data[:updated_at],
-        status: (pipeline_data[:status] == "completed") ? pipeline_data[:conclusion] : pipeline_data[:status] # Adjust status
+        status: (pipeline_data[:status] == "completed") ? pipeline_data[:conclusion] : pipeline_data[:status],
+        branch: RemoteGit::Branch.find_by(name: pipeline_data[:head_branch], branchable: github_repository),
+        remote_user: pipeline_data.dig(:actor, :id)
       }
-
-      # Find or initialize pipeline
-      pipeline = RemoteGit::Pipeline.find_or_initialize_by(
-        commit: commit,
-        name: pipeline_attrs[:name]
-      )
-
-      # Assign and save pipeline attributes
-      pipeline.assign_attributes(pipeline_attrs)
-      if pipeline.save
-        Rails.logger.info("Synced pipeline #{pipeline.name} for repository #{github_repository.id}")
-      else
-        Rails.logger.error("Failed to sync pipeline #{pipeline_data[:id]}: #{pipeline.errors.full_messages.join(", ")}")
-      end
-    end
-  end
-
-  def sync_releases(github_repository, api_client)
-    Rails.logger.info("Fetching releases for Github repository #{github_repository.id}")
-    releases = []
-    res = api_client.releases(github_repository.path_with_namespace)
-    releases.concat(res)
-    while api_client.last_response.rels[:next].present?
-      res = api_client.get(api_client.last_response.rels[:next].href)
-      releases.concat(res)
-    end
-    releases.each do |release|
-      tag = RemoteGit::Tag.find_by(name: release[:tag_name], taggable: github_repository)
-      next unless tag
-
-      RemoteGit::Release.find_or_create_by!(
-        name: release[:name],
-        tag: tag
-      ).update!(
-        description: release[:body],
-        released_at: release[:published_at]
-      )
+      pipeline = RemoteGit::Pipeline.find_or_initialize_by(remote_id: pipeline_data[:id])
+      pipeline.update!(pipeline_attrs)
+      Rails.logger.info("Synced pipeline #{pipeline.name} for repository #{github_repository.id}")
     end
   end
 end

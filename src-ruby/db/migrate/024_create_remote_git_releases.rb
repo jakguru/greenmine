@@ -3,6 +3,7 @@ class CreateRemoteGitReleases < ActiveRecord::Migration[6.0]
     # Create releases table
     create_table :remote_git_releases do |t|
       t.string :name, null: false, collation: "utf8mb4_bin" # Release name (e.g., "v1.0.0")
+      t.string :remote_id, null: false # Unique ID from GitHub/GitLab
       t.text :description, collation: "utf8mb4_bin" # Release description or notes
       t.datetime :released_at, null: true # Release timestamp
       t.references :tag, null: false, foreign_key: {to_table: :remote_git_tags} # Reference to the associated tag

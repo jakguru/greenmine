@@ -4,6 +4,7 @@ class CreateRemoteGitTags < ActiveRecord::Migration[6.0]
     create_table :remote_git_tags do |t|
       t.string :name, null: false                   # Name of the tag
       t.string :parent_sha                         # Parent commit SHA reference
+      t.string :remote_id, null: false # Unique ID from GitHub/GitLab
       t.references :commit, foreign_key: {to_table: :remote_git_commits}, null: false
       t.references :committer, foreign_key: {to_table: :remote_git_committers}, null: true
       t.datetime :tagged_at                        # Timestamp for when the tag was created

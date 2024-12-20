@@ -9,6 +9,7 @@ module RemoteGit
 
     # Validations
     validates :name, presence: true
+    validates :remote_id, presence: true, uniqueness: true
     validates :commit, presence: true
     validates :remote_user, presence: true
     validates :start_time, presence: true
