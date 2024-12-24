@@ -7,29 +7,29 @@
           <th style="min-width: 200px">
             {{ $t(`pages.issue-statuses.form.cells.name`) }}
           </th>
-          <th width="70">
+          <th style="min-width: 70px">
             {{ $t(`pages.issue-statuses.form.cells.isClosed`) }}
           </th>
           <th style="min-width: 200px">
             {{ $t(`pages.issue-statuses.form.cells.description`) }}
           </th>
-          <th width="175" class="text-center">
+          <th style="min-width: 175px" class="text-center">
             {{ $t(`pages.issue-statuses.form.cells.defaultDoneRatio`) }}
           </th>
-          <th width="140" class="text-center">
+          <th style="min-width: 140px" class="text-center">
             {{ $t(`pages.issue-statuses.form.cells.icon`) }}
           </th>
-          <th width="220" class="text-center">
+          <th style="min-width: 220px" class="text-center">
             {{ $t(`pages.issue-statuses.form.cells.textColor`) }}
           </th>
-          <th width="220" class="text-center">
+          <th style="min-width: 220px" class="text-center">
             {{ $t(`pages.issue-statuses.form.cells.backgroundColor`) }}
           </th>
-          <th width="100" class="text-center">
+          <th style="min-width: 100px" class="text-center">
             {{ $t(`pages.issue-statuses.form.cells.order`) }}
           </th>
-          <th width="100">&nbsp;</th>
-          <th width="40">&nbsp;</th>
+          <th style="min-width: 100px">&nbsp;</th>
+          <th style="min-width: 40px">&nbsp;</th>
         </tr>
       </thead>
       <draggable
@@ -440,6 +440,7 @@ export default defineComponent({
       loading.value = true;
       try {
         const { status } = await api.put(`${props.endpoint}/${id}`, {
+          authenticity_token: props.formAuthenticityToken,
           [props.modelPropertyKey]: updates,
         });
         if (status >= 200 && status < 400) {

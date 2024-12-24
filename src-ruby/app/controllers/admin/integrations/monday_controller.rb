@@ -214,6 +214,8 @@ module Admin
 
       def render_save_response
         @monday.safe_attributes = params[:monday]
+        @monday[:name] = params[:monday][:name]
+        @monday[:api_token] = params[:monday][:api_token]
         @monday.active = params[:monday][:active].present?
         if @monday.save
           render json: {

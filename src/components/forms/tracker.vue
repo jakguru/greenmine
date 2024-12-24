@@ -7,31 +7,31 @@
           <th style="min-width: 200px">
             {{ $t(`pages.trackers.form.cells.name`) }}
           </th>
-          <th width="70">
+          <th style="min-width: 70px">
             {{ $t(`pages.trackers.form.cells.isInRoadmap`) }}
           </th>
           <th style="min-width: 200px">
             {{ $t(`pages.trackers.form.cells.description`) }}
           </th>
-          <th width="175" class="text-center">
+          <th style="min-width: 175px" class="text-center">
             {{ $t(`pages.trackers.form.cells.defaultStatusId`) }}
           </th>
-          <th width="200" class="text-center">
+          <th style="min-width: 200px" class="text-center">
             {{ $t(`pages.trackers.form.cells.coreFields`) }}
           </th>
-          <th width="200" class="text-center">
+          <th style="min-width: 200px" class="text-center">
             {{ $t(`pages.trackers.form.cells.customFields`) }}
           </th>
-          <th width="200" class="text-center">
+          <th style="min-width: 200px" class="text-center">
             {{ $t(`pages.trackers.form.cells.projects`) }}
           </th>
-          <th width="140" class="text-center">
+          <th style="min-width: 200px" class="text-center">
             {{ $t(`pages.trackers.form.cells.icon`) }}
           </th>
-          <th width="220" class="text-center">
+          <th style="min-width: 220px" class="text-center">
             {{ $t(`pages.trackers.form.cells.color`) }}
           </th>
-          <th width="100" class="text-center">
+          <th style="min-width: 100px" class="text-center">
             {{ $t(`pages.trackers.form.cells.position`) }}
           </th>
           <th width="100">&nbsp;</th>
@@ -501,6 +501,7 @@ export default defineComponent({
       loading.value = true;
       try {
         const { status } = await api.put(`${props.endpoint}/${id}`, {
+          authenticity_token: props.formAuthenticityToken,
           [props.modelPropertyKey]: updates,
         });
         if (status >= 200 && status < 400) {

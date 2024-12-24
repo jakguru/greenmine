@@ -16,25 +16,11 @@ services:
     environment:
       REDMINE_DB_MYSQL: db
       REDMINE_DB_PASSWORD: redmine
-      REDMINE_SECRET_KEY_BASE: supersecretkey
+      REDMINE_SECRET_KEY_BASE: UDWWZ4TeoaopkXi7YT2YVzN
       REDMINE_PLUGINS_MIGRATE: "1"
       REDIS_URL: redis://redis:6379/0
       REDMINE_ENABLE_CRONS: "1"
       VITE_BASE_URL: http://127.0.0.1:8111
-  vanilla:
-    image: redmine:5.1.4
-    restart: unless-stopped
-    ports:
-      - 8181:3000
-    volumes: 
-      - greenmine-files:/usr/src/redmine/files
-      - ./configuration.yml:/usr/src/redmine/config/configuration.yml:rw
-      - ./cable.yml:/usr/src/redmine/config/cable.yml:rw
-    environment:
-      REDMINE_DB_MYSQL: db
-      REDMINE_DB_PASSWORD: redmine
-      REDMINE_SECRET_KEY_BASE: supersecretkey
-      REDMINE_PLUGINS_MIGRATE: "1"
   db:
     image: mysql:8.0
     restart: unless-stopped
@@ -43,6 +29,8 @@ services:
       MYSQL_DATABASE: redmine
     ports:
       - 8866:3306
+    volumes:
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf:ro
   redis:
     image: redis:6.2-alpine
     restart: unless-stopped
@@ -55,6 +43,15 @@ services:
     ports:
       - 1025:1025
       - 8025:8025
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    ports:
+      - 8081:80
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: redmine
 
 volumes:
   greenmine-files:

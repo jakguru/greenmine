@@ -16,8 +16,8 @@ module Monday
 
   module Queries
     ListBoards = Client.parse <<-GRAPHQL
-      query ($ids: [ID!]) {
-        boards (ids: $ids) {
+      query ($ids: [ID!], $limit: Int, $page: Int) {
+        boards (ids: $ids, limit: $limit, page: $page) {
           id
           name
           description

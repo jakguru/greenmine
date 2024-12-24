@@ -502,17 +502,6 @@ export default defineComponent({
               `pages.admin-integrations-monday-id.content.fields.api_token`,
             ),
           },
-          validator: getFormFieldValidator(
-            t,
-            Joi.string()
-              .required()
-              .regex(/^glpat-.+/) // Ensure the string starts with 'glpat-'
-              .messages({
-                "string.pattern.base":
-                  'The token must be a valid access token starting with "glpat-".',
-              }),
-            t(`pages.admin-integrations-monday-id.content.fields.url`),
-          ),
         },
       ],
       [

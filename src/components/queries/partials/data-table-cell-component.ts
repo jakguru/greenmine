@@ -379,6 +379,18 @@ export const QueriesPartialDataTableCell = defineComponent({
                 },
                 value.value.display,
               );
+            case "short_description":
+              // Here we are going to "render" the markdown and then truncate it
+              return h(
+                "span",
+                {
+                  ...attrs.value,
+                  title: value.value.display,
+                },
+                value.value.display.length > 50
+                  ? `${value.value.display.slice(0, 47)}...`
+                  : value.value.display.slice(0, 50),
+              );
             case "status":
               return h(
                 VChip,

@@ -312,6 +312,7 @@ export default defineComponent({
       loading.value = true;
       try {
         const { status } = await api.put(`${props.endpoint}/${id}`, {
+          authenticity_token: props.formAuthenticityToken,
           [props.modelPropertyKey]: updates,
         });
         if (status >= 200 && status < 400) {

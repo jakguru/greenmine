@@ -604,7 +604,20 @@ export default {
     "my-account-destroy": { title: "Delete my Account" },
     "my-api-key": { title: "My API Key" },
     "my-page": { title: "My Page" },
-    "my-password": { title: "My Password" },
+    "my-password": {
+      title: "My Password",
+      content: {
+        fields: {
+          password: "Current Password",
+          new_password: "New Password",
+          new_password_confirmation: "New Password Confirmation",
+        },
+      },
+      onSave: {
+        success: "Password updated successfully",
+        error: "An error occurred while updating the password",
+      },
+    },
     "my-twofa-scheme-activate": { title: "" },
     "my-twofa-scheme-activate-confirm": { title: "" },
     "my-twofa-scheme-deactivate": { title: "" },

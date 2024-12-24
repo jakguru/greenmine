@@ -234,7 +234,6 @@ export default defineComponent({
           bindings: {
             label: t(`pages.my-password.content.fields.password`),
           },
-          validator: passwordFieldValidator.value,
         },
       ],
       [
