@@ -18,8 +18,5 @@ class CreateRemoteGitMergeRequests < ActiveRecord::Migration[6.0]
       t.references :merge_requestable, polymorphic: true, null: false, index: {name: "index_remote_git_merge_requests_on_merge_requestable"}
       t.timestamps
     end
-
-    # Add a unique index for remote_id to prevent duplicate entries
-    add_index :remote_git_merge_requests, :remote_id, unique: true
   end
 end

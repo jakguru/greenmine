@@ -7,6 +7,8 @@ module RemoteGit
     # Many-to-Many relationship with Commits
     has_and_belongs_to_many :commits, class_name: "RemoteGit::Commit", join_table: "remote_git_branches_commits"
 
+    has_many :pipelines, class_name: "RemoteGit::Pipeline", foreign_key: "branch_id", dependent: :destroy
+
     # Validations
     validates :name, presence: true
     validates :branchable, presence: true

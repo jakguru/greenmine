@@ -109,64 +109,59 @@ class FetchGithubRepositoryEntitiesJob
 
   def sync_merge_requests(github_repository, api_client)
     Rails.logger.info("Fetching merge requests for Github repository #{github_repository.id}")
+
     merge_requests = []
-    res = api_client.pull_requests(github_repository.path_with_namespace, {state: "open"})
+    res = api_client.pull_requests(github_repository.path_with_namespace, {state: "all"})
     merge_requests.concat(res)
     while api_client.last_response.rels[:next].present?
       res = api_client.get(api_client.last_response.rels[:next].href)
       merge_requests.concat(res)
     end
-    res = api_client.pull_requests(github_repository.path_with_namespace, {state: "closed"})
-    merge_requests.concat(res)
-    while api_client.last_response.rels[:next].present?
-      res = api_client.get(api_client.last_response.rels[:next].href)
-      merge_requests.concat(res)
-    end
+
     merge_requests.each do |mr|
       unless mr[:title].present?
         Rails.logger.warn("Skipping merge request: #{mr.inspect}")
         next
       end
+
+      # Map pull request number to remote_id
+      remote_id = mr[:number].to_s
+
       closing_commit = mr[:merge_commit_sha].present? ? RemoteGit::Commit.find_by(sha: mr[:merge_commit_sha]) : nil
       if mr[:merge_commit_sha].present? && closing_commit.nil?
-        Rails.logger.info("Found reference to unrecognized commit #{mr[:merge_commit_sha]} in merge request #{mr[:id]}. Syncronizing commit.")
+        Rails.logger.info("Found reference to unrecognized commit #{mr[:merge_commit_sha]} in merge request #{mr[:number]}. Syncing commit.")
         closing_commit = sync_commit(github_repository, api_client, api_client.commit(github_repository.path_with_namespace, mr[:merge_commit_sha]))
         if closing_commit.nil?
-          Rails.logger.warn("Failed to sync commit #{mr[:merge_commit_sha]} for merge request #{mr[:id]}. Skipping merge request.")
+          Rails.logger.warn("Failed to sync commit #{mr[:merge_commit_sha]} for merge request #{mr[:number]}. Skipping merge request.")
           next
         end
       end
+
       source_branch = RemoteGit::Branch.find_by(
         branchable_id: github_repository.id,
         branchable_type: "GithubRepository",
         name: mr[:head][:ref]
+      ) || RemoteGit::Branch.find_or_create_by!(
+        branchable_id: github_repository.id,
+        branchable_type: "GithubRepository",
+        name: mr[:head][:ref]
       )
-      if source_branch.nil?
-        Rails.logger.info("Found reference to unrecognized branch #{mr[:head][:ref]} in merge request #{mr[:id]}. Syncronizing branch.")
-        source_branch = RemoteGit::Branch.find_or_create_by!(
-          branchable_id: github_repository.id,
-          branchable_type: "GithubRepository",
-          name: mr[:head][:ref]
-        )
-      end
+
       target_branch = RemoteGit::Branch.find_by(
         branchable_id: github_repository.id,
         branchable_type: "GithubRepository",
         name: mr[:base][:ref]
+      ) || RemoteGit::Branch.find_or_create_by!(
+        branchable_id: github_repository.id,
+        branchable_type: "GithubRepository",
+        name: mr[:base][:ref]
       )
-      if target_branch.nil?
-        Rails.logger.info("Found reference to unrecognized branch #{mr[:base][:ref]} in merge request #{mr[:id]}. Syncronizing branch.")
-        target_branch = RemoteGit::Branch.find_or_create_by!(
-          branchable_id: github_repository.id,
-          branchable_type: "GithubRepository",
-          name: mr[:base][:ref]
-        )
-      end
+
       merge_request_model_raw = {
         title: mr[:title],
         description: mr[:body] || "",
         state: mr[:state],
-        remote_id: mr[:id],
+        remote_id: remote_id, # Correctly store the PR number
         opened_at: mr[:created_at],
         closed_at: mr[:closed_at],
         merged_at: mr[:merged_at],
@@ -179,7 +174,8 @@ class FetchGithubRepositoryEntitiesJob
         target_branch: target_branch,
         merge_requestable: github_repository
       }
-      merge_request_model = RemoteGit::MergeRequest.find_or_create_by!(remote_id: mr[:id]) do |mr_model|
+
+      merge_request_model = RemoteGit::MergeRequest.find_or_create_by!(remote_id: remote_id) do |mr_model|
         mr_model.assign_attributes(merge_request_model_raw)
       end
       merge_request_model.update!(merge_request_model_raw)

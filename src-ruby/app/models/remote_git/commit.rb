@@ -14,6 +14,9 @@ module RemoteGit
     # RemoteGit::Committer association
     belongs_to :committer, class_name: "RemoteGit::Committer", optional: true
 
+    # RemoteGit::Pipeline association
+    has_many :pipelines, class_name: "RemoteGit::Pipeline", foreign_key: "commit_id", dependent: :destroy
+
     # Validations
     validates :sha, presence: true, uniqueness: true
     validates :message, presence: true
@@ -28,6 +31,36 @@ module RemoteGit
 
     def child_commits
       RemoteGit::Commit.where(parent_sha: sha)
+    end
+
+    def refresh
+      case commitable
+      when GithubRepository
+        api_client = commitable.github_instance.api_client
+        commit_data = api_client.commit(commitable.path_with_namespace, sha)
+        update_commit_from_data(commit_data)
+      when GitlabProject
+        api_client = commitable.gitlab_instance.api_client
+        commit_data = api_client.commit(commitable.path_with_namespace, sha)
+        update_commit_from_data(commit_data)
+      else
+        raise NotImplementedError, "Refresh not supported for #{commitable.class.name}"
+      end
+    rescue => e
+      Rails.logger.error("Failed to refresh commit #{id}: #{e.message}")
+    end
+
+    private
+
+    def update_commit_from_data(data)
+      # Extract fields directly from the GitLab response
+      update!(
+        message: data.message,
+        author_name: data.author_name,
+        author_email: data.author_email,
+        committed_at: data.committed_date
+      )
+      Rails.logger.info("Commit #{sha} updated successfully.")
     end
   end
 end

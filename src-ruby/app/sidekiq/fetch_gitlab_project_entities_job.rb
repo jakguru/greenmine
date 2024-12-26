@@ -91,11 +91,11 @@ class FetchGitlabProjectEntitiesJob
 
       closing_commit = mr.merge_commit_sha.present? ? RemoteGit::Commit.find_by(sha: mr.merge_commit_sha) : nil
       if mr.merge_commit_sha.present? && closing_commit.nil?
-        Rails.logger.info("Found reference to unrecognized commit #{mr.merge_commit_sha} in merge request #{mr.id}. Syncing commit.")
+        Rails.logger.info("Found reference to unrecognized commit #{mr.merge_commit_sha} in merge request #{mr.iid}. Syncing commit.")
         commit_data = api_client.commit(gitlab_project.path_with_namespace, mr.merge_commit_sha)
         closing_commit = sync_commit(gitlab_project, api_client, commit_data)
         if closing_commit.nil?
-          Rails.logger.warn("Failed to sync commit #{mr.merge_commit_sha} for merge request #{mr.id}. Skipping merge request.")
+          Rails.logger.warn("Failed to sync commit #{mr.merge_commit_sha} for merge request #{mr.iid}. Skipping merge request.")
           next
         end
       end
@@ -116,7 +116,7 @@ class FetchGitlabProjectEntitiesJob
         title: mr.title,
         description: mr.description || "",
         state: mr.state,
-        remote_id: mr.id,
+        remote_id: mr.iid, # Use IID instead of global ID
         opened_at: mr.created_at,
         closed_at: mr.closed_at,
         merged_at: mr.merged_at,
@@ -130,11 +130,11 @@ class FetchGitlabProjectEntitiesJob
         merge_requestable: gitlab_project
       }
 
-      merge_request_model = RemoteGit::MergeRequest.find_or_create_by!(remote_id: mr.id) do |mr_model|
+      merge_request_model = RemoteGit::MergeRequest.find_or_create_by!(remote_id: mr.iid) do |mr_model|
         mr_model.assign_attributes(merge_request_model_raw)
       end
       merge_request_model.update!(merge_request_model_raw)
-      Rails.logger.info("Synced merge request #{mr.title} (ID: #{mr.id}) for project #{gitlab_project.id}")
+      Rails.logger.info("Synced merge request #{mr.title} (IID: #{mr.iid}) for project #{gitlab_project.id}")
     end
   rescue => e
     Rails.logger.error("Error syncing merge requests for project #{gitlab_project.id}: #{e.message}")

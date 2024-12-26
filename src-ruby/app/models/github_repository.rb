@@ -68,7 +68,141 @@ class GithubRepository < ActiveRecord::Base
   end
 
   def do_process_webhook(params, headers)
-    Rails.logger.info("Processing GitHub Webhook for repository #{name} in GitHub account #{github_instance.name}")
-    # TODO: Implement webhook processing logic here
+    # Normalize header keys to lowercase strings for consistent access
+    headers = headers.transform_keys { |key| key.to_s.downcase }
+
+    event_type = headers["x-github-event"]
+    delivery_id = headers["x-github-delivery"]
+
+    if event_type.blank?
+      Rails.logger.error("Missing X-GitHub-Event header. Unable to process webhook.")
+      return
+    end
+
+    Rails.logger.info("Received GitHub webhook for repository #{name}: event=#{event_type}, delivery_id=#{delivery_id}")
+
+    # Route the event to a specific handler method
+    case event_type
+    when "push"
+      handle_push_event(params)
+    when "pull_request"
+      handle_pull_request_event(params)
+    when "release"
+      handle_release_event(params)
+    when "workflow_run"
+      handle_workflow_run_event(params)
+    when "workflow_job"
+      handle_workflow_job_event(params)
+    else
+      Rails.logger.warn("Unhandled GitHub webhook event: #{event_type}")
+    end
+  rescue => e
+    Rails.logger.error("Failed to process GitHub webhook for event #{event_type}: #{e.message}")
+    raise
+  end
+
+  private
+
+  def handle_push_event(payload)
+    last_commit = commits.order("committed_at DESC").first
+    last_committed_at = last_commit&.committed_at.to_s || 1.year.ago.to_s
+    FetchGithubRepositoryEntitiesJob.perform_async(id, ["branch", "commit", "tag"], last_committed_at)
+  end
+
+  def handle_pull_request_event(payload)
+    action = payload[:action]
+    pr_data = payload[:pull_request]
+
+    if pr_data.nil?
+      Rails.logger.warn("No pull_request data found in payload. Skipping.")
+      return
+    end
+
+    merge_request = merge_requests.find_or_initialize_by(remote_id: pr_data[:number])
+    merge_request.update!(
+      title: pr_data[:title],
+      description: pr_data[:body],
+      state: pr_data[:state],
+      opened_at: pr_data[:created_at],
+      closed_at: pr_data[:closed_at],
+      merged_at: pr_data[:merged_at],
+      merge_user: pr_data.dig(:user, :login),
+      draft: pr_data[:draft],
+      can_merge: pr_data[:mergeable] || false,
+      merge_requestable: self
+    )
+
+    Rails.logger.info("Processed pull request event: action=#{action}, PR=#{pr_data[:number]} in repository #{name}")
+  end
+
+  def handle_release_event(payload)
+    release_data = payload[:release]
+    tag_name = release_data[:tag_name]
+
+    if release_data.nil?
+      Rails.logger.warn("No release data found in payload. Skipping.")
+      return
+    end
+
+    tag = tags.find_by(name: tag_name)
+    unless tag
+      Rails.logger.warn("Tag #{tag_name} not found for repository #{name}. Skipping release.")
+      return
+    end
+
+    release = tag.releases.find_or_initialize_by(remote_id: release_data[:id])
+    release.update!(
+      name: release_data[:name],
+      description: release_data[:body],
+      released_at: release_data[:published_at],
+      tag: tag
+    )
+
+    Rails.logger.info("Processed release event: #{release_data[:name]} for tag #{tag_name} in repository #{name}")
+  end
+
+  def handle_workflow_run_event(payload)
+    workflow_run = payload[:workflow_run]
+
+    if workflow_run.nil?
+      Rails.logger.warn("No workflow_run data found in payload. Skipping.")
+      return
+    end
+
+    pipeline = pipelines.find_or_initialize_by(remote_id: workflow_run[:id])
+    pipeline.update!(
+      name: workflow_run[:name],
+      start_time: workflow_run[:run_started_at],
+      end_time: workflow_run[:updated_at],
+      status: (workflow_run[:status] == "completed") ? workflow_run[:conclusion] : workflow_run[:status],
+      branch: branches.find_by(name: workflow_run.dig(:head_branch)),
+      remote_user: workflow_run.dig(:head_commit, :author, :email)
+    )
+
+    Rails.logger.info("Processed workflow run event: #{workflow_run[:name]} for repository #{name}")
+  end
+
+  def handle_workflow_job_event(payload)
+    workflow_job = payload[:workflow_job]
+
+    if workflow_job.nil?
+      Rails.logger.warn("No workflow_job data found in payload. Skipping.")
+      return
+    end
+
+    Rails.logger.info("Workflow job event: ID=#{workflow_job[:id]}, Name=#{workflow_job[:name]}, Status=#{workflow_job[:status]}")
+
+    # Optionally, update the associated pipeline if the job affects the overall pipeline
+    pipeline = pipelines.find_by(remote_id: workflow_job[:run_id])
+    return unless pipeline
+
+    if workflow_job[:status] == "completed" && pipeline.end_time.nil?
+      pipeline.update!(
+        end_time: workflow_job[:completed_at] || Time.now,
+        status: workflow_job[:conclusion]
+      )
+    end
+
+    Rails.logger.info("Processed workflow job event for pipeline #{pipeline.name} in repository #{name}") if pipeline
   end
 end

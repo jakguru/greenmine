@@ -799,6 +799,9 @@ export default defineComponent({
       if (!api) {
         return;
       }
+      if ("number" !== typeof child) {
+        child = null;
+      }
       const { status } = await api.post(
         `/admin/integrations/github/${id.value}/entities`,
         {
