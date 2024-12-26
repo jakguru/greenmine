@@ -14,19 +14,26 @@ module FridayPlugin
     private
 
     def friday_after_create
-      ProcessModelUpdatesJob.perform_async(self.class.name, id, "created", to_json)
+      ProcessModelUpdatesJob.perform_async(self.class.name, id, "created", to_json, nil)
     end
 
     def friday_after_update
-      ProcessModelUpdatesJob.perform_async(self.class.name, id, "updated", to_json)
+      previous_values = previous_attributes
+      ProcessModelUpdatesJob.perform_async(self.class.name, id, "updated", to_json, previous_values.to_json)
     end
 
     def friday_after_save
-      ProcessModelUpdatesJob.perform_async(self.class.name, id, "saved", to_json)
+      previous_values = previous_attributes
+      ProcessModelUpdatesJob.perform_async(self.class.name, id, "saved", to_json, previous_values.to_json)
     end
 
     def friday_after_destroy
-      ProcessModelUpdatesJob.perform_async(self.class.name, id, "destroyed")
+      previous_values = attributes_before_type_cast
+      ProcessModelUpdatesJob.perform_async(self.class.name, id, "destroyed", nil, previous_values.to_json)
+    end
+
+    def previous_attributes
+      saved_changes.transform_values(&:first)
     end
   end
 end
