@@ -1,5 +1,7 @@
 module RemoteGit
   class Pipeline < ActiveRecord::Base
+    include FridayRemoteGitEntityHelper
+    include Redmine::Acts::ActivityProvider
     self.table_name = "remote_git_pipelines"
     # Relationships
     belongs_to :branch, class_name: "RemoteGit::Branch", optional: true
@@ -18,9 +20,18 @@ module RemoteGit
     validates :start_time, presence: true
     validates :status, presence: true
 
-    include FridayRemoteGitEntityHelper
-
     after_save :create_issue_relationships
+
+    acts_as_activity_provider type: "pipelines_started",
+      timestamp: :start_time,
+      author_key: proc { |pipeline| pipeline.find_user_id }
+
+    acts_as_activity_provider type: "pipelines_ended",
+      timestamp: :end_time,
+      author_key: proc { |pipeline| pipeline.find_user_id },
+      scope: proc {
+        select("#{table_name}.*, #{table_name}.status AS end_status")
+      }
 
     # Custom method to retrieve associated projects
     def projects
@@ -122,6 +133,16 @@ module RemoteGit
       return [] unless tag&.commit
 
       scan_for_issue_references(tag.commit.message)
+    end
+
+    def find_user_id
+      branch&.gitlab_user&.user_id ||
+        branch&.github_user&.user_id ||
+        tag&.gitlab_user&.user_id ||
+        tag&.github_user&.user_id ||
+        merge_request&.gitlab_user&.user_id ||
+        merge_request&.github_user&.user_id ||
+        commit&.committer&.user_id
     end
   end
 end

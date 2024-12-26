@@ -1,5 +1,7 @@
 module RemoteGit
   class Commit < ActiveRecord::Base
+    include FridayRemoteGitEntityHelper
+    include Redmine::Acts::ActivityProvider
     self.table_name = "remote_git_commits"
 
     # Polymorphic association
@@ -27,9 +29,11 @@ module RemoteGit
     validates :author_email, presence: true, format: {with: URI::MailTo::EMAIL_REGEXP}
     validates :commitable, presence: true
 
-    include FridayRemoteGitEntityHelper
-
     after_save :create_issue_relationships
+
+    acts_as_activity_provider type: "commits",
+      timestamp: :committed_at,
+      author_key: proc { |commit| commit.committer&.user_id }
 
     # Relationships with parent and child commits via parent_sha
     def parent_commit

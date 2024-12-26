@@ -1,5 +1,7 @@
 module RemoteGit
   class MergeRequest < ActiveRecord::Base
+    include FridayRemoteGitEntityHelper
+    include Redmine::Acts::ActivityProvider
     self.table_name = "remote_git_merge_requests"
     # Polymorphic association
     belongs_to :merge_requestable, polymorphic: true
@@ -21,9 +23,14 @@ module RemoteGit
     validates :source_branch, presence: true
     validates :target_branch, presence: true
 
-    include FridayRemoteGitEntityHelper
-
     after_save :create_issue_relationships
+
+    acts_as_activity_provider type: "merge_requests_opened",
+      timestamp: :opened_at
+
+    acts_as_activity_provider type: "merge_requests_closed",
+      timestamp: proc { |mr| mr.merged_at || mr.closed_at },
+      author_key: proc { |mr| mr.closing_commit&.committer&.user_id }
 
     # Custom method to retrieve projects
     def projects

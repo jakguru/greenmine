@@ -1,5 +1,7 @@
 module RemoteGit
   class Tag < ActiveRecord::Base
+    include FridayRemoteGitEntityHelper
+    include Redmine::Acts::ActivityProvider
     self.table_name = "remote_git_tags"
 
     # Polymorphic association
@@ -25,9 +27,12 @@ module RemoteGit
     # Ensure uniqueness at the model level as well
     validates :name, uniqueness: {scope: [:taggable_type, :taggable_id]}
 
-    include FridayRemoteGitEntityHelper
-
     after_save :create_issue_relationships
+
+    acts_as_activity_provider type: "tags",
+      timestamp: proc { |tag| tag.commit&.committed_at },
+      author_key: proc { |tag| tag.commit&.committer&.user_id },
+      scope: proc { joins(:commit) }
 
     # Self-referential logic for parent tags
     def parent_commit

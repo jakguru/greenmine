@@ -1,5 +1,7 @@
 module RemoteGit
   class Release < ActiveRecord::Base
+    include FridayRemoteGitEntityHelper
+    include Redmine::Acts::ActivityProvider
     self.table_name = "remote_git_releases"
     # Associations
     belongs_to :tag, class_name: "RemoteGit::Tag"
@@ -13,9 +15,12 @@ module RemoteGit
     validates :remote_id, presence: true, uniqueness: true
     validates :tag, presence: true
 
-    include FridayRemoteGitEntityHelper
-
     after_save :create_issue_relationships
+
+    acts_as_activity_provider type: "releases",
+      timestamp: :released_at,
+      author_key: proc { |release| release.tag&.commit&.committer&.user_id },
+      scope: proc { where.not(released_at: nil) }
 
     # Custom method to retrieve projects (optional if needed)
     def projects
