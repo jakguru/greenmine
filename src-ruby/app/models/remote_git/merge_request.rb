@@ -4,6 +4,9 @@ module RemoteGit
     # Polymorphic association
     belongs_to :merge_requestable, polymorphic: true
     belongs_to :closing_commit, class_name: "RemoteGit::Commit", optional: true
+    has_many :remote_git_associations, as: :associable, dependent: :destroy
+    has_many :issues, through: :remote_git_associations
+    has_many :projects, through: :issues
 
     # Branch associations
     belongs_to :source_branch, class_name: "RemoteGit::Branch"
@@ -17,6 +20,10 @@ module RemoteGit
     validates :remote_id, presence: true
     validates :source_branch, presence: true
     validates :target_branch, presence: true
+
+    include FridayRemoteGitEntityHelper
+
+    after_save :create_issue_relationships
 
     # Custom method to retrieve projects
     def projects
@@ -68,6 +75,27 @@ module RemoteGit
         can_merge: data.merge_status == "can_be_merged"
       )
       Rails.logger.info("MergeRequest #{remote_id} updated successfully.")
+    end
+
+    def create_issue_relationships
+      # Scan for issues in the merge request's own fields
+      issues = scan_for_issue_references(title, description)
+
+      # Include issues referenced in related commits
+      if commits.any?
+        commit_issues = commits.flat_map { |commit| scan_for_issue_references(commit.message) }
+        issues += commit_issues
+      end
+
+      # Include issues referenced in related branches
+      if source_branch.present?
+        branch = RemoteGit::Branch.find_by(name: source_branch)
+        branch_issues = scan_for_issue_references(branch.name) if branch
+        issues += branch_issues if branch_issues
+      end
+
+      # Ensure issues are unique and assign them to the merge request
+      self.issues = issues.uniq
     end
   end
 end

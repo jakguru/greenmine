@@ -4,11 +4,18 @@ module RemoteGit
     # Associations
     belongs_to :tag, class_name: "RemoteGit::Tag"
     has_and_belongs_to_many :versions, class_name: "Version", join_table: "remote_git_releases_versions"
+    has_many :remote_git_associations, as: :associable, dependent: :destroy
+    has_many :issues, through: :remote_git_associations
+    has_many :projects, through: :issues
 
     # Validations
     validates :name, presence: true
     validates :remote_id, presence: true, uniqueness: true
     validates :tag, presence: true
+
+    include FridayRemoteGitEntityHelper
+
+    after_save :create_issue_relationships
 
     # Custom method to retrieve projects (optional if needed)
     def projects
@@ -50,6 +57,11 @@ module RemoteGit
         released_at: data.dig("published_at") || data.dig(:published_at) || data.dig("created_at") || data.dig(:created_at)
       )
       Rails.logger.info("Release #{name} updated successfully.")
+    end
+
+    def create_issue_relationships
+      related_commits = tag&.commit&.message
+      self.issues = scan_for_issue_references(description, related_commits)
     end
   end
 end

@@ -9,6 +9,15 @@ module FridayPlugin
         has_many :issue_sprints, dependent: :destroy
         has_many :sprints, through: :issue_sprints
 
+        # Remote Git Entity Associations
+        has_many :remote_git_associations, dependent: :destroy
+        has_many :remote_git_branches, through: :remote_git_associations, source: :associable, source_type: "RemoteGit::Branch"
+        has_many :remote_git_commits, through: :remote_git_associations, source: :associable, source_type: "RemoteGit::Commit"
+        has_many :remote_git_merge_requests, through: :remote_git_associations, source: :associable, source_type: "RemoteGit::MergeRequest"
+        has_many :remote_git_pipelines, through: :remote_git_associations, source: :associable, source_type: "RemoteGit::Pipeline"
+        has_many :remote_git_releases, through: :remote_git_associations, source: :associable, source_type: "RemoteGit::Release"
+        has_many :remote_git_tags, through: :remote_git_associations, source: :associable, source_type: "RemoteGit::Tag"
+
         safe_attributes "impact_id"
         safe_attributes "sprints"
         safe_attributes "time_tracking"

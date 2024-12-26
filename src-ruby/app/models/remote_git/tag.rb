@@ -4,6 +4,9 @@ module RemoteGit
 
     # Polymorphic association
     belongs_to :taggable, polymorphic: true
+    has_many :remote_git_associations, as: :associable, dependent: :destroy
+    has_many :issues, through: :remote_git_associations
+    has_many :projects, through: :issues
 
     # Association with the commit that the tag points to
     belongs_to :commit, class_name: "RemoteGit::Commit"
@@ -21,6 +24,10 @@ module RemoteGit
 
     # Ensure uniqueness at the model level as well
     validates :name, uniqueness: {scope: [:taggable_type, :taggable_id]}
+
+    include FridayRemoteGitEntityHelper
+
+    after_save :create_issue_relationships
 
     # Self-referential logic for parent tags
     def parent_commit
@@ -99,6 +106,11 @@ module RemoteGit
     rescue => e
       Rails.logger.error("Failed to fetch commit for lightweight tag #{tag_name}: #{e.message}")
       nil
+    end
+
+    def create_issue_relationships
+      related_commit = commit&.message
+      self.issues = scan_for_issue_references(description, related_commit)
     end
   end
 end

@@ -6,6 +6,9 @@ module RemoteGit
     belongs_to :tag, class_name: "RemoteGit::Tag", optional: true
     belongs_to :merge_request, class_name: "RemoteGit::MergeRequest", optional: true
     belongs_to :commit, class_name: "RemoteGit::Commit"
+    has_many :remote_git_associations, as: :associable, dependent: :destroy
+    has_many :issues, through: :remote_git_associations
+    has_many :projects, through: :issues
 
     # Validations
     validates :name, presence: true
@@ -14,6 +17,10 @@ module RemoteGit
     validates :remote_user, presence: true
     validates :start_time, presence: true
     validates :status, presence: true
+
+    include FridayRemoteGitEntityHelper
+
+    after_save :create_issue_relationships
 
     # Custom method to retrieve associated projects
     def projects
@@ -75,6 +82,46 @@ module RemoteGit
         status: data.status,
         remote_user: data.user&.id # Adjust to match GitLab's structure
       }
+    end
+
+    def create_issue_relationships
+      issues = []
+
+      # Scan for issues in the pipeline's own fields
+      issues += scan_for_issue_references(name)
+
+      # Include issues referenced in related commits
+      if commits.any?
+        commit_issues = commits.flat_map { |commit| scan_for_issue_references(commit.message) }
+        issues += commit_issues
+      end
+
+      # Include issues referenced in related branches
+      if branches.any?
+        branch_issues = branches.flat_map { |branch| scan_for_issue_references(branch.name) }
+        issues += branch_issues
+      end
+
+      # Include issues referenced in related tags/releases
+      if tags.any?
+        tag_issues = tags.flat_map { |tag| scan_commit_message_for_tag_issues(tag) }
+        issues += tag_issues
+      end
+      if releases.any?
+        release_issues = releases.flat_map { |release| scan_for_issue_references(release.description) }
+        release_issues += releases.flat_map { |release| scan_commit_message_for_tag_issues(release.tag) if release.tag }
+        issues += release_issues
+      end
+
+      # Ensure issues are unique and assign them to the pipeline
+      self.issues = issues.uniq
+    end
+
+    # Scan commit messages of tags for issues
+    def scan_commit_message_for_tag_issues(tag)
+      return [] unless tag&.commit
+
+      scan_for_issue_references(tag.commit.message)
     end
   end
 end

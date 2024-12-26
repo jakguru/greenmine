@@ -4,6 +4,9 @@ module RemoteGit
 
     # Polymorphic association
     belongs_to :commitable, polymorphic: true
+    has_many :remote_git_associations, as: :associable, dependent: :destroy
+    has_many :issues, through: :remote_git_associations
+    has_many :projects, through: :issues
 
     # Many-to-Many relationship with Branch
     has_and_belongs_to_many :branches, class_name: "RemoteGit::Branch", join_table: "remote_git_branches_commits"
@@ -23,6 +26,10 @@ module RemoteGit
     validates :author_name, presence: true
     validates :author_email, presence: true, format: {with: URI::MailTo::EMAIL_REGEXP}
     validates :commitable, presence: true
+
+    include FridayRemoteGitEntityHelper
+
+    after_save :create_issue_relationships
 
     # Relationships with parent and child commits via parent_sha
     def parent_commit
@@ -61,6 +68,10 @@ module RemoteGit
         committed_at: data.committed_date
       )
       Rails.logger.info("Commit #{sha} updated successfully.")
+    end
+
+    def create_issue_relationships
+      self.issues = scan_for_issue_references(message)
     end
   end
 end
