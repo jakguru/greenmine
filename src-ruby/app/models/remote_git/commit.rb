@@ -2,6 +2,7 @@ module RemoteGit
   class Commit < ActiveRecord::Base
     include FridayRemoteGitEntityHelper
     include Redmine::Acts::ActivityProvider
+    include Redmine::Acts::Event
     self.table_name = "remote_git_commits"
 
     # Polymorphic association
@@ -31,9 +32,18 @@ module RemoteGit
 
     after_save :create_issue_relationships
 
+    acts_as_event datetime: :committed_at,
+      title: proc { |commit| "Commit: #{commit.sha[0..6]}" },
+      description: :message,
+      author: :author,
+      type: "remote-git-commit",
+      url: nil
+
     acts_as_activity_provider type: "commits",
       timestamp: :committed_at,
-      author_key: proc { |commit| commit.committer&.user_id }
+      author_key: proc { |commit| commit.committer&.user_id },
+      permission: :view_project,
+      scope: proc { joins(:projects).where("#{Project.table_name}.status = ?", Project::STATUS_ACTIVE) }
 
     # Relationships with parent and child commits via parent_sha
     def parent_commit
@@ -42,6 +52,21 @@ module RemoteGit
 
     def child_commits
       RemoteGit::Commit.where(parent_sha: sha)
+    end
+
+    def author
+      committer&.user
+    end
+
+    def url
+      case commitable
+      when GithubRepository
+        {host: "#{commitable.web_url}/commit/#{sha}", port: nil, controller: "", action: ""}
+      when GitlabRepository
+        {host: "#{commitable.web_url}/-/commit/#{sha}", port: nil, controller: "", action: ""}
+      else
+        {host: nil}
+      end
     end
 
     def refresh

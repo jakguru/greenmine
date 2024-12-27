@@ -2,6 +2,7 @@ module RemoteGit
   class Tag < ActiveRecord::Base
     include FridayRemoteGitEntityHelper
     include Redmine::Acts::ActivityProvider
+    include Redmine::Acts::Event
     self.table_name = "remote_git_tags"
 
     # Polymorphic association
@@ -29,14 +30,40 @@ module RemoteGit
 
     after_save :create_issue_relationships
 
+    acts_as_event datetime: proc { |tag| tag.commit&.committed_at },
+      title: proc { |tag| "Tag: #{tag.name}" },
+      description: proc { |tag| "Tagged commit #{tag.commit&.sha&.[](0..6)}" },
+      author: :author,
+      type: "remote-git-tag",
+      url: nil
+
     acts_as_activity_provider type: "tags",
-      timestamp: proc { |tag| tag.commit&.committed_at },
+      timestamp: "remote_git_commits.committed_at", # Explicitly reference the associated commit's committed_at
       author_key: proc { |tag| tag.commit&.committer&.user_id },
-      scope: proc { joins(:commit) }
+      permission: :view_project,
+      scope: proc {
+        joins(:commit, :projects) # Join commit and projects
+          .where("#{Project.table_name}.status = ?", Project::STATUS_ACTIVE)
+      }
 
     # Self-referential logic for parent tags
     def parent_commit
       RemoteGit::Commit.find_by(sha: parent_sha) if parent_sha.present?
+    end
+
+    def author
+      commit&.committer&.user
+    end
+
+    def url
+      case commitable
+      when GithubRepository
+        {host: "#{commitable.web_url}/releases/tag/#{name}", port: nil, controller: "", action: ""}
+      when GitlabRepository
+        {host: "#{commitable.web_url}/-/tags/#{name}", port: nil, controller: "", action: ""}
+      else
+        {host: nil}
+      end
     end
 
     # Custom method to retrieve associated projects

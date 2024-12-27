@@ -2,6 +2,7 @@ module RemoteGit
   class MergeRequest < ActiveRecord::Base
     include FridayRemoteGitEntityHelper
     include Redmine::Acts::ActivityProvider
+    include Redmine::Acts::Event
     self.table_name = "remote_git_merge_requests"
     # Polymorphic association
     belongs_to :merge_requestable, polymorphic: true
@@ -25,12 +26,40 @@ module RemoteGit
 
     after_save :create_issue_relationships
 
+    # Event for "opened"
+    acts_as_event type: "remote-git-merge-request-opened",
+      datetime: :opened_at,
+      title: proc { |mr| "Merge Request Opened: #{mr.title}" },
+      description: :description,
+      author: :author,
+      url: nil
+
+    # Event for "merged"
+    acts_as_event type: "remote-git-merge-request-merged",
+      datetime: :merged_at,
+      title: proc { |mr| "Merge Request Merged: #{mr.title}" },
+      description: :description,
+      author: :author,
+      url: nil
+
+    # Event for "closed"
+    acts_as_event type: "remote-git-merge-request-closed",
+      datetime: :closed_at,
+      title: proc { |mr| "Merge Request Closed: #{mr.title}" },
+      description: :description,
+      author: :author,
+      url: nil
+
     acts_as_activity_provider type: "merge_requests_opened",
-      timestamp: :opened_at
+      timestamp: :opened_at,
+      permission: :view_project,
+      scope: proc { joins(:projects).where("#{Project.table_name}.status = ?", Project::STATUS_ACTIVE) }
 
     acts_as_activity_provider type: "merge_requests_closed",
-      timestamp: proc { |mr| mr.merged_at || mr.closed_at },
-      author_key: proc { |mr| mr.closing_commit&.committer&.user_id }
+      timestamp: "COALESCE(#{table_name}.merged_at, #{table_name}.closed_at)", # Fixed SQL-compatible expression
+      author_key: proc { |mr| mr.closing_commit&.committer&.user_id },
+      permission: :view_project,
+      scope: proc { joins(:projects).where("#{Project.table_name}.status = ?", Project::STATUS_ACTIVE) }
 
     # Custom method to retrieve projects
     def projects
@@ -47,6 +76,29 @@ module RemoteGit
     # Convenience method for checking mergeability
     def mergeable?
       can_merge
+    end
+
+    def url
+      case commitable
+      when GithubRepository
+        {host: "#{commitable.web_url}/pull/#{iid}", port: nil, controller: "", action: ""}
+      when GitlabRepository
+        {host: "#{commitable.web_url}/-/merge_requests/#{iid}", port: nil, controller: "", action: ""}
+      else
+        {host: nil}
+      end
+    end
+
+    def author
+      if merged?
+        closing_commit&.committer&.user
+      else
+        nil
+      end
+    end
+
+    def merged?
+      merged_at.present?
     end
 
     def refresh

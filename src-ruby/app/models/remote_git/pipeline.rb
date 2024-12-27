@@ -2,6 +2,7 @@ module RemoteGit
   class Pipeline < ActiveRecord::Base
     include FridayRemoteGitEntityHelper
     include Redmine::Acts::ActivityProvider
+    include Redmine::Acts::Event
     self.table_name = "remote_git_pipelines"
     # Relationships
     belongs_to :branch, class_name: "RemoteGit::Branch", optional: true
@@ -22,16 +23,55 @@ module RemoteGit
 
     after_save :create_issue_relationships
 
+    # Event for "start"
+    acts_as_event type: "remote-git-pipeline-started",
+      datetime: :start_time,
+      title: proc { |pipeline| "Pipeline ##{pipeline.id} Started" },
+      description: proc { |pipeline| "Pipeline started at #{pipeline.start_time}" },
+      author: :author,
+      url: nil
+
+    # Event for "end"
+    acts_as_event type: "remote-git-pipeline-ended",
+      datetime: :end_time,
+      title: proc { |pipeline| "Pipeline ##{pipeline.id} Ended (#{pipeline.status})" },
+      description: proc { |pipeline| "Pipeline ended with status: #{pipeline.status}" },
+      author: :author,
+      url: nil
+
     acts_as_activity_provider type: "pipelines_started",
       timestamp: :start_time,
-      author_key: proc { |pipeline| pipeline.find_user_id }
+      author_key: proc { |pipeline| pipeline.find_user_id },
+      permission: :view_project,
+      scope: proc { joins(:projects).where("#{Project.table_name}.status = ?", Project::STATUS_ACTIVE) }
 
     acts_as_activity_provider type: "pipelines_ended",
       timestamp: :end_time,
       author_key: proc { |pipeline| pipeline.find_user_id },
-      scope: proc {
-        select("#{table_name}.*, #{table_name}.status AS end_status")
-      }
+      permission: :view_project,
+      scope: proc { joins(:projects).where("#{Project.table_name}.status = ?", Project::STATUS_ACTIVE) }
+
+    def author
+      case commit.commitable&.configuration_instance
+      when GithubInstance
+        configuration_instance.github_users.find_by(remote_user: remote_user)&.user
+      when GitlabInstance
+        configuration_instance.gitlab_users.find_by(remote_user: remote_user)&.user
+      else
+        nil
+      end
+    end
+
+    def url
+      case commitable
+      when GithubRepository
+        {host: "#{commitable.web_url}/actions/runs/#{id}", port: nil, controller: "", action: ""}
+      when GitlabRepository
+        {host: "#{commitable.web_url}/-/pipelines/#{id}", port: nil, controller: "", action: ""}
+      else
+        {host: nil}
+      end
+    end
 
     # Custom method to retrieve associated projects
     def projects

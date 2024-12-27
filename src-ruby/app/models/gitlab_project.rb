@@ -27,6 +27,10 @@ class GitlabProject < ActiveRecord::Base
     true
   end
 
+  def configuration_instance
+    gitlab_instance
+  end
+
   def projects=(projects)
     set_associated_projects(projects)
   end

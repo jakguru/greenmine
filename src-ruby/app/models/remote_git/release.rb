@@ -2,6 +2,7 @@ module RemoteGit
   class Release < ActiveRecord::Base
     include FridayRemoteGitEntityHelper
     include Redmine::Acts::ActivityProvider
+    include Redmine::Acts::Event
     self.table_name = "remote_git_releases"
     # Associations
     belongs_to :tag, class_name: "RemoteGit::Tag"
@@ -17,10 +18,38 @@ module RemoteGit
 
     after_save :create_issue_relationships
 
+    acts_as_event datetime: proc { |release| release.tag&.commit&.committed_at },
+      title: proc { |release| "Release: #{release.name}" },
+      description: :description,
+      author: :author,
+      type: "remote-git-release",
+      url: nil
+
     acts_as_activity_provider type: "releases",
-      timestamp: :released_at,
+      timestamp: "remote_git_commits.committed_at", # Explicitly reference the commit's committed_at column
       author_key: proc { |release| release.tag&.commit&.committer&.user_id },
-      scope: proc { where.not(released_at: nil) }
+      permission: :view_project,
+      scope: proc {
+        joins(tag: :commit) # Ensure we join from tag to commit
+          .joins(:projects)
+          .where("#{Project.table_name}.status = ?", Project::STATUS_ACTIVE)
+          .where.not("remote_git_commits.committed_at" => nil)
+      }
+
+    def author
+      tag&.commit&.committer&.user
+    end
+
+    def url
+      case tag&.commitable
+      when GithubRepository
+        {host: "#{tag.commitable.web_url}/releases/tag/#{name}", port: nil, controller: "", action: ""}
+      when GitlabRepository
+        {host: "#{tag.commitable.web_url}/-/releases/#{name}", port: nil, controller: "", action: ""}
+      else
+        {host: nil}
+      end
+    end
 
     # Custom method to retrieve projects (optional if needed)
     def projects

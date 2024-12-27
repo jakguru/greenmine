@@ -67,6 +67,10 @@ class GithubRepository < ActiveRecord::Base
     client.repository(self[:repository_id]).to_h
   end
 
+  def configuration_instance
+    github_instance
+  end
+
   def do_process_webhook(params, headers)
     # Normalize header keys to lowercase strings for consistent access
     headers = headers.transform_keys { |key| key.to_s.downcase }

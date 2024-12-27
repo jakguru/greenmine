@@ -10,10 +10,27 @@ Rails.configuration.to_prepare do
   require_dependency "friday_plugin/news_patch"
   require_dependency "friday_plugin/active_record_hooks"
   require_dependency "friday_plugin/redmine_access_control_patch"
+
+  # Load RemoteGit models
+  require_dependency "remote_git/commit"
+  require_dependency "remote_git/merge_request"
+  require_dependency "remote_git/pipeline"
+  require_dependency "remote_git/release"
+  require_dependency "remote_git/tag"
 end
 
 ActiveSupport.on_load(:active_record) do
   include FridayPlugin::ActiveRecordHooks
+end
+
+Redmine::Activity.map do |activity|
+  activity.register :commits, default: true, class_name: "RemoteGit::Commit"
+  activity.register :merge_requests_opened, default: true, class_name: "RemoteGit::MergeRequest"
+  activity.register :merge_requests_closed, default: true, class_name: "RemoteGit::MergeRequest"
+  activity.register :pipelines_started, default: true, class_name: "RemoteGit::Pipeline"
+  activity.register :pipelines_ended, default: true, class_name: "RemoteGit::Pipeline"
+  activity.register :releases, default: true, class_name: "RemoteGit::Release"
+  activity.register :tags, default: true, class_name: "RemoteGit::Tag"
 end
 
 Redmine::Plugin.register :friday do
@@ -76,6 +93,7 @@ Rails.application.configure do
 end
 
 Rails.application.config.after_initialize do
+  # ActiveRecord::Base.logger = Logger.new(STDOUT)
   if ENV["REDMINE_ENABLE_CRONS"].present?
     if command_available?("curl")
       Rails.logger.info "Starting Schedule Job Polling"
