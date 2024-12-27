@@ -10,6 +10,7 @@ module RemoteGit
     has_many :remote_git_associations, as: :associable, dependent: :destroy
     has_many :issues, through: :remote_git_associations
     has_many :projects, through: :issues
+    # has_many :projects, -> { distinct }, through: :taggable, source: :projects
 
     # Association with the commit that the tag points to
     belongs_to :commit, class_name: "RemoteGit::Commit"

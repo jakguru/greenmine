@@ -12,6 +12,9 @@ module RemoteGit
     has_many :remote_git_associations, as: :associable, dependent: :destroy
     has_many :issues, through: :remote_git_associations
     has_many :projects, through: :issues
+    # has_many :projects, -> { distinct }, through: :commits, source: :projects
+    # has_many :projects, -> { distinct }, through: :merge_requests, source: :projects
+    # has_many :projects, -> { distinct }, through: :tags, source: :projects
 
     # Validations
     validates :name, presence: true

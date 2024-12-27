@@ -10,6 +10,7 @@ module RemoteGit
     has_many :remote_git_associations, as: :associable, dependent: :destroy
     has_many :issues, through: :remote_git_associations
     has_many :projects, through: :issues
+    # has_many :projects, -> { distinct }, through: :merge_requestable, source: :projects
 
     # Branch associations
     belongs_to :source_branch, class_name: "RemoteGit::Branch"
