@@ -94,8 +94,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/activity",
     name: "activity",
-    // "component": () => import("@/pages/activity.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/activity/index.vue"),
     meta: {
       title: "pages.activity.title",
     },
@@ -1062,14 +1061,6 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
-    path: "/projects/:id/activity",
-    name: "projects-id-activity",
-    component: () => import("@/pages/projects/show.vue"),
-    meta: {
-      title: "pages.projects-id-activity.title",
-    },
-  },
-  {
     path: "/projects/:id/copy",
     name: "projects-id-copy",
     // "component": () => import("@/pages/projects/id/copy.vue")
@@ -1328,10 +1319,9 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/activity",
     name: "projects-project-id-activities",
-    // "component": () => import("@/pages/projects/project_id/boards.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/activity.vue"),
     meta: {
-      title: "pages.projects-project-id-boards.title",
+      title: "pages.projects-project-id-activities.title",
     },
   },
   {
@@ -2215,7 +2205,28 @@ const routes: RouteRecordRaw[] = [
       title: "pages.workflows.title",
     },
   },
-];
+].sort((a, b) => {
+  // Count the number of parameters (prefixed with ":") in the path
+  const countParams = (path: string) => (path.match(/:\w+/g) || []).length;
+
+  const paramsA = countParams(a.path);
+  const paramsB = countParams(b.path);
+
+  if (paramsA !== paramsB) {
+    return paramsB - paramsA; // More params should be higher in priority
+  }
+
+  // Compare by overall path length
+  if (a.path.length !== b.path.length) {
+    return b.path.length - a.path.length; // Longer paths should get priority
+  }
+
+  // Compare alphanumerically
+  return a.path.localeCompare(b.path, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+});
 
 export const router = createRouter({
   history: createWebHistory(),

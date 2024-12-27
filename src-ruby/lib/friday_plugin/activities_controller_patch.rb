@@ -20,11 +20,22 @@ module FridayPlugin
         def handle_friday_json_response
           # Calculate date range
           days = Setting.activity_days_default.to_i
-          date_to = params[:from].present? ? begin
-            params[:from].to_date + 1
-          rescue
-            nil
-          end : (User.current.today + 1)
+          date_to = if params[:to].present?
+            begin
+              params[:to].to_date + 1
+            rescue
+              nil
+            end
+          elsif params[:from].present?
+            begin
+              params[:from].to_date + 1
+            rescue
+              nil
+            end
+          else
+            User.current.today + 1
+          end
+
           date_from = if days > 0
             date_to - days
           else
@@ -47,22 +58,76 @@ module FridayPlugin
           # Fetch events
           events = activity.events(date_from, date_to)
 
-          # Return JSON response
-          render json: {
-            events: events.map do |event|
-              {
-                id: event.id,
-                type: event.event_type,
-                title: event.event_title,
-                description: event.event_description,
-                author: event.event_author.try(:name),
-                datetime: event.event_datetime,
-                url: url_for(event.event_url)
-              }
-            end,
-            date_from: date_from,
-            date_to: date_to
-          }
+          # If we have a defined project, use "render_project_response"
+          if @project
+            render_project_response({
+              events: events.map do |event|
+                {
+                  id: event.id,
+                  type: event.event_type,
+                  title: event.event_title,
+                  description: event.event_description,
+                  author: event.event_author ? {
+                    id: event.event_author.id,
+                    name: event.event_author.name
+                  } : nil,
+                  datetime: event.event_datetime,
+                  url: event.event_url.nil? ? nil : url_for(event.event_url)
+                }
+              end,
+              dateFrom: date_from,
+              dateTo: date_to,
+              eventTypes: activity.event_types.map do |type|
+                {
+                  value: type,
+                  label: l("label_#{type.singularize}_plural")
+                }
+              end,
+              scope: activity.scope
+            })
+          else
+            render json: {
+              formAuthenticityToken: form_authenticity_token,
+              events: events.map do |event|
+                {
+                  id: event.id,
+                  type: event.event_type,
+                  title: event.event_title,
+                  description: event.event_description,
+                  author: event.event_author ? {
+                    id: event.event_author.id,
+                    name: event.event_author.name
+                  } : nil,
+                  datetime: event.event_datetime,
+                  url: event.event_url.nil? ? nil : url_for(event.event_url)
+                }
+              end,
+              dateFrom: date_from,
+              dateTo: date_to,
+              eventTypes: activity.event_types.map do |type|
+                {
+                  value: type,
+                  label: l("label_#{type.singularize}_plural")
+                }
+              end,
+              scope: activity.scope
+            }
+          end
+        end
+
+        # Get the list of users who could have authored an activity within a project
+        def activity_authors_options(project)
+          options = []
+          if User.current.logged?
+            options += [{
+              label: "<< #{l(:label_me)} >>",
+              value: User.current.id
+            }]
+          end
+          if project
+            options += Query.new(project: project).users.select { |user| user.active? }.map { |user| {label: user.name, value: user.id} }
+          end
+          options
         end
       end
     end

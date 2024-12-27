@@ -1036,7 +1036,7 @@ export default defineComponent({
     },
     mondayBoard: {
       type: Object as PropType<MondayBoard | null>,
-      required: true,
+      default: null,
     },
     possibleGitHubRepositories: {
       type: Array as PropType<SelectableListItem<number>[]>,

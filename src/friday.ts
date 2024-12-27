@@ -1623,3 +1623,38 @@ export interface ProjectPrincipalMembership {
   principal: number;
   roles: number[];
 }
+
+export type ActivityEventType =
+  | "attachment"
+  | "changeset"
+  | "document"
+  | "issue"
+  | "issue-closed"
+  | "issue-edit"
+  | "issue-note"
+  | "message"
+  | "reply"
+  | "news"
+  | "project"
+  | "time-entry"
+  | "wiki-page"
+  | "remote-git-commit"
+  | "remote-git-merge-request-opened"
+  | "remote-git-merge-request-merged"
+  | "remote-git-merge-request-closed"
+  | "remote-git-pipeline-started"
+  | "remote-git-pipeline-ended"
+  | "remote-git-release"
+  | "remote-git-tag";
+
+export interface ActivityEvent {
+  datetime: string;
+  title: string;
+  description: string;
+  author: {
+    id: number;
+    name: string;
+  } | null;
+  url: string | null;
+  type: ActivityEventType;
+}

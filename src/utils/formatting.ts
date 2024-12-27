@@ -88,3 +88,25 @@ export const capitalize = (value: string) => {
 };
 
 export { ordinal };
+
+export const formatTime = (value: string | null) => {
+  if (!value) {
+    return "";
+  }
+  const dto = DateTime.fromISO(value);
+  if (!dto.isValid) {
+    return "";
+  }
+  return dto.toLocaleString(DateTime.TIME_24_SIMPLE);
+};
+
+export const formatTimeAsUTC = (value: string | null) => {
+  if (!value) {
+    return "";
+  }
+  const dto = DateTime.fromISO(value);
+  if (!dto.isValid) {
+    return "";
+  }
+  return [dto.toUTC().toLocaleString(DateTime.TIME_24_SIMPLE), "UTC"].join(" ");
+};

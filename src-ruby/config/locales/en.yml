@@ -84,3 +84,10 @@ en:
   field_github_repositories: Associated GitHub Project(s)
   field_githubs: GitHub Integration
   label_version_new: New release
+  label_commit_plural: Commits
+  label_merge_requests_opened_plural: Merge Request Openings
+  label_merge_requests_closed_plural: Merge Request Closures
+  label_pipelines_started_plural: Pipeline Starts
+  label_pipelines_ended_plural: Pipeline Ends
+  label_release_plural: Releases
+  label_tag_plural: Tags
