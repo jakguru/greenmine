@@ -143,7 +143,7 @@ module RemoteGit
 
     def create_issue_relationships
       related_commit = commit&.message
-      self.issues = scan_for_issue_references(description, related_commit)
+      self.issues = scan_for_issue_references(related_commit)
     end
   end
 end

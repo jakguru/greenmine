@@ -10,6 +10,7 @@
     "build": "vite build --mode production",
     "preview": "vite preview",
     "sync:db": "npx jiti bin/sync-db",
+    "trash:db": "npx jiti bin/trash-db",
     "sync:models": "npx jiti bin/sync-models"
   },
   "keywords": [],

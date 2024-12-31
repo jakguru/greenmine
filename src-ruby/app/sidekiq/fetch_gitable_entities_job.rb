@@ -16,7 +16,7 @@ class FetchGitableEntitiesJob
     when "GithubInstance"
       children = GithubRepository.where(github_id: instance.id)
     when "GitlabInstance"
-      children = GitlabProject.where(gitlab_instance_id: instance.id)
+      children = GitlabProject.where(gitlab_id: instance.id)
     end
     children.each do |child|
       case klass

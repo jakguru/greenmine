@@ -1506,6 +1506,7 @@ export default {
     issueCategory: "Issue Category",
     assignee: "Assignee",
     events: "Events",
+    unknown: "Unknown",
   },
   charts: {
     loading: "Loading chart...",

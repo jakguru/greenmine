@@ -52,7 +52,7 @@
           fill-dot
         >
           <template #icon>
-            <v-tooltip :text="event.author?.name || $t('label.unknown')">
+            <v-tooltip :text="event.author?.name || $t('labels.unknown')">
               <template #activator="{ props }">
                 <img :src="getEventUserIcon(event)" v-bind="props" />
               </template>

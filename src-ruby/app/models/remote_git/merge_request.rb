@@ -140,12 +140,13 @@ module RemoteGit
     def create_issue_relationships
       # Scan for issues in the merge request's own fields
       issues = scan_for_issue_references(title, description)
+      # # commits is an array of all of the commits associated with the merge request
 
-      # Include issues referenced in related commits
-      if commits.any?
-        commit_issues = commits.flat_map { |commit| scan_for_issue_references(commit.message) }
-        issues += commit_issues
-      end
+      # # Include issues referenced in related commits
+      # if commits.any?
+      #   commit_issues = commits.flat_map { |commit| scan_for_issue_references(commit.message) }
+      #   issues += commit_issues
+      # end
 
       # Include issues referenced in related branches
       if source_branch.present?

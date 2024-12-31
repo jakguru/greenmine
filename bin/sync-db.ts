@@ -34,6 +34,7 @@ remote.raw("SHOW TABLES").then(async (tables: any) => {
     (row: any) => row[`Tables_in_${process.env.REMOTE_DB_NAME}`],
   ) as string[];
   const tablesWithDifferences = new Set<string>();
+  await local.raw("SET FOREIGN_KEY_CHECKS = 0");
   for (const tableName of tablesNames) {
     try {
       /**
@@ -116,7 +117,24 @@ remote.raw("SHOW TABLES").then(async (tables: any) => {
         console.log(
           `Truncate failed for table "${tableName}". Manually delete rows.`,
         );
-        await local(tableName).del().where("id", ">", 0);
+        try {
+          await local(tableName).del().where("id", ">", 0);
+        } catch {
+          console.log(
+            `Mass delete failed for table "${tableName}". Deleting row by row...`,
+          );
+          const rowsToDelete = await local(tableName).select("id");
+          for (const row of rowsToDelete) {
+            try {
+              await local(tableName).del().where("id", row.id);
+            } catch (error) {
+              console.error(
+                `Failed to delete row with ID ${row.id} from table "${tableName}".`,
+              );
+              console.error(error);
+            }
+          }
+        }
       }
       console.log(`Re-populating table "${tableName}"...`);
       const allRemoteRows = await remote(tableName).select();
@@ -138,6 +156,7 @@ remote.raw("SHOW TABLES").then(async (tables: any) => {
       }
     }
   }
+  await local.raw("SET FOREIGN_KEY_CHECKS = 1");
   const impactLevels = new Map<string, number>();
   const urgencyLevels = new Map<string, number>();
   const pluginSettings = new Map<string, string>();
@@ -462,7 +481,24 @@ remote.raw("SHOW TABLES").then(async (tables: any) => {
       console.log(
         `Truncate failed for table "${tableName}". Manually delete rows.`,
       );
-      await local(tableName).del().where("id", ">", 0);
+      try {
+        await local(tableName).del().where("id", ">", 0);
+      } catch {
+        console.log(
+          `Mass delete failed for table "${tableName}". Deleting row by row...`,
+        );
+        const rowsToDelete = await local(tableName).select("id");
+        for (const row of rowsToDelete) {
+          try {
+            await local(tableName).del().where("id", row.id);
+          } catch (error) {
+            console.error(
+              `Failed to delete row with ID ${row.id} from table "${tableName}".`,
+            );
+            console.error(error);
+          }
+        }
+      }
     }
     console.log(`Re-populating table "${tableName}"...`);
     for (const row of fixed) {

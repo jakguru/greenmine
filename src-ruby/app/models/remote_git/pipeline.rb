@@ -144,28 +144,53 @@ module RemoteGit
       # Scan for issues in the pipeline's own fields
       issues += scan_for_issue_references(name)
 
-      # Include issues referenced in related commits
-      if commits.any?
-        commit_issues = commits.flat_map { |commit| scan_for_issue_references(commit.message) }
+      unless commit.nil?
+        # Include issues referenced in the commit message
+        commit_issues = scan_for_issue_references(commit.message)
         issues += commit_issues
       end
 
-      # Include issues referenced in related branches
-      if branches.any?
-        branch_issues = branches.flat_map { |branch| scan_for_issue_references(branch.name) }
+      unless branch.nil?
+        # Include issues referenced in the branch name
+        branch_issues = scan_for_issue_references(branch.name)
         issues += branch_issues
       end
 
-      # Include issues referenced in related tags/releases
-      if tags.any?
-        tag_issues = tags.flat_map { |tag| scan_commit_message_for_tag_issues(tag) }
+      unless tag.nil?
+        # Include issues referenced in the tag message
+        tag_commit = tag.commit
+        tag_issues = scan_for_issue_references(tag_commit&.message)
         issues += tag_issues
       end
-      if releases.any?
-        release_issues = releases.flat_map { |release| scan_for_issue_references(release.description) }
-        release_issues += releases.flat_map { |release| scan_commit_message_for_tag_issues(release.tag) if release.tag }
-        issues += release_issues
+
+      unless merge_request.nil?
+        # Include issues referenced in the merge request fields
+        merge_request_issues = scan_for_issue_references(merge_request.title, merge_request.description)
+        issues += merge_request_issues
       end
+
+      # # Include issues referenced in related commits
+      # if commits.any?
+      #   commit_issues = commits.flat_map { |commit| scan_for_issue_references(commit.message) }
+      #   issues += commit_issues
+      # end
+
+      # # Include issues referenced in related branches
+      # if branches.any?
+      #   branch_issues = branches.flat_map { |branch| scan_for_issue_references(branch.name) }
+      #   issues += branch_issues
+      # end
+
+      # # Include issues referenced in related tags/releases
+      # if tags.any?
+      #   tag_issues = tags.flat_map { |tag| scan_commit_message_for_tag_issues(tag) }
+      #   issues += tag_issues
+      # end
+      # if releases.any?
+      #   release_issues = releases.flat_map { |release| scan_for_issue_references(release.description) }
+      #   release_issues += releases.flat_map { |release| scan_commit_message_for_tag_issues(release.tag) if release.tag }
+      #   issues += release_issues
+      # end
 
       # Ensure issues are unique and assign them to the pipeline
       self.issues = issues.uniq
