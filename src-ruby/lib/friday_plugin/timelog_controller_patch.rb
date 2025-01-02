@@ -11,7 +11,13 @@ module FridayPlugin
             .preload(issue: [:project, :tracker, :status, :assigned_to, :priority])
             .preload(:project, :user)
           if friday_request?
-            render_query_response(@query, scope, TimeEntryQuery, @project, User.current, params, per_page_option)
+            if @project
+              render_project_response({
+                timeEntries: query_response(@query, scope, TimeEntryQuery, @project, User.current, params, per_page_option)
+              })
+            else
+              render_query_response(@query, scope, TimeEntryQuery, @project, User.current, params, per_page_option)
+            end
           else
             redmine_base_index
           end

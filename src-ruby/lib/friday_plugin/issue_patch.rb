@@ -41,8 +41,14 @@ module FridayPlugin
         issue_sprints.map(&:sprint)
       end
 
+      def value_for_sprints_field_hash
+        collection = send(:sprints)
+        return [Sprint.backlog] if collection.empty?
+        collection.select(&:visible?).map { |sprint| sprint }.uniq.sort_by(&:start_date).map { |sprint| {id: sprint[:id], name: sprint[:name], startDate: sprint[:start_date], endDate: sprint[:end_date]} }
+      end
+
       def value_for_issue_sprints_name_field_hash
-        issue_sprints.map(&:sprint)
+        value_for_sprints_field_hash
       end
 
       def update_calculated_priority

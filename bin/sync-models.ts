@@ -1,6 +1,17 @@
 import "dotenv/config";
 import knex from "knex";
 
+const remoteDbConfig = {
+  client: "mysql2",
+  connection: {
+    host: process.env.REMOTE_DB_HOST,
+    port: Number(process.env.REMOTE_DB_PORT),
+    user: process.env.REMOTE_DB_USER,
+    password: process.env.REMOTE_DB_PASS,
+    database: process.env.REMOTE_DB_NAME,
+  },
+};
+
 const localDbConfig = {
   client: "mysql2",
   connection: {
@@ -12,7 +23,7 @@ const localDbConfig = {
   },
 };
 
-// const remote = knex(remoteDbConfig);
+const remote = knex(remoteDbConfig);
 const local = knex(localDbConfig);
 
 /**
@@ -166,6 +177,19 @@ const doSync = async () => {
       console.log(`Inserted ${row.name}`);
     } else {
       console.log(`Skipped ${row.name}`);
+    }
+  }
+  const issueSprintRows = await remote("issue_sprints");
+  for (const row of issueSprintRows) {
+    const exists = await local("issue_sprints").where({
+      issue_id: row.issue_id,
+      sprint_id: row.sprint_id,
+    });
+    if (exists.length === 0) {
+      await local("issue_sprints").insert(row);
+      console.log(`Inserted issue_sprint ${row.id}`);
+    } else {
+      console.log(`Skipped issue_sprint ${row.id}`);
     }
   }
   process.exit(0);

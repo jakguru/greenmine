@@ -779,14 +779,13 @@ module FridayHelper
       group_columns.each do |column|
         # Extract the key from each column hash and convert it to a string
         col_key = column[:key].to_s
-
         # Assuming entry has a method corresponding to `col_key`, call it.
-        entry_hash[col_key] = if entry.respond_to?(col_key)
-          make_entry_hash_value(entry.send(col_key), user)
-        # If the entry does not respond to the method, check if we can call a method with a different name
-        elsif entry.respond_to?(method = "value_for_#{col_key.tr(".", "_")}_field_hash")
-          # specific statement
+        entry_hash[col_key] = if entry.respond_to?(method = "value_for_#{col_key.tr(".", "_")}_field_hash")
           make_entry_hash_value(entry.send(method), user)
+        # If the entry does not respond to the method, check if we can call a method with a different name
+        elsif entry.respond_to?(col_key)
+          # specific statement
+          make_entry_hash_value(entry.send(col_key), user)
         else
           # If the entry does not respond to the method, set the value to nil
           Rails.logger.warn("Unable to make entry hash: entry does not respond to method '#{col_key}' or '#{method}'")
@@ -841,7 +840,7 @@ module FridayHelper
 
   def make_column_value(current, local_model)
     ret = current
-    if ret.start_with?(local_model)
+    if ret.start_with?("#{local_model}.")
       ret = ret.sub("#{local_model}.", "")
     end
     "entry.#{ret}"

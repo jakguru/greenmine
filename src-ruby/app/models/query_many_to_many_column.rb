@@ -36,11 +36,11 @@ class QueryManyToManyColumn < QueryColumn
   end
 
   def group_by_statement
-    "#{@foreign_table}.#{@foreign_key}"
+    "#{@pivot_table}.#{@pivot_foreign_key}"
   end
 
   def group_by_selection
-    "#{@foreign_table}_#{@foreign_key}"
+    "#{@pivot_table}_#{@pivot_foreign_key}"
   end
 
   attr_reader :local_table

@@ -571,6 +571,13 @@ export interface Sprint {
   progress?: number;
 }
 
+export interface SprintQueryColumnItem {
+  id: number | null;
+  name: string;
+  startDate: string;
+  endDate: string;
+}
+
 export interface Issue {
   id: number;
   entry: EntryHash;
@@ -1658,3 +1665,72 @@ export interface ActivityEvent {
   url: string | null;
   type: ActivityEventType;
 }
+
+export interface ProjectVersionIssueRelatedProperty {
+  id: number;
+  name: string;
+}
+
+export interface ProjectVersionIssue {
+  id: number;
+  subject: string;
+  tracker: ProjectVersionIssueRelatedProperty;
+  status: ProjectVersionIssueRelatedProperty;
+  project: ProjectVersionIssueRelatedProperty;
+  priority: number;
+}
+
+export interface ProjectReleaseVersion {
+  id: number;
+  name: string;
+  status: string;
+  sharing: string;
+  project_id: number;
+  completed: boolean;
+  issues: ProjectVersionIssue[];
+  count_issues_total: number;
+  count_issues_open: number;
+  count_issues_closed: number;
+  percent_issues_closed: number;
+  percent_issues_completed: number;
+  can_edit: boolean;
+}
+
+export interface ProjectReleaseVersionPermissions {
+  manage_versions: boolean;
+}
+
+export interface TimeEntry {
+  activity: {
+    active: boolean;
+    color: string | null;
+    id: number;
+    is_default: boolean;
+    name: string;
+    parent_id: number | null;
+    position: number;
+    position_name: string;
+    project_id: number;
+  };
+  comments: string;
+  hours: number;
+  issue: Issue;
+  spent_on: string;
+  user: User;
+}
+
+export interface GanttChartConfig {}
+
+export interface CalendarResponse {}
+
+export interface NewsResponse {
+  articles: News[];
+  total: number;
+  pages: number;
+}
+
+export interface Doc {}
+
+export interface WikiResponse {}
+
+export interface AttachedFile {}

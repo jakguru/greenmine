@@ -44,7 +44,7 @@ module FridayPlugin
             !project_ids.include?(version.project_id) && issues_by_version[version].blank?
           end
 
-          render json: {
+          render_project_response({
             versions: filtered_versions.map do |version|
               {
                 id: version.id,
@@ -83,7 +83,7 @@ module FridayPlugin
             permissions: {
               manage_versions: User.current.allowed_to?(:manage_versions, @project)
             }
-          }
+          })
         end
       end
     end

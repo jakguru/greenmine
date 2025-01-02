@@ -20,6 +20,7 @@ import { IssueStatusChip, TrackerChip } from "@/components/issues";
 
 import ProjectById from "./custom-data-table-cells/project-by-id.vue";
 import TimeTrackingButton from "../../time-tracking/button.vue";
+import SprintQueryColumnWrapper from "@/components/sprints/sprintQueryColumnWrapper.vue";
 
 import type { PropType } from "vue";
 import type { QueryData, Item, Column, EntryHashValue } from "@/friday";
@@ -360,6 +361,10 @@ export const QueriesPartialDataTableCell = defineComponent({
             case "time_tracking":
               return h(TimeTrackingButton, {
                 issueId: item.value.id,
+              });
+            case "issue_sprints.name":
+              return h(SprintQueryColumnWrapper, {
+                sprints: item.value.entry["issue_sprints.name"].value,
               });
             default:
               return toReturnByColumnKey.value;

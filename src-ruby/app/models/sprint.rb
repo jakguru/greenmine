@@ -113,7 +113,7 @@ class Sprint < ActiveRecord::Base
   # https://chatgpt.com/c/672d29fa-43a4-800d-9461-ed0581ee65ef?model=gpt-4o
   def get_workload
     assignable_hours_per_user = []
-    non_working_week_days = non_working_week_days()
+    # non_working_week_days = non_working_week_days()
 
     # Limit the date range for workload calculation
     today = Date.today
@@ -341,10 +341,10 @@ class Sprint < ActiveRecord::Base
 
   def restrict_hours_within_sprint(issue)
     non_working_week_days = Setting.send(:non_working_week_days).map(&:to_i)
-    issue_start_date = issue.start_date.nil? ? start_date.to_date : [issue.start_date.to_date, start_date].max
-    issue_due_date = issue.due_date.nil? ? end_date.to_date : [issue.due_date.to_date, end_date].min
+    issue_start_date = issue.start_date.nil? ? start_date.to_date : [issue.start_date.to_date, start_date.to_date].max
+    issue_due_date = issue.due_date.nil? ? end_date.to_date : [issue.due_date.to_date, end_date.to_date].min
 
-    if issue_start_date > end_date || issue_due_date < start_date
+    if issue_start_date > end_date.to_date || issue_due_date < start_date.to_date
       return {estimated_hours: 0.0, logged_hours: 0.0}
     end
 
@@ -352,7 +352,7 @@ class Sprint < ActiveRecord::Base
 
     # Calculate estimated hours within sprint
     if issue.estimated_hours
-      total_days = (issue.due_date - issue.start_date).to_i
+      total_days = (issue_due_date - issue_start_date).to_i
       daily_estimate = issue.estimated_hours.to_f / (total_days.nonzero? || 1)
 
       (issue_start_date..issue_due_date).each do |date|
@@ -369,8 +369,8 @@ class Sprint < ActiveRecord::Base
   end
 
   def restrict_time_entries_within_sprint(issue)
-    issue_start_date = issue.start_date.nil? ? start_date.to_date : [issue.start_date.to_date, start_date].max
-    issue_due_date = issue.due_date.nil? ? end_date.to_date : [issue.due_date.to_date, end_date].min
+    issue_start_date = issue.start_date.nil? ? start_date.to_date : [issue.start_date.to_date, start_date.to_date].max
+    issue_due_date = issue.due_date.nil? ? end_date.to_date : [issue.due_date.to_date, end_date.to_date].min
 
     issue.time_entries.where("#{TimeEntry.table_name}.spent_on >= ? AND #{TimeEntry.table_name}.spent_on <= ?", issue_start_date, issue_due_date)
   end

@@ -10,7 +10,13 @@ module FridayPlugin
           retrieve_default_query(use_session)
           retrieve_query(IssueQuery, use_session)
           if friday_request?
-            render_query_response(@query, @query.base_scope, IssueQuery, @project, User.current, params, per_page_option)
+            if @project
+              render_project_response({
+                issues: query_response(@query, @query.base_scope, IssueQuery, @project, User.current, params, per_page_option)
+              })
+            else
+              render_query_response(@query, @query.base_scope, IssueQuery, @project, User.current, params, per_page_option)
+            end
           else
             redmine_base_index
           end

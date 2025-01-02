@@ -34,12 +34,64 @@ module FridayPlugin
             values: lambda { sprint_values }
         end
 
+        def base_scope
+          Issue.visible.joins(:status, :project, :issue_sprints).where(statement)
+        end
+
+        def issues(options = {})
+          order_option = [group_by_sort_order, options[:order] || sort_clause].flatten.reject(&:blank?)
+          # The default order of IssueQuery is issues.id DESC(by IssueQuery#default_sort_criteria)
+          unless ["#{Issue.table_name}.id ASC", "#{Issue.table_name}.id DESC"].any? { |i| order_option.include?(i) }
+            order_option << "#{Issue.table_name}.id DESC"
+          end
+
+          scope = base_scope
+            .preload(:priority, :sprints, :issue_sprints)
+            .includes(([:status, :project] + (options[:include] || [])).uniq)
+            .where(options[:conditions])
+            .order(order_option)
+            .joins(joins_for_order_statement(order_option.join(",")))
+            .limit(options[:limit])
+            .offset(options[:offset])
+
+          scope =
+            scope.preload(
+              [:tracker, :author, :assigned_to, :fixed_version,
+                :category, :attachments] & columns.map(&:name)
+            )
+          if has_custom_field_column?
+            scope = scope.preload(:custom_values)
+          end
+
+          issues = scope.to_a
+
+          if has_column?(:spent_hours)
+            Issue.load_visible_spent_hours(issues)
+          end
+          if has_column?(:total_spent_hours)
+            Issue.load_visible_total_spent_hours(issues)
+          end
+          if has_column?(:last_updated_by)
+            Issue.load_visible_last_updated_by(issues)
+          end
+          if has_column?(:relations)
+            Issue.load_visible_relations(issues)
+          end
+          if has_column?(:last_notes)
+            Issue.load_visible_last_notes(issues)
+          end
+          issues
+        rescue ::ActiveRecord::StatementInvalid => e
+          raise StatementInvalid.new(e.message)
+        end
+
         add_available_column(QueryColumn.new(:impact, sortable: "#{IssueImpact.table_name}.position",
           default_order: "desc", groupable: true))
 
         add_available_column(QueryColumn.new(:calculated_priority, sortable: "#{Issue.table_name}.calculated_priority",
           default_order: "desc", groupable: true))
 
+        add_available_column(IssueQueryTimeTrackingColumn.new)
         add_available_column(QueryManyToManyColumn.new(
           Issue.table_name,
           "id",
@@ -60,15 +112,14 @@ module FridayPlugin
                 s.to_s
               end.join(", ").html_safe
             elsif sprint.is_a?(Sprint)
-              sprint.to_s
+              sprint[:name]
             else
               Rails.logger.info("#{sprint} is neither an array nor a Sprint")
-              sprint.to_s
+              sprint[:name]
             end
           }
         ))
-
-        add_available_column(IssueQueryTimeTrackingColumn.new)
+        # add_available_column(IssueQuerySprintsColumn.new)
       end
     end
 
@@ -137,7 +188,7 @@ module FridayPlugin
             # Remove "0" from the values
             value -= ["0"]
             # Condition for issues with any sprint
-            conditions << "#{Issue.table_name}.id NOT IN (SELECT issue_id FROM issue_sprints)"
+            conditions << "#{Issue.table_name}.id IN (SELECT issue_id FROM issue_sprints)"
           end
 
           # Handle current sprint

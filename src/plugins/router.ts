@@ -1363,8 +1363,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/documents",
     name: "projects-project-id-documents",
-    // "component": () => import("@/pages/projects/project_id/documents.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/documents.vue"),
     meta: {
       title: "pages.projects-project-id-documents.title",
     },
@@ -1381,8 +1380,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/files",
     name: "projects-project-id-files",
-    // "component": () => import("@/pages/projects/project_id/files.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/files.vue"),
     meta: {
       title: "pages.projects-project-id-files.title",
     },
@@ -1426,8 +1424,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/issues",
     name: "projects-project-id-issues",
-    // "component": () => import("@/pages/projects/project_id/issues.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/issues.vue"),
     meta: {
       title: "pages.projects-project-id-issues.title",
     },
@@ -1444,8 +1441,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/issues/calendar",
     name: "projects-project-id-issues-calendar",
-    // "component": () => import("@/pages/projects/project_id/issues/calendar.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/calendar.vue"),
     meta: {
       title: "pages.projects-project-id-issues-calendar.title",
     },
@@ -1453,8 +1449,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/issues/calendar",
     name: "projects-project-id-calendars",
-    // "component": () => import("@/pages/projects/project_id/issues/calendar.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/calendar.vue"),
     meta: {
       title: "pages.projects-project-id-issues-calendar.title",
     },
@@ -1462,8 +1457,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/issues/gantt",
     name: "projects-project-id-issues-gantt",
-    // "component": () => import("@/pages/projects/project_id/issues/gantt.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/gantt.vue"),
     meta: {
       title: "pages.projects-project-id-issues-gantt.title",
     },
@@ -1471,8 +1465,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/issues/gantt",
     name: "projects-project-id-gantts",
-    // "component": () => import("@/pages/projects/project_id/issues/gantt.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/gantt.vue"),
     meta: {
       title: "pages.projects-project-id-issues-gantt.title",
     },
@@ -1516,8 +1509,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/news",
     name: "projects-project-id-news",
-    // "component": () => import("@/pages/projects/project_id/news.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/news.vue"),
     meta: {
       title: "pages.projects-project-id-news.title",
     },
@@ -1561,8 +1553,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/time_entries",
     name: "projects-project-id-time-entries",
-    // "component": () => import("@/pages/projects/project_id/time_entries.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/time_entries.vue"),
     meta: {
       title: "pages.projects-project-id-time-entries.title",
     },
@@ -1570,8 +1561,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/time_entries",
     name: "projects-project-id-timelog",
-    // "component": () => import("@/pages/projects/project_id/time_entries.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/time_entries.vue"),
     meta: {
       title: "pages.projects-project-id-time-entries.title",
     },
@@ -1606,8 +1596,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/versions",
     name: "projects-project-id-versions",
-    // "component": () => import("@/pages/projects/project_id/versions.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/versions.vue"),
     meta: {
       title: "pages.projects-project-id-versions.title",
     },
@@ -1624,8 +1613,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki",
     name: "projects-project-id-wiki",
-    // "component": () => import("@/pages/projects/project_id/wiki.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki.title",
     },

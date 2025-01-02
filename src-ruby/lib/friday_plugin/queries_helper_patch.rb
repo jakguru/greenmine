@@ -15,48 +15,58 @@ module FridayPlugin
           group_cache = {}
 
           items.each do |item|
-            group_name = group_count = group_totals = nil
-
-            if query.grouped?
-              group = query.group_by_column.group_value(item)
-              if first || group != previous_group
-                # Handle a new group
-                group_name = if group.blank? && group != false
-                  "(#{l(:label_blank_value)})"
-                else
-                  format_object(group, false).to_s
-                end
-                group_name ||= ""
-
-                group_count = result_count_by_group ? result_count_by_group[group] : nil
-                group_totals = totals_by_group.map { |column, t| total_tag(column, t[group] || 0) }
-
-                # Store in cache for reuse
-                group_cache[group] = {
-                  group_name: group_name,
-                  group_count: group_count,
-                  group_totals: group_totals
-                }
-
-                # Set previous group
-                previous_group = group
-              else
-                # Retrieve cached group details for subsequent items in the same group
-                cached_group = group_cache[group]
-                group_name = cached_group[:group_name]
-                group_count = cached_group[:group_count]
-                group_totals = cached_group[:group_totals]
-              end
+            if query.group_by_column.nil?
+              yield item, nil, nil, nil
+              next
             end
+            group = query.group_by_column.group_value(item)
 
-            # Ensure group_name is always set for grouped items
-            group_name ||= previous_group.to_s
+            # Ensure group is always an array for uniform processing
+            groups = group.is_a?(Array) ? group : [group]
 
-            # Yield the item and the group details
-            yield item, group_name, group_count, group_totals
+            groups.each do |individual_group|
+              group_name = group_count = group_totals = nil
 
-            # Update first flag after the first iteration
-            first = false
+              if query.grouped?
+                if first || individual_group != previous_group
+                  # Handle a new group
+                  group_name = if individual_group.blank? && individual_group != false
+                    "(#{l(:label_blank_value)})"
+                  else
+                    format_object(individual_group, false).to_s
+                  end
+                  group_name ||= ""
+
+                  group_count = result_count_by_group ? result_count_by_group[individual_group] : nil
+                  group_totals = totals_by_group.map { |column, t| total_tag(column, t[individual_group] || 0) }
+
+                  # Store in cache for reuse
+                  group_cache[individual_group] = {
+                    group_name: group_name,
+                    group_count: group_count,
+                    group_totals: group_totals
+                  }
+
+                  # Set previous group
+                  previous_group = individual_group
+                else
+                  # Retrieve cached group details for subsequent items in the same group
+                  cached_group = group_cache[individual_group]
+                  group_name = cached_group[:group_name]
+                  group_count = cached_group[:group_count]
+                  group_totals = cached_group[:group_totals]
+                end
+              end
+
+              # Ensure group_name is always set for grouped items
+              group_name ||= previous_group.to_s
+
+              # Yield the item and the group details for each individual group
+              yield item, group_name, group_count, group_totals
+
+              # Update first flag after the first iteration
+              first = false
+            end
           end
         end
 
