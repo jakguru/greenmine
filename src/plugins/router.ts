@@ -1096,192 +1096,192 @@ const routes: RouteRecordRaw[] = [
       title: "pages.projects-id-issues-report-detail.title",
     },
   },
-  {
-    path: "/projects/:id/repository",
-    name: "projects-id-repository",
-    // "component": () => import("@/pages/projects/id/repository.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id",
-    name: "projects-id-repository-repository-id",
-    // "component": () => import("@/pages/projects/id/repository/repository_id.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/annotate(/*path)",
-    name: "projects-id-repository-repository-id-annotate-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/annotate(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-annotate-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/browse(/*path)",
-    name: "projects-id-repository-repository-id-browse-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/browse(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-browse-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/changes(/*path)",
-    name: "projects-id-repository-repository-id-changes-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/changes(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-changes-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/diff(/*path)",
-    name: "projects-id-repository-repository-id-diff-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/diff(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-diff-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/entry(/*path)",
-    name: "projects-id-repository-repository-id-entry-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/entry(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-entry-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/graph",
-    name: "projects-id-repository-repository-id-graph",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/graph.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-graph.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/raw(/*path)",
-    name: "projects-id-repository-repository-id-raw-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/raw(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-raw-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revision",
-    name: "projects-id-repository-repository-id-revision",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revision.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-revision.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revisions",
-    name: "projects-id-repository-repository-id-revisions",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revisions.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-revisions.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revisions/:rev",
-    name: "projects-id-repository-repository-id-revisions-rev",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-revisions-rev.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revisions/:rev/annotate(/*path)",
-    name: "projects-id-repository-repository-id-revisions-rev-annotate-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/annotate(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title:
-        "pages.projects-id-repository-repository-id-revisions-rev-annotate-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revisions/:rev/browse(/*path)",
-    name: "projects-id-repository-repository-id-revisions-rev-browse-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/browse(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title:
-        "pages.projects-id-repository-repository-id-revisions-rev-browse-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revisions/:rev/diff(/*path)",
-    name: "projects-id-repository-repository-id-revisions-rev-diff-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/diff(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title:
-        "pages.projects-id-repository-repository-id-revisions-rev-diff-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revisions/:rev/entry(/*path)",
-    name: "projects-id-repository-repository-id-revisions-rev-entry-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/entry(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title:
-        "pages.projects-id-repository-repository-id-revisions-rev-entry-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revisions/:rev/raw(/*path)",
-    name: "projects-id-repository-repository-id-revisions-rev-raw-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/raw(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title:
-        "pages.projects-id-repository-repository-id-revisions-rev-raw-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/revisions/:rev/show(/*path)",
-    name: "projects-id-repository-repository-id-revisions-rev-show-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/show(/*path).vue")
-    component: fourOhFour,
-    meta: {
-      title:
-        "pages.projects-id-repository-repository-id-revisions-rev-show-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/show/*path",
-    name: "projects-id-repository-repository-id-show-path",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/show/*path.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-show-path.title",
-    },
-  },
-  {
-    path: "/projects/:id/repository/:repository_id/statistics",
-    name: "projects-id-repository-repository-id-statistics",
-    // "component": () => import("@/pages/projects/id/repository/repository_id/statistics.vue")
-    component: fourOhFour,
-    meta: {
-      title: "pages.projects-id-repository-repository-id-statistics.title",
-    },
-  },
+  // {
+  //   path: "/projects/:id/repository",
+  //   name: "projects-id-repository",
+  //   // "component": () => import("@/pages/projects/id/repository.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id",
+  //   name: "projects-id-repository-repository-id",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/annotate(/*path)",
+  //   name: "projects-id-repository-repository-id-annotate-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/annotate(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-annotate-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/browse(/*path)",
+  //   name: "projects-id-repository-repository-id-browse-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/browse(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-browse-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/changes(/*path)",
+  //   name: "projects-id-repository-repository-id-changes-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/changes(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-changes-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/diff(/*path)",
+  //   name: "projects-id-repository-repository-id-diff-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/diff(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-diff-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/entry(/*path)",
+  //   name: "projects-id-repository-repository-id-entry-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/entry(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-entry-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/graph",
+  //   name: "projects-id-repository-repository-id-graph",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/graph.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-graph.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/raw(/*path)",
+  //   name: "projects-id-repository-repository-id-raw-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/raw(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-raw-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revision",
+  //   name: "projects-id-repository-repository-id-revision",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revision.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-revision.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revisions",
+  //   name: "projects-id-repository-repository-id-revisions",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revisions.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-revisions.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revisions/:rev",
+  //   name: "projects-id-repository-repository-id-revisions-rev",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-revisions-rev.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revisions/:rev/annotate(/*path)",
+  //   name: "projects-id-repository-repository-id-revisions-rev-annotate-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/annotate(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title:
+  //       "pages.projects-id-repository-repository-id-revisions-rev-annotate-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revisions/:rev/browse(/*path)",
+  //   name: "projects-id-repository-repository-id-revisions-rev-browse-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/browse(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title:
+  //       "pages.projects-id-repository-repository-id-revisions-rev-browse-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revisions/:rev/diff(/*path)",
+  //   name: "projects-id-repository-repository-id-revisions-rev-diff-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/diff(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title:
+  //       "pages.projects-id-repository-repository-id-revisions-rev-diff-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revisions/:rev/entry(/*path)",
+  //   name: "projects-id-repository-repository-id-revisions-rev-entry-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/entry(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title:
+  //       "pages.projects-id-repository-repository-id-revisions-rev-entry-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revisions/:rev/raw(/*path)",
+  //   name: "projects-id-repository-repository-id-revisions-rev-raw-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/raw(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title:
+  //       "pages.projects-id-repository-repository-id-revisions-rev-raw-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/revisions/:rev/show(/*path)",
+  //   name: "projects-id-repository-repository-id-revisions-rev-show-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/revisions/rev/show(/*path).vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title:
+  //       "pages.projects-id-repository-repository-id-revisions-rev-show-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/show/*path",
+  //   name: "projects-id-repository-repository-id-show-path",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/show/*path.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-show-path.title",
+  //   },
+  // },
+  // {
+  //   path: "/projects/:id/repository/:repository_id/statistics",
+  //   name: "projects-id-repository-repository-id-statistics",
+  //   // "component": () => import("@/pages/projects/id/repository/repository_id/statistics.vue")
+  //   component: fourOhFour,
+  //   meta: {
+  //     title: "pages.projects-id-repository-repository-id-statistics.title",
+  //   },
+  // },
   {
     path: "/projects/:id/search",
     name: "projects-id-search",

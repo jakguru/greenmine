@@ -35,7 +35,10 @@ module FridayPlugin
         end
 
         def base_scope
-          Issue.visible.joins(:status, :project, :issue_sprints).where(statement)
+          Issue.visible
+            .joins(:status, :project)
+            .left_joins(:issue_sprints)
+            .where(statement)
         end
 
         def issues(options = {})

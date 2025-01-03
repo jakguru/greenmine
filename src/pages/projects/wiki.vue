@@ -72,7 +72,6 @@
                 height="24px"
                 style="position: relative; top: 1px"
                 :to="mi.to"
-                :exact="true"
               >
                 <span>{{ mi.title }}</span>
               </v-btn>

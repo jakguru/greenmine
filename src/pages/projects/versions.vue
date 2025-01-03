@@ -72,7 +72,6 @@
                 height="24px"
                 style="position: relative; top: 1px"
                 :to="mi.to"
-                :exact="true"
               >
                 <span>{{ mi.title }}</span>
               </v-btn>
@@ -81,7 +80,8 @@
         </v-slide-group>
       </v-toolbar>
       <v-divider />
-      Here we will put releases
+      <!-- Here we will put releases -->
+      <UnderConstruction />
     </v-card>
   </v-container>
 </template>
@@ -97,6 +97,8 @@ import iconGitHub from "@/assets/images/icon-github.svg?url";
 import iconMonday from "@/assets/images/icon-monday.svg?url";
 import defaultProjectAvatar from "@/assets/images/default-project-avatar.svg?url";
 import defaultProjectBanner from "@/assets/images/default-project-banner.jpg?url";
+
+import UnderConstruction from "@/views/construction.vue";
 
 import type { PropType } from "vue";
 import type {
@@ -119,7 +121,9 @@ import type {
 
 export default defineComponent({
   name: "ProjectsActivity",
-  components: {},
+  components: {
+    UnderConstruction,
+  },
   props: {
     formAuthenticityToken: {
       type: String,

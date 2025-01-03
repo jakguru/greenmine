@@ -69,6 +69,11 @@ module FridayHelper
       payload[:items_per_page] = per_page_option
       payload[:page] = params[:page].nil? ? 1 : params[:page].to_i
       payload[:pages] = Redmine::Pagination::Paginator.new payload[:items_length], payload[:items_per_page], params[:page]
+      Rails.logger.info scope
+        .offset(payload[:pages].offset)
+        .limit(payload[:items_per_page])
+        .order(order_option)
+        .joins(query.joins_for_order_statement(order_option.join(","))).to_sql
       raw = if @query.display_type == "list"
         scope
           .offset(payload[:pages].offset)

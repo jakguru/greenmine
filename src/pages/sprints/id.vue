@@ -60,118 +60,15 @@
         </v-container>
       </template>
       <template v-else-if="tab === 'issues'">
-        <v-container fluid>
-          <v-row v-if="!isBacklog">
-            <v-col cols="12">
-              <SprintCapacity :sprint="sprint" :workload="workload" />
-            </v-col>
-          </v-row>
-          <v-toolbar color="transparent">
-            <v-slide-group show-arrows class="mx-2">
-              <v-slide-group-item v-if="showFiltersMenu">
-                <QueriesPartialFilters
-                  v-model:model-value="value"
-                  :dirty="dirty"
-                  :submitting="submitting"
-                  @submit="onSubmit"
-                />
-              </v-slide-group-item>
-              <v-slide-group-item v-if="showColumnsMenu">
-                <QueriesPartialColumns
-                  v-model:model-value="value"
-                  :dirty="dirty"
-                  :submitting="submitting"
-                  @submit="onSubmit"
-                />
-              </v-slide-group-item>
-              <v-slide-group-item v-if="showSortingMenu">
-                <QueriesPartialSorting
-                  v-model:model-value="value"
-                  :dirty="dirty"
-                  :submitting="submitting"
-                  @submit="onSubmit"
-                />
-              </v-slide-group-item>
-              <v-slide-group-item v-if="showGroupingsMenu">
-                <QueriesPartialGroupings
-                  v-model:model-value="value"
-                  :dirty="dirty"
-                  :submitting="submitting"
-                  @submit="onSubmit"
-                />
-              </v-slide-group-item>
-              <v-slide-group-item v-if="showAdditional">
-                <QueriesPartialOptions
-                  v-model:model-value="value"
-                  :dirty="dirty"
-                  :submitting="submitting"
-                  @submit="onSubmit"
-                />
-              </v-slide-group-item>
-              <v-slide-group-item>
-                <v-btn
-                  variant="elevated"
-                  :color="accentColor"
-                  size="x-small"
-                  class="ma-2"
-                  type="submit"
-                  height="24px"
-                  :disabled="!dirty"
-                  :loading="submitting"
-                  style="position: relative; top: 1px"
-                >
-                  <v-icon class="me-2">mdi-check</v-icon>
-                  {{ $t("labels.apply") }}
-                </v-btn>
-              </v-slide-group-item>
-              <v-slide-group-item>
-                <v-btn
-                  variant="elevated"
-                  :color="accentColor"
-                  size="x-small"
-                  class="ma-2"
-                  type="button"
-                  height="24px"
-                  :loading="submitting"
-                  :disabled="!dirty"
-                  style="position: relative; top: 1px"
-                  @click="onReset"
-                >
-                  <v-icon class="me-2">mdi-restore</v-icon>
-                  {{ $t("labels.reset") }}
-                </v-btn>
-              </v-slide-group-item>
-              <v-slide-group-item>
-                <v-btn
-                  variant="elevated"
-                  :color="accentColor"
-                  size="x-small"
-                  class="ma-2"
-                  type="button"
-                  height="24px"
-                  :loading="submitting"
-                  style="position: relative; top: 1px"
-                  @click="onRefresh"
-                >
-                  <v-icon class="me-2">mdi-refresh</v-icon>
-                  {{ $t("labels.refresh") }}
-                </v-btn>
-              </v-slide-group-item>
-            </v-slide-group>
-          </v-toolbar>
-          <QueriesPartialDataTable
-            v-model:model-value="value"
-            v-model:payload-value="payloadValue"
-            :query="query"
-            :payload="payload"
-            :submitting="submitting"
-            :dirty="dirty"
-            :get-action-items="getActionMenuItems"
-            filter-to-id-field="issue_id"
-            @submit="onSubmit"
-            @refresh="onRefresh"
-          />
-        </v-container>
+        <EmbeddedIssueQueryTable :issues="issues">
+          <template #before>
+            <v-row v-if="!isBacklog">
+              <v-col cols="12">
+                <SprintCapacity :sprint="sprint" :workload="workload" />
+              </v-col>
+            </v-row>
+          </template>
+        </EmbeddedIssueQueryTable>
       </template>
       <template
         v-else-if="tab === 'edit' && permissions.edit === true && sprint.id"
@@ -234,11 +131,9 @@ import { defineComponent, computed, inject, onMounted, ref, watch } from "vue";
 import { useHead } from "@unhead/vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
-import { makeNewQueryPayloadFromQueryAndQueryPayload } from "@/friday";
 import {
   useSystemAccentColor,
   cloneObject,
-  checkObjectEquality,
   loadRouteData,
   useOnError,
 } from "@/utils/app";
@@ -246,16 +141,8 @@ import { VTextField } from "vuetify/components/VTextField";
 import { SprintBurndown, SprintCapacity } from "@/components/charts/sprint";
 import { Joi, getFormFieldValidator, FridayForm } from "@/components/forms";
 import { toISODate } from "@/utils/formatting";
-import {
-  QueriesPartialFilters,
-  QueriesPartialColumns,
-  QueriesPartialSorting,
-  QueriesPartialGroupings,
-  QueriesPartialOptions,
-  QueriesPartialDataTable,
-} from "@/components/queries/partials";
 import { useRouteDataStore } from "@/stores/routeData";
-import { useGetActionMenuItems } from "@/components/queries/utils/issues";
+import { EmbeddedIssueQueryTable } from "@/components/issues";
 
 import type { PropType } from "vue";
 import type {
@@ -290,12 +177,7 @@ export default defineComponent({
     FridayForm,
     SprintBurndown,
     SprintCapacity,
-    QueriesPartialFilters,
-    QueriesPartialColumns,
-    QueriesPartialSorting,
-    QueriesPartialGroupings,
-    QueriesPartialOptions,
-    QueriesPartialDataTable,
+    EmbeddedIssueQueryTable,
   },
   props: {
     formAuthenticityToken: {
@@ -515,11 +397,6 @@ export default defineComponent({
     const value = ref<QueryData>(cloneObject(query.value));
     const payload = computed(() => issues.value.payload);
     const payloadValue = ref<QueryResponsePayload>(cloneObject(payload.value));
-    const dirty = computed(
-      () =>
-        !checkObjectEquality(value.value, query.value) ||
-        !checkObjectEquality(payloadValue.value, payload.value),
-    );
     watch(
       () => query.value,
       (v) => {
@@ -534,34 +411,7 @@ export default defineComponent({
       },
       { immediate: true, deep: true },
     );
-    const onReset = () => {
-      value.value = cloneObject(query.value);
-    };
     const submitting = ref(false);
-    const onSubmit = (e?: Event) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      if (submitting.value) {
-        return;
-      }
-      const payload = makeNewQueryPayloadFromQueryAndQueryPayload(
-        value.value,
-        payloadValue.value,
-      );
-      submitting.value = true;
-      router
-        // @ts-expect-error the query object's type is correct, but the router's type is not
-        .push({ ...route, query: { tab: tab.value, ...payload } })
-        .catch((e) => {
-          console.warn(e);
-          // noop
-        })
-        .finally(() => {
-          submitting.value = false;
-        });
-    };
     const routeDataStore = useRouteDataStore();
     const onRefresh = async (e?: Event) => {
       if (e) {
@@ -583,36 +433,6 @@ export default defineComponent({
       }
       submitting.value = false;
     };
-    const showFiltersMenu = computed(() => {
-      return Object.keys(query.value.filters.available).length > 0;
-    });
-    const showColumnsMenu = computed(() => {
-      return (
-        query.value.display.current === "list" &&
-        query.value.columns.available.inline.length > 0
-      );
-    });
-    const showSortingMenu = computed(() => {
-      return (
-        query.value.columns.available.sortable &&
-        query.value.columns.available.sortable.length > 0
-      );
-    });
-    const showGroupingsMenu = computed(() => {
-      return (
-        query.value.display.current === "list" &&
-        query.value.columns.available.groupable.length > 0
-      );
-    });
-    const showBlockable = computed(() => {
-      return query.value.columns.available.block.length > 0;
-    });
-    const showTotalable = computed(() => {
-      return query.value.columns.available.totalable.length > 0;
-    });
-    const showAdditional = computed(() => {
-      return showBlockable.value || showTotalable.value;
-    });
     router.afterEach(() => {
       submitting.value = false;
     });
@@ -642,7 +462,6 @@ export default defineComponent({
       },
       { immediate: true },
     );
-    const getActionMenuItems = useGetActionMenuItems(api, toast, t);
     return {
       breadcrumbsBindings,
       vTabBindings,
@@ -652,23 +471,6 @@ export default defineComponent({
       onError,
       fridayFormBindings,
       isBacklog,
-
-      value,
-      dirty,
-      submitting,
-      onSubmit,
-      onReset,
-      onRefresh,
-      query,
-      payload,
-      payloadValue,
-      showFiltersMenu,
-      showColumnsMenu,
-      showSortingMenu,
-      showGroupingsMenu,
-      showAdditional,
-
-      getActionMenuItems,
     };
   },
 });

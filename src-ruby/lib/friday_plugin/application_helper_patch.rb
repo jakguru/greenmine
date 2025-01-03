@@ -6,6 +6,8 @@ module FridayPlugin
 
         def format_object(object, html = true, &block)
           case object
+          when BacklogSprint
+            object.name
           when Sprint
             object[:name]
           else

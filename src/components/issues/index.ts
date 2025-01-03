@@ -1,5 +1,5 @@
 /* eslint-disable vue/one-component-per-file */
-import { defineComponent, h, computed } from "vue";
+import { defineComponent, defineAsyncComponent, h, computed } from "vue";
 import { VChip } from "vuetify/components/VChip";
 import { useAppData } from "@/utils/app";
 
@@ -236,3 +236,7 @@ export const TrackerChip = defineComponent({
     return () => h(VChip, vChipBindings.value, props.name);
   },
 });
+
+export const EmbeddedIssueQueryTable = defineAsyncComponent(
+  () => import("./embeddedQueryTable.vue"),
+);

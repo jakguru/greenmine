@@ -1,10 +1,12 @@
 <template>
   <v-sheet color="transparent">
     <v-list-item>
-      <v-list-item-title style="font-size: 75%; font-weight: bold">
-        <span class="me-2">{{ name }}</span>
-        <v-badge inline dot :color="color" />
-      </v-list-item-title>
+      <router-link :to="sprintRoute">
+        <v-list-item-title style="font-size: 75%; font-weight: bold">
+          <span class="me-2">{{ name }}</span>
+          <v-badge inline dot :color="color" />
+        </v-list-item-title>
+      </router-link>
       <v-list-item-subtitle style="font-size: 70%">
         {{ dateRangeFormatted }}
       </v-list-item-subtitle>
@@ -120,12 +122,17 @@ export default defineComponent({
         cron.$off("* * * * * *", setNow);
       }
     });
+    const sprintRoute = computed(() => ({
+      name: "sprints-id",
+      params: { id: isBacklog.value ? "0" : id.value?.toString() || "0" },
+    }));
     return {
       color,
       isCurrent,
       dateRangeFormatted,
       progress,
       isBacklog,
+      sprintRoute,
     };
   },
 });

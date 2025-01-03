@@ -72,7 +72,6 @@
                 height="24px"
                 style="position: relative; top: 1px"
                 :to="mi.to"
-                :exact="true"
               >
                 <span>{{ mi.title }}</span>
               </v-btn>
@@ -81,7 +80,7 @@
         </v-slide-group>
       </v-toolbar>
       <v-divider />
-      Here we will put issues
+      <EmbeddedIssueQueryTable :issues="issues" />
     </v-card>
   </v-container>
 </template>
@@ -92,6 +91,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { useSystemSurfaceColor, useSystemAccentColor } from "@/utils/app";
 import { formatDuration } from "@/utils/formatting";
+import { EmbeddedIssueQueryTable } from "@/components/issues";
 import iconGitLab from "@/assets/images/icon-gitlab.svg?url";
 import iconGitHub from "@/assets/images/icon-github.svg?url";
 import iconMonday from "@/assets/images/icon-monday.svg?url";
@@ -118,8 +118,10 @@ import type {
 } from "@/friday";
 
 export default defineComponent({
-  name: "ProjectsActivity",
-  components: {},
+  name: "ProjectsIssues",
+  components: {
+    EmbeddedIssueQueryTable,
+  },
   props: {
     formAuthenticityToken: {
       type: String,

@@ -43,7 +43,11 @@ module FridayPlugin
 
       def value_for_sprints_field_hash
         collection = send(:sprints)
-        return [Sprint.backlog] if collection.empty?
+        if !collection.is_a?(Array) || collection.empty?
+          return [
+            {id: nil, name: Sprint.backlog.name, startDate: Sprint.backlog[:start_date], endDate: Sprint.backlog[:end_date]}
+          ]
+        end
         collection.select(&:visible?).map { |sprint| sprint }.uniq.sort_by(&:start_date).map { |sprint| {id: sprint[:id], name: sprint[:name], startDate: sprint[:start_date], endDate: sprint[:end_date]} }
       end
 

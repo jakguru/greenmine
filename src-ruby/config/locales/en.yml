@@ -52,6 +52,7 @@ en:
   field_total_time_logged: Total Time Logged
   field_web_url: URL
   label_active: Active
+  label_current: Current
   label_backlog: Backlog
   label_gitlab_new: New GitLab Integration
   label_issue_impact_updated: Impact updated

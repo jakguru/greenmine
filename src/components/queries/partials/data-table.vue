@@ -26,10 +26,12 @@
                   <strong class="me-2">{{ t.title }}</strong>
                   <abbr
                     :title="
-                      formatDurationForHumans(totalsByGroup[item.value][t.key])
+                      formatDurationForHumans(
+                        getGroupTotalByKey(item.value, t.key),
+                      )
                     "
                     >{{
-                      formatDuration(totalsByGroup[item.value][t.key])
+                      formatDuration(getGroupTotalByKey(item.value, t.key))
                     }}</abbr
                   >
                 </v-chip>
@@ -155,6 +157,7 @@ import { formatDuration, formatDurationForHumans } from "@/utils/formatting";
 import { QueriesPartialDataTableCell } from "./data-table-cell-component";
 import { useDisplay } from "vuetify";
 import { ActionMenu } from "./action-menu";
+import { useI18n } from "vue-i18n";
 
 import type { PropType } from "vue";
 import type {
@@ -220,6 +223,7 @@ export default defineComponent({
     "reset",
   ],
   setup(props, { emit }) {
+    const { t } = useI18n({ useScope: "global" });
     const modelValue = ref(props.modelValue);
     const payloadValue = ref(props.payloadValue);
     const display = useDisplay();
@@ -510,9 +514,9 @@ export default defineComponent({
     const totalsByGroup = computed(() => {
       const ret: Record<string, Record<string, number>> = {};
       payload.value.items.forEach((item) => {
-        const group = item.group_name;
+        let group = item.group_name;
         if (!group) {
-          return;
+          group = t("labels.none");
         }
         if (!ret[group]) {
           ret[group] = {};
@@ -526,6 +530,21 @@ export default defineComponent({
       });
       return ret;
     });
+    const getGroupTotalByKey = (
+      group: string | null | undefined,
+      key: string,
+    ) => {
+      if (!group) {
+        group = t("labels.none");
+      }
+      if (!totalsByGroup.value[group]) {
+        return 0;
+      }
+      if (!totalsByGroup.value[group][key]) {
+        return 0;
+      }
+      return totalsByGroup.value[group][key];
+    };
     return {
       tableBindings,
       selectedItems,
@@ -542,6 +561,7 @@ export default defineComponent({
       actionMenuIsLoading,
       actionMenuItems,
       xs: display.xs,
+      getGroupTotalByKey,
     };
   },
 });

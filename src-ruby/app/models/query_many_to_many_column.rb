@@ -30,7 +30,7 @@ class QueryManyToManyColumn < QueryColumn
 
   def group_value(object)
     assoc_collection = object.send(@foreign_table)
-    return [@no_assoc_value] if assoc_collection.blank? && @no_assoc_value
+    return [@no_assoc_value] if (assoc_collection.blank? || assoc_collection.empty? || assoc_collection.nil?) && @no_assoc_value
 
     assoc_collection.select(&:visible?).map { |assoc| assoc }.uniq
   end
