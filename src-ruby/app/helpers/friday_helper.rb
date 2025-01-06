@@ -50,7 +50,7 @@ module FridayHelper
       },
       display: {
         current: query.options.include?(:display_type) ? query.options[:display_type].to_s : "list",
-        available: query.available_display_types
+        available: query.available_display_types.reject { |type| type == "gantt" }
       },
       options: query.options,
       project: query.project_id.nil? ? nil : Project.find(query.project_id)
@@ -69,30 +69,52 @@ module FridayHelper
       payload[:items_per_page] = per_page_option
       payload[:page] = params[:page].nil? ? 1 : params[:page].to_i
       payload[:pages] = Redmine::Pagination::Paginator.new payload[:items_length], payload[:items_per_page], params[:page]
-      Rails.logger.info scope
-        .offset(payload[:pages].offset)
-        .limit(payload[:items_per_page])
-        .order(order_option)
-        .joins(query.joins_for_order_statement(order_option.join(","))).to_sql
-      raw = if @query.display_type == "list"
+      raw = case @query.display_type
+      when "list"
         scope
           .offset(payload[:pages].offset)
           .limit(payload[:items_per_page])
           .order(order_option)
           .joins(query.joins_for_order_statement(order_option.join(",")))
           .to_a
+      when "gantt"
+        scope
+          .joins(query.joins_for_order_statement(order_option.join(",")))
+          .to_a
       else
         scope.to_a
       end
-      grouped_friday_list(raw, query) do |entry, level, group_name, group_count, group_totals|
-        payload[:items] << {
-          id: entry.id,
-          entry: make_entry_hash(entry, query_data[:columns][:current], user),
-          level: level,
-          group_name: group_name,
-          group_count: group_count,
-          group_totals: group_totals
-        }
+      case @query.display_type
+      when "gantt"
+        series_by_group = {}
+        grouped_friday_list(raw, query) do |entry, level, group_name, group_count, group_totals|
+          group_name_as_symbol = group_name.nil? ? :gantt : group_name.to_sym
+          series_by_group[group_name_as_symbol] ||= {
+            name: group_name.nil? ? l(:label_gantt) : group_name.to_sym,
+            custom: {
+              count: group_count,
+              totals: group_totals
+            },
+            data: [],
+            type: "gantt"
+          }
+          series_by_group[group_name_as_symbol][:data] << make_entry_gantt_hash(entry, user)
+        end
+        payload[:page] = 1
+        payload[:pages] = 1
+        payload[:items_per_page] = payload[:items_length]
+        payload[:items] = series_by_group.values
+      else
+        grouped_friday_list(raw, query) do |entry, level, group_name, group_count, group_totals|
+          payload[:items] << {
+            id: entry.id,
+            entry: make_entry_hash(entry, query_data[:columns][:current], user),
+            level: level,
+            group_name: group_name,
+            group_count: group_count,
+            group_totals: group_totals
+          }
+        end
       end
     end
 
@@ -849,5 +871,165 @@ module FridayHelper
       ret = ret.sub("#{local_model}.", "")
     end
     "entry.#{ret}"
+  end
+
+  def make_entry_gantt_hash(entry, user)
+    status = entry.respond_to?(:status) ? entry[:status] : nil
+    tracker = entry.respond_to?(:tracker) ? entry.tracker : nil
+    related_to = entry.respond_to?(:relations_to) ? entry.relations_to : []
+    dependency = related_to&.reject { |relation|
+      relation.relation_type == IssueRelation::TYPE_RELATES || relation.relation_type == IssueRelation::TYPE_COPIED_TO
+    }&.map { |relation|
+      make_entry_gantt_entry_dependency_hash(entry, relation, user)
+    }
+    color = if status.nil?
+      "#00854d"
+    elsif status[:background_color].blank?
+      "#00854d"
+    else
+      status[:background_color]
+    end
+    completed = entry.respond_to?(:done_ratio) ? entry[:done_ratio] / 100 : 0
+    tracker_name = tracker.nil? ? l(:label_unknown) : tracker[:name]
+    entry_name = if entry.respond_to?(:subject)
+      entry[:subject]
+    elsif entry.respond_to?(:name)
+      entry[:name]
+    else
+      l(:label_unknown)
+    end
+    ends_at = entry.respond_to?(:end_timestamp) ? entry.end_timestamp : 0
+    labelrank = entry.respond_to?(:calculated_priority) ? 10 - entry[:calculated_priority] : 0
+    starts_at = entry.respond_to?(:start_timestamp) ? entry.start_timestamp : 0
+    assigned_to = entry.respond_to?(:assigned_to) ? entry.assigned_to : nil
+    entry_gantt_hash = {
+      color: color,
+      completed: {
+        amount: completed
+      },
+      custom: {
+        id: entry.id,
+        model: entry.class.name.to_s.underscore.downcase,
+        assignee: assigned_to.nil? ? nil : assigned_to[:name],
+        route: {
+          name: "#{entry.class.name.to_s.underscore.downcase.pluralize}-id",
+          params: {
+            id: entry.id
+          }
+        }
+      },
+      dependency: dependency,
+      description: "#{tracker_name} ##{entry[:id]}: #{entry_name}",
+      end: ends_at,
+      id: "entry-#{entry.id}",
+      labelrank: labelrank,
+      name: "#{tracker_name} ##{entry[:id]}: #{entry_name}",
+      start: starts_at
+    }
+    if entry.respond_to?(:parent_id) && entry[:parent_id].present?
+      entry_gantt_hash[:parent] = "entry-#{entry[:parent_id]}"
+    end
+    entry_gantt_hash
+  end
+
+  def make_entry_gantt_entry_dependency_hash(entry, dependent, user)
+    relation_type = dependent.relation_type
+
+    case relation_type
+    when IssueRelation::TYPE_DUPLICATES
+      dash_style = "ShortDot"
+      line_color = "#aaaaaa"
+      line_width = 1
+      radius = 5
+      start_marker = {
+        symbol: "circle",
+        radius: 4,
+        fillColor: "#888888",
+        lineWidth: 1,
+        lineColor: "#555555"
+      }
+      end_marker = {
+        symbol: "circle",
+        radius: 4,
+        fillColor: "#888888",
+        lineWidth: 1,
+        lineColor: "#555555"
+      }
+      type = "simpleConnect"
+
+    when IssueRelation::TYPE_BLOCKS
+      dash_style = "Dash"
+      line_color = "#ff3333"
+      line_width = 2
+      radius = 6
+      start_marker = {
+        symbol: "square",
+        radius: 5,
+        fillColor: "#ff0000",
+        lineWidth: 2,
+        lineColor: "#cc0000"
+      }
+      end_marker = {
+        symbol: "square",
+        radius: 5,
+        fillColor: "#ff0000",
+        lineWidth: 2,
+        lineColor: "#cc0000"
+      }
+      type = "fastAvoid"
+
+    when IssueRelation::TYPE_PRECEDES
+      dash_style = "LongDashDot"
+      line_color = "#33cc33"
+      line_width = 2
+      radius = 7
+      start_marker = {
+        symbol: "triangle",
+        radius: 6,
+        fillColor: "#00ff00",
+        lineWidth: 2,
+        lineColor: "#008800"
+      }
+      end_marker = {
+        symbol: "triangle",
+        radius: 6,
+        fillColor: "#00ff00",
+        lineWidth: 2,
+        lineColor: "#008800"
+      }
+      type = "straight"
+
+    else
+      dash_style = "Solid"
+      line_color = "#3333ff"
+      line_width = 1
+      radius = 4
+      start_marker = {
+        symbol: "diamond",
+        radius: 4,
+        fillColor: "#0000ff",
+        lineWidth: 1,
+        lineColor: "#000088"
+      }
+      end_marker = {
+        symbol: "diamond",
+        radius: 4,
+        fillColor: "#0000ff",
+        lineWidth: 1,
+        lineColor: "#000088"
+      }
+      type = "simpleConnect"
+    end
+
+    {
+      dashStyle: dash_style,
+      lineColor: line_color,
+      lineWidth: line_width,
+      radius: radius,
+      startMarker: start_marker,
+      endMarker: end_marker,
+      to: "entry-#{dependent[:issue_from_id]}",
+      type: type
+    }
   end
 end

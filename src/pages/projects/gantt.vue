@@ -80,7 +80,7 @@
         </v-slide-group>
       </v-toolbar>
       <v-divider />
-      Here we will put the gantt
+      <EmbeddedIssueQueryGantt :issues="gantt" />
     </v-card>
   </v-container>
 </template>
@@ -91,6 +91,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { useSystemSurfaceColor, useSystemAccentColor } from "@/utils/app";
 import { formatDuration } from "@/utils/formatting";
+import { EmbeddedIssueQueryGantt } from "@/components/issues";
 import iconGitLab from "@/assets/images/icon-gitlab.svg?url";
 import iconGitHub from "@/assets/images/icon-github.svg?url";
 import iconMonday from "@/assets/images/icon-monday.svg?url";
@@ -112,12 +113,14 @@ import type {
   ProjectDocumentLink,
   File,
   MondayBoard,
-  GanttChartConfig,
+  QueryResponseGantt,
 } from "@/friday";
 
 export default defineComponent({
   name: "ProjectsActivity",
-  components: {},
+  components: {
+    EmbeddedIssueQueryGantt,
+  },
   props: {
     formAuthenticityToken: {
       type: String,
@@ -180,7 +183,7 @@ export default defineComponent({
       default: null,
     },
     gantt: {
-      type: Object as PropType<GanttChartConfig>,
+      type: Object as PropType<QueryResponseGantt>,
       required: true,
     },
   },

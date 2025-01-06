@@ -88,6 +88,10 @@ module FridayPlugin
           raise StatementInvalid.new(e.message)
         end
 
+        def available_display_types
+          ["list", "gantt"]
+        end
+
         add_available_column(QueryColumn.new(:impact, sortable: "#{IssueImpact.table_name}.position",
           default_order: "desc", groupable: true))
 

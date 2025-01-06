@@ -240,3 +240,7 @@ export const TrackerChip = defineComponent({
 export const EmbeddedIssueQueryTable = defineAsyncComponent(
   () => import("./embeddedQueryTable.vue"),
 );
+
+export const EmbeddedIssueQueryGantt = defineAsyncComponent(
+  () => import("./embeddedQueryGantt.vue"),
+);

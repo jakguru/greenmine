@@ -67,6 +67,52 @@ module FridayPlugin
       def push_realtime_update
         FridayPlugin::IssuesChannel.broadcast_to(self, self)
       end
+
+      def start_timestamp
+        start_timestamp_date = start_date
+        start_timestamp_date ||= sprints.map(&:start_date).compact.min
+        start_timestamp_date ||= created_on
+
+        # Restrain date only if sprints are present
+        if sprints.any?
+          start_timestamp_date = restrain_date_to_sprints(start_timestamp_date)
+        end
+
+        start_timestamp_date.beginning_of_day.to_time.to_i * 1000
+      end
+
+      def end_timestamp
+        end_timestamp_date = closed_on || due_date
+        end_timestamp_date ||= if start_date && estimated_hours.present?
+          start_date + hours_to_days(estimated_hours).days
+        else
+          sprints.map(&:end_date).compact.max
+        end
+        end_timestamp_date ||= Date.current
+
+        # Restrain date only if sprints are present
+        if sprints.any?
+          end_timestamp_date = restrain_date_to_sprints(end_timestamp_date)
+        end
+
+        end_timestamp_date.end_of_day.to_time.to_i * 1000
+      end
+
+      def hours_to_days(hours)
+        (hours / 8).round(0)
+      end
+
+      def restrain_date_to_sprints(date)
+        min_possible_date = sprints.map(&:start_date).compact.min
+        max_possible_date = sprints.map(&:end_date).compact.max
+
+        # Only clamp if both min and max dates are present
+        if min_possible_date && max_possible_date
+          date.clamp(min_possible_date, max_possible_date)
+        else
+          date
+        end
+      end
     end
   end
 end

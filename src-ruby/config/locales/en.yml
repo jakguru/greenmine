@@ -92,3 +92,5 @@ en:
   label_pipelines_ended_plural: Pipeline Ends
   label_release_plural: Releases
   label_tag_plural: Tags
+  label_unknown: Unknown
+  label_gantt: Gantt

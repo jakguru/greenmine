@@ -1719,8 +1719,6 @@ export interface TimeEntry {
   user: User;
 }
 
-export interface GanttChartConfig {}
-
 export interface CalendarResponse {}
 
 export interface NewsResponse {
@@ -1734,3 +1732,112 @@ export interface Doc {}
 export interface WikiResponse {}
 
 export interface AttachedFile {}
+
+export interface QueryResponseGanttEntryDependencyMarker {
+  fillColor: string;
+  lineColor: string;
+  lineWidth: number;
+  radius: number;
+  symbol: string;
+}
+
+export interface QueryResponseGanttEntryDependency {
+  dashStyle: string;
+  endMarker: QueryResponseGanttEntryDependencyMarker;
+  lineColor: string;
+  lineWidth: number;
+  startMarker: QueryResponseGanttEntryDependencyMarker;
+  to: string;
+  type: string;
+}
+
+export interface QueryResponseGanttEntry {
+  color: string;
+  completed: number;
+  custom: {
+    id: number;
+    model: string;
+    assignee: string | null;
+    route: {
+      name: string;
+      params: Record<string, string>;
+    };
+  };
+  dependancy: QueryResponseGanttEntryDependency[];
+  description: string;
+  end: number;
+  id: string;
+  labelrank: number;
+  name: string;
+  start: number;
+}
+
+export interface QueryResponseGanttSeries {
+  name: string;
+  custom: {
+    count: unknown;
+    totals: unknown;
+  };
+  data: Array<QueryResponseGanttEntry>;
+  type: "gantt";
+}
+
+export interface QueryResponseGanttPayload {
+  items: Array<QueryResponseGanttSeries>;
+  items_length: number;
+  items_per_page: number;
+  page: number;
+  pages: PageDetails;
+  totals: Array<ColumnTotal>;
+}
+
+export interface QueryResponseGantt {
+  params: QueryResponseParams;
+  payload: QueryResponseGanttPayload;
+  query: QueryData;
+  queries: Array<DefinedQuery>;
+  permissions: Permissions;
+  creatable: Array<Createable>;
+}
+
+export const makeNewQueryPayloadFromQueryAndQueryGanttPayload = (
+  query: QueryData,
+  payload: QueryResponseGanttPayload,
+): NewQueryPayload => {
+  return {
+    utf8: "✓",
+    set_filter: 1,
+    query_id: query.id || undefined,
+    page: payload.page,
+    per_page: payload.items_per_page,
+    f: [...Object.keys(query.filters.current), ""],
+    op: Object.fromEntries(
+      Object.entries(query.filters.current).map(([key, filter]) => [
+        key,
+        filter.operator,
+      ]),
+    ),
+    v: Object.fromEntries(
+      Object.entries(query.filters.current).map(([key, filter]) => [
+        key,
+        filter.values,
+      ]),
+    ),
+    group_by: query.columns.current.groupable[0]
+      ? query.columns.current.groupable[0].key
+      : "",
+    c: [
+      ...query.columns.current.inline.map((column) => column.key),
+      ...query.columns.current.block.map((column) => column.key),
+    ],
+    t: [...query.columns.current.totalable.map((column) => column.key), ""],
+    sort: query.columns.current.sort
+      .map((column) =>
+        [column.key, column.sort === "desc" ? "desc" : undefined]
+          .filter((v) => "string" === typeof v)
+          .join(":"),
+      )
+      .join(","),
+    display_type: query.options.display_type,
+  };
+};

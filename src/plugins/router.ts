@@ -771,8 +771,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/issues/gantt",
     name: "issues-gantt",
-    // "component": () => import("@/pages/issues/gantt.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/issues/gantt.vue"),
     meta: {
       title: "pages.issues-gantt.title",
     },
@@ -1621,8 +1620,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/:id",
     name: "projects-project-id-wiki-id",
-    // "component": () => import("@/pages/projects/project_id/wiki/id.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-id.title",
     },
@@ -1630,8 +1628,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/:id/:version",
     name: "projects-project-id-wiki-id-version",
-    // "component": () => import("@/pages/projects/project_id/wiki/id/version.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-id-version.title",
     },
@@ -1639,8 +1636,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/:id/:version/annotate",
     name: "projects-project-id-wiki-id-version-annotate",
-    // "component": () => import("@/pages/projects/project_id/wiki/id/version/annotate.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-id-version-annotate.title",
     },
@@ -1648,8 +1644,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/:id/:version/diff",
     name: "projects-project-id-wiki-id-version-diff",
-    // "component": () => import("@/pages/projects/project_id/wiki/id/version/diff.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-id-version-diff.title",
     },
@@ -1657,8 +1652,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/:id/diff",
     name: "projects-project-id-wiki-id-diff",
-    // "component": () => import("@/pages/projects/project_id/wiki/id/diff.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-id-diff.title",
     },
@@ -1666,8 +1660,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/:id/edit",
     name: "projects-project-id-wiki-id-edit",
-    // "component": () => import("@/pages/projects/project_id/wiki/id/edit.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-id-edit.title",
     },
@@ -1675,8 +1668,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/:id/history",
     name: "projects-project-id-wiki-id-history",
-    // "component": () => import("@/pages/projects/project_id/wiki/id/history.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-id-history.title",
     },
@@ -1684,8 +1676,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/:id/rename",
     name: "projects-project-id-wiki-id-rename",
-    // "component": () => import("@/pages/projects/project_id/wiki/id/rename.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-id-rename.title",
     },
@@ -1693,8 +1684,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/date_index",
     name: "projects-project-id-wiki-date-index",
-    // "component": () => import("@/pages/projects/project_id/wiki/date_index.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-date-index.title",
     },
@@ -1702,8 +1692,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/export",
     name: "projects-project-id-wiki-export",
-    // "component": () => import("@/pages/projects/project_id/wiki/export.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-export.title",
     },
@@ -1711,8 +1700,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/index",
     name: "projects-project-id-wiki-index",
-    // "component": () => import("@/pages/projects/project_id/wiki/index.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-index.title",
     },
@@ -1720,8 +1708,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/projects/:project_id/wiki/new",
     name: "projects-project-id-wiki-new",
-    // "component": () => import("@/pages/projects/project_id/wiki/new.vue")
-    component: fourOhFour,
+    component: () => import("@/pages/projects/wiki.vue"),
     meta: {
       title: "pages.projects-project-id-wiki-new.title",
     },
