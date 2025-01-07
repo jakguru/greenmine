@@ -80,7 +80,7 @@
         </v-slide-group>
       </v-toolbar>
       <v-divider />
-      Here we will put the wiki
+      <WikiLayout :toc="wikiData.toc" />
     </v-card>
   </v-container>
 </template>
@@ -96,6 +96,7 @@ import iconGitHub from "@/assets/images/icon-github.svg?url";
 import iconMonday from "@/assets/images/icon-monday.svg?url";
 import defaultProjectAvatar from "@/assets/images/default-project-avatar.svg?url";
 import defaultProjectBanner from "@/assets/images/default-project-banner.jpg?url";
+import WikiLayout from "@/components/wiki/layout.vue";
 
 import type { PropType } from "vue";
 import type {
@@ -117,7 +118,9 @@ import type {
 
 export default defineComponent({
   name: "ProjectsActivity",
-  components: {},
+  components: {
+    WikiLayout,
+  },
   props: {
     formAuthenticityToken: {
       type: String,

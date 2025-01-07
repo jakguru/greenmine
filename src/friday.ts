@@ -1729,7 +1729,14 @@ export interface NewsResponse {
 
 export interface Doc {}
 
-export interface WikiResponse {}
+export interface WikiResponse {
+  toc: WikiTableOfContents[];
+  permissions: {
+    edit_wiki_pages: boolean;
+    export_wiki_pages: boolean;
+    view_wiki_edits: boolean;
+  };
+}
 
 export interface AttachedFile {}
 
@@ -1841,3 +1848,10 @@ export const makeNewQueryPayloadFromQueryAndQueryGanttPayload = (
     display_type: query.options.display_type,
   };
 };
+
+export interface WikiTableOfContents {
+  id: number;
+  path: string;
+  title: string;
+  children: WikiTableOfContents[] | null;
+}
